@@ -295,7 +295,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="bg-white border-t border-violet-100 py-8 px-6 text-center text-slate-400 text-sm">
-        <p>&copy; {new Date().getFullYear()} BibleHabit. Scripture changes everything.</p>
+        <p>&copy; {new Date().getFullYear()} BibleHabit, a division of HD Signals LLC. Scripture changes everything.</p>
       </footer>
     </div>
   );
