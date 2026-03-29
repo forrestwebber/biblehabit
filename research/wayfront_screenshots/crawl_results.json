@@ -1,0 +1,291 @@
+{
+  "pages": {
+    "dashboard": {
+      "url": "https://solomonweb.wayfront.com/login",
+      "status": 200,
+      "features": {
+        "headings": [
+          "Welcome back \ud83d\udc4b"
+        ],
+        "buttons": [
+          "Sign in"
+        ],
+        "tables": 0,
+        "forms": 1,
+        "cards": 0,
+        "tabs": [],
+        "inputs": [
+          {
+            "type": "email",
+            "name": "email",
+            "visible": true
+          }
+        ]
+      },
+      "title": "Client Portal | Solomonweb"
+    },
+    "dashboard2": {
+      "url": "https://solomonweb.wayfront.com/dashboard",
+      "redirected_to_login": true
+    },
+    "orders": {
+      "url": "https://solomonweb.wayfront.com/orders",
+      "redirected_to_login": true
+    },
+    "order_new": {
+      "url": "https://solomonweb.wayfront.com/order/new",
+      "status": 404,
+      "features": {
+        "headings": [
+          "This page is not found, sorry \ud83e\udd15"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "404 Page Not Found"
+    },
+    "projects": {
+      "url": "https://solomonweb.wayfront.com/projects",
+      "status": 404,
+      "features": {
+        "headings": [
+          "This page is not found, sorry \ud83e\udd15"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "404 Page Not Found"
+    },
+    "clients": {
+      "url": "https://solomonweb.wayfront.com/clients",
+      "status": 404,
+      "features": {
+        "headings": [
+          "This page is not found, sorry \ud83e\udd15"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "404 Page Not Found"
+    },
+    "services": {
+      "url": "https://solomonweb.wayfront.com/services",
+      "redirected_to_login": true
+    },
+    "billing": {
+      "url": "https://solomonweb.wayfront.com/billing",
+      "redirected_to_login": true
+    },
+    "invoices": {
+      "url": "https://solomonweb.wayfront.com/invoices",
+      "status": 403,
+      "features": {
+        "headings": [
+          "403 Forbidden"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "403 Forbidden"
+    },
+    "tickets": {
+      "url": "https://solomonweb.wayfront.com/tickets",
+      "redirected_to_login": true
+    },
+    "helpdesk": {
+      "url": "https://solomonweb.wayfront.com/helpdesk",
+      "status": 404,
+      "features": {
+        "headings": [
+          "This page is not found, sorry \ud83e\udd15"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "404 Page Not Found"
+    },
+    "messages": {
+      "url": "https://solomonweb.wayfront.com/messages",
+      "status": 404,
+      "features": {
+        "headings": [
+          "This page is not found, sorry \ud83e\udd15"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "404 Page Not Found"
+    },
+    "inbox": {
+      "url": "https://solomonweb.wayfront.com/inbox",
+      "status": 404,
+      "features": {
+        "headings": [
+          "This page is not found, sorry \ud83e\udd15"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "404 Page Not Found"
+    },
+    "reports": {
+      "url": "https://solomonweb.wayfront.com/reports",
+      "status": 404,
+      "features": {
+        "headings": [
+          "This page is not found, sorry \ud83e\udd15"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "404 Page Not Found"
+    },
+    "analytics": {
+      "url": "https://solomonweb.wayfront.com/analytics",
+      "status": 404,
+      "features": {
+        "headings": [
+          "This page is not found, sorry \ud83e\udd15"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "404 Page Not Found"
+    },
+    "settings": {
+      "url": "https://solomonweb.wayfront.com/settings",
+      "redirected_to_login": true
+    },
+    "team": {
+      "url": "https://solomonweb.wayfront.com/team",
+      "status": 404,
+      "features": {
+        "headings": [
+          "This page is not found, sorry \ud83e\udd15"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "404 Page Not Found"
+    },
+    "integrations": {
+      "url": "https://solomonweb.wayfront.com/integrations",
+      "redirected_to_login": true
+    },
+    "forms": {
+      "url": "https://solomonweb.wayfront.com/forms",
+      "redirected_to_login": true
+    },
+    "coupons": {
+      "url": "https://solomonweb.wayfront.com/coupons",
+      "redirected_to_login": true
+    },
+    "affiliates": {
+      "url": "https://solomonweb.wayfront.com/affiliates",
+      "status": 404,
+      "features": {
+        "headings": [
+          "This page is not found, sorry \ud83e\udd15"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "404 Page Not Found"
+    },
+    "account": {
+      "url": "https://solomonweb.wayfront.com/account",
+      "status": 404,
+      "features": {
+        "headings": [
+          "This page is not found, sorry \ud83e\udd15"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "404 Page Not Found"
+    },
+    "profile": {
+      "url": "https://solomonweb.wayfront.com/profile",
+      "redirected_to_login": true
+    },
+    "subscriptions": {
+      "url": "https://solomonweb.wayfront.com/subscriptions",
+      "redirected_to_login": true
+    },
+    "workspace": {
+      "url": "https://solomonweb.wayfront.com/workspace",
+      "status": 404,
+      "features": {
+        "headings": [
+          "This page is not found, sorry \ud83e\udd15"
+        ],
+        "buttons": [],
+        "tables": 0,
+        "forms": 0,
+        "cards": 0,
+        "tabs": [],
+        "inputs": []
+      },
+      "title": "404 Page Not Found"
+    }
+  },
+  "nav_links": [
+    {
+      "text": "Sign up",
+      "href": "https://solomonweb.wayfront.com/signup"
+    },
+    {
+      "text": "Powered by",
+      "href": "https://wayfront.com/?utm_campaign=linkback"
+    }
+  ],
+  "login_success": true
+}
