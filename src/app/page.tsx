@@ -14,12 +14,12 @@ export default function HomePage() {
         <a href="/" className="text-2xl font-bold text-stone-900">BibleHabit</a>
         <div className="flex items-center gap-4">
           <a href="/plans" className="text-sm text-stone-500 hover:text-stone-800">Reading Plans</a>
-          <a href="/login" className="text-sm bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition">Sign In</a>
+          <a href="/plans" className="text-sm bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition">Browse Plans</a>
         </div>
       </nav>
 
       {/* Hero — Today's Verse */}
-      <section className="text-center py-20 px-6 max-w-3xl mx-auto">
+      <section id="verse" className="text-center py-20 px-6 max-w-3xl mx-auto">
         <p className="text-sm uppercase tracking-widest text-amber-600 font-semibold mb-6">Today&apos;s Verse</p>
         <blockquote className="text-3xl md:text-4xl font-serif leading-relaxed text-stone-900 mb-6">
           &ldquo;{todaysVerse.text}&rdquo;
@@ -67,7 +67,7 @@ export default function HomePage() {
                 <h3 className="font-bold text-stone-900 mb-1">{book.title}</h3>
                 <p className="text-sm text-stone-500 mb-3">{book.desc}</p>
                 <p className="text-amber-600 font-bold mb-3">{book.price}</p>
-                <a href="#" className="inline-flex items-center gap-1 text-sm text-amber-600 hover:text-amber-800 font-semibold">
+                <a href={`https://www.amazon.com/s?k=${encodeURIComponent(book.title)}&tag=wandereadvisor-20`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-amber-600 hover:text-amber-800 font-semibold">
                   View on Amazon <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
@@ -79,9 +79,9 @@ export default function HomePage() {
       {/* CTA */}
       <section className="py-20 px-6 text-center">
         <h2 className="text-3xl font-bold text-stone-900 mb-4">Build the Habit. One Verse at a Time.</h2>
-        <p className="text-stone-500 mb-8 max-w-xl mx-auto">Join thousands building a daily Scripture habit. Free to start, no credit card required.</p>
-        <a href="/login" className="inline-flex items-center gap-2 bg-amber-600 text-white px-8 py-3 rounded-lg hover:bg-amber-700 transition font-semibold text-lg">
-          <Star className="h-5 w-5" /> Get Started Free
+        <p className="text-stone-500 mb-8 max-w-xl mx-auto">Join thousands building a daily Scripture habit. Always free. Always will be.</p>
+        <a href="#verse" className="inline-flex items-center gap-2 bg-amber-600 text-white px-8 py-3 rounded-lg hover:bg-amber-700 transition font-semibold text-lg">
+          <Star className="h-5 w-5" /> Start Reading Today
         </a>
       </section>
 
