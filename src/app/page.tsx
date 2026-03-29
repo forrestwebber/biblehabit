@@ -1,3 +1,4 @@
+"use client";
 import { BookOpen, Heart, Share2, Clock, Star, ArrowRight, Calendar, TrendingUp, Smartphone, Compass, CheckCircle } from 'lucide-react';
 
 const todaysVerse = {
