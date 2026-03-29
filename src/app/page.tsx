@@ -48,6 +48,93 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Pick Up Where I Am */}
+      <section className="py-16 px-6 bg-violet-50">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-slate-900 mb-4">Already Reading? Pick Up Where You Are.</h2>
+          <p className="text-center text-slate-500 mb-10">Been reading a physical Bible for months? We will catch up to you.</p>
+          
+          <div className="bg-white rounded-2xl p-8 shadow-sm border border-violet-100 max-w-2xl mx-auto">
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">I&apos;m currently reading...</label>
+                <div className="flex gap-2">
+                  <select className="flex-1 px-4 py-3 border border-violet-200 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-violet-500">
+                    <option>Genesis</option><option>Exodus</option><option>Leviticus</option><option>Numbers</option><option>Deuteronomy</option>
+                    <option>Joshua</option><option>Judges</option><option>Ruth</option><option>1 Samuel</option><option>2 Samuel</option>
+                    <option>1 Kings</option><option selected>2 Kings</option><option>1 Chronicles</option><option>2 Chronicles</option>
+                    <option>Ezra</option><option>Nehemiah</option><option>Esther</option><option>Job</option><option>Psalms</option><option>Proverbs</option>
+                    <option>Ecclesiastes</option><option>Song of Solomon</option><option>Isaiah</option><option>Jeremiah</option><option>Lamentations</option>
+                    <option>Ezekiel</option><option>Daniel</option><option>Hosea</option><option>Joel</option><option>Amos</option><option>Obadiah</option>
+                    <option>Jonah</option><option>Micah</option><option>Nahum</option><option>Habakkuk</option><option>Zephaniah</option><option>Haggai</option>
+                    <option>Zechariah</option><option>Malachi</option><option>Matthew</option><option>Mark</option><option>Luke</option><option>John</option>
+                    <option>Acts</option><option>Romans</option><option>1 Corinthians</option><option>2 Corinthians</option><option>Galatians</option>
+                    <option>Ephesians</option><option>Philippians</option><option>Colossians</option><option>1 Thessalonians</option><option>2 Thessalonians</option>
+                    <option>1 Timothy</option><option>2 Timothy</option><option>Titus</option><option>Philemon</option><option>Hebrews</option><option>James</option>
+                    <option>1 Peter</option><option>2 Peter</option><option>1 John</option><option>2 John</option><option>3 John</option><option>Jude</option><option>Revelation</option>
+                  </select>
+                  <select className="w-28 px-4 py-3 border border-violet-200 rounded-lg bg-white text-slate-800">
+                    <option>Ch. 1</option><option>Ch. 2</option><option>Ch. 3</option><option selected>Ch. 5</option><option>Ch. 10</option><option>Ch. 15</option><option>Ch. 20</option><option>Ch. 25</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">I usually read about...</label>
+                <div className="grid grid-cols-4 gap-2">
+                  <button className="py-3 border-2 border-violet-200 rounded-lg text-center hover:border-violet-500 transition text-sm">
+                    <p className="font-bold text-slate-900">1 chapter</p>
+                    <p className="text-xs text-slate-500">~5 min</p>
+                  </button>
+                  <button className="py-3 border-2 border-violet-500 bg-violet-50 rounded-lg text-center text-sm">
+                    <p className="font-bold text-violet-700">2-3 chapters</p>
+                    <p className="text-xs text-violet-500">~15 min</p>
+                  </button>
+                  <button className="py-3 border-2 border-violet-200 rounded-lg text-center hover:border-violet-500 transition text-sm">
+                    <p className="font-bold text-slate-900">4-5 chapters</p>
+                    <p className="text-xs text-slate-500">~25 min</p>
+                  </button>
+                  <button className="py-3 border-2 border-violet-200 rounded-lg text-center hover:border-violet-500 transition text-sm">
+                    <p className="font-bold text-slate-900">6+ chapters</p>
+                    <p className="text-xs text-slate-500">~30+ min</p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Instant preview */}
+              <div className="bg-violet-50 rounded-xl p-5 space-y-3">
+                <h4 className="text-sm font-bold text-violet-700 uppercase tracking-wide">Your personalized plan</h4>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Picking up from</span>
+                  <span className="font-semibold text-slate-900">2 Kings, Chapter 5</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Chapters remaining</span>
+                  <span className="font-semibold text-slate-900">864 chapters to Revelation</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">At your pace (2-3/night)</span>
+                  <span className="font-semibold text-slate-900">~345 days</span>
+                </div>
+                <hr className="border-violet-200" />
+                <div className="flex justify-between text-sm bg-white -mx-2 px-3 py-2 rounded-lg">
+                  <span className="text-violet-600 font-semibold">You&apos;ll finish by</span>
+                  <span className="font-bold text-violet-700">February 2027 &#10003;</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">By this Christmas</span>
+                  <span className="font-medium text-slate-700">You&apos;ll be in Acts</span>
+                </div>
+              </div>
+
+              <a href="/login" className="w-full flex items-center justify-center gap-2 bg-violet-700 text-white py-3 rounded-lg hover:bg-violet-800 transition font-semibold">
+                Pick Up Where I Am <ArrowRight className="h-4 w-4" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* MOCKUP: Reading Plan Calculator */}
       <section className="py-16 px-6 bg-white">
         <div className="max-w-4xl mx-auto">
