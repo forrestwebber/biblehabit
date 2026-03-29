@@ -57,7 +57,7 @@ export default function LoginPage() {
                 letterSpacing: "0.5px", display: "flex", alignItems: "center", gap: "0.4rem",
                 transition: "color 0.2s",
             }}>
-                ← slacked.co
+                ← biblehabit.co
             </Link>
 
             <div style={{ maxWidth: "400px", width: "100%", position: "relative", zIndex: 10 }}>
@@ -88,7 +88,7 @@ export default function LoginPage() {
                                 fontSize: "1.5rem", fontWeight: 900, color: "#fff",
                                 letterSpacing: "1.5px", margin: "0 0 0.3rem",
                             }}>
-                                slacked.co
+                                biblehabit.co
                             </h1>
                             <p style={{
                                 color: "#7c6dff", fontSize: "0.58rem", fontWeight: 800,
@@ -219,7 +219,7 @@ export default function LoginPage() {
                         <span style={{
                             fontSize: "0.55rem", color: "#7c6dff", letterSpacing: "3px",
                             textTransform: "uppercase", fontWeight: 900, opacity: 0.5,
-                        }}>slacked.co</span>
+                        }}>biblehabit.co</span>
                         <div style={{ display: "flex", gap: "5px" }}>
                             {[0, 150, 300].map(delay => (
                                 <div key={delay} style={{
