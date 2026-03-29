@@ -1,5 +1,6 @@
 "use client";
 import { BookOpen, Heart, Share2, Clock, Star, ArrowRight, Calendar, TrendingUp, Smartphone, Compass, CheckCircle } from 'lucide-react';
+import NavBar from '@/components/NavBar';
 
 const todaysVerse = {
   text: "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.",
@@ -30,13 +31,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
       {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
-        <a href="/" className="text-2xl font-bold text-slate-900">BibleHabit</a>
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-violet-600 font-semibold bg-violet-50 px-3 py-1 rounded-full">100% Free Forever</span>
-          <a href="/login" className="text-sm bg-violet-700 text-white px-4 py-2 rounded-lg hover:bg-violet-800 transition">Create Account</a>
-        </div>
-      </nav>
+      <NavBar />
 
       {/* Hero — Today's Verse */}
       <section id="verse" className="text-center py-20 px-6 max-w-3xl mx-auto">
