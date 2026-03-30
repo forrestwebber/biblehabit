@@ -5,7 +5,7 @@ export interface DailyVerse {
 }
 
 /**
- * 60 daily verses — KJV text, mixed Old Testament and New Testament.
+ * 90 daily verses — KJV text, mixed Old Testament and New Testament.
  * The homepage rotates through these based on the day of the year.
  */
 export const dailyVerses: DailyVerse[] = [
@@ -302,20 +302,169 @@ export const dailyVerses: DailyVerse[] = [
     topic: "perseverance",
   },
   {
-    text: "But they that wait upon the Lord shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint.",
-    reference: "Isaiah 40:31",
-    topic: "endurance",
-  },
-  {
     text: "For I am persuaded, that neither death, nor life, nor angels, nor principalities, nor powers, nor things present, nor things to come, nor height, nor depth, nor any other creature, shall be able to separate us from the love of God, which is in Christ Jesus our Lord.",
     reference: "Romans 8:38-39",
     topic: "assurance",
+  },
+
+  // ── Additional Old Testament (15 verses) ────────────────────────
+  {
+    text: "The LORD is my strength and my shield; my heart trusted in him, and I am helped: therefore my heart greatly rejoiceth; and with my song will I praise him.",
+    reference: "Psalm 28:7",
+    topic: "praise",
+  },
+  {
+    text: "Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest.",
+    reference: "Joshua 1:9",
+    topic: "obedience",
+  },
+  {
+    text: "But the mercy of the LORD is from everlasting to everlasting upon them that fear him, and his righteousness unto children's children.",
+    reference: "Psalm 103:17",
+    topic: "mercy",
+  },
+  {
+    text: "For thou art my rock and my fortress; therefore for thy name's sake lead me, and guide me.",
+    reference: "Psalm 31:3",
+    topic: "guidance",
+  },
+  {
+    text: "The LORD shall preserve thee from all evil: he shall preserve thy soul. The LORD shall preserve thy going out and thy coming in from this time forth, and even for evermore.",
+    reference: "Psalm 121:7-8",
+    topic: "protection",
+  },
+  {
+    text: "Blessed is the man that walketh not in the counsel of the ungodly, nor standeth in the way of sinners, nor sitteth in the seat of the scornful.",
+    reference: "Psalm 1:1",
+    topic: "righteousness",
+  },
+  {
+    text: "Every word of God is pure: he is a shield unto them that put their trust in him.",
+    reference: "Proverbs 30:5",
+    topic: "scripture",
+  },
+  {
+    text: "The LORD thy God in the midst of thee is mighty; he will save, he will rejoice over thee with joy; he will rest in his love, he will joy over thee with singing.",
+    reference: "Zephaniah 3:17",
+    topic: "joy",
+  },
+  {
+    text: "O taste and see that the LORD is good: blessed is the man that trusteth in him.",
+    reference: "Psalm 34:8",
+    topic: "trust",
+  },
+  {
+    text: "And God is able to make all grace abound toward you; that ye, always having all sufficiency in all things, may abound to every good work.",
+    reference: "2 Corinthians 9:8",
+    topic: "provision",
+  },
+  {
+    text: "Who can find a virtuous woman? for her price is far above rubies.",
+    reference: "Proverbs 31:10",
+    topic: "virtue",
+  },
+  {
+    text: "The LORD is good, a strong hold in the day of trouble; and he knoweth them that trust in him.",
+    reference: "Nahum 1:7",
+    topic: "refuge",
+  },
+  {
+    text: "He hath shewed thee, O man, what is good; and what doth the LORD require of thee, but to do justly, and to love mercy, and to walk humbly with thy God?",
+    reference: "Micah 6:8",
+    topic: "justice",
+  },
+  {
+    text: "The earth is the LORD's, and the fulness thereof; the world, and they that dwell therein.",
+    reference: "Psalm 24:1",
+    topic: "sovereignty",
+  },
+  {
+    text: "When thou passest through the waters, I will be with thee; and through the rivers, they shall not overflow thee: when thou walkest through the fire, thou shalt not be burned.",
+    reference: "Isaiah 43:2",
+    topic: "comfort",
+  },
+
+  // ── Additional New Testament (15 verses) ────────────────────────
+  {
+    text: "Jesus saith unto him, Thomas, because thou hast seen me, thou hast believed: blessed are they that have not seen, and yet have believed.",
+    reference: "John 20:29",
+    topic: "faith",
+  },
+  {
+    text: "There is therefore now no condemnation to them which are in Christ Jesus, who walk not after the flesh, but after the Spirit.",
+    reference: "Romans 8:1",
+    topic: "freedom",
+  },
+  {
+    text: "For we are his workmanship, created in Christ Jesus unto good works, which God hath before ordained that we should walk in them.",
+    reference: "Ephesians 2:10",
+    topic: "purpose",
+  },
+  {
+    text: "Let this mind be in you, which was also in Christ Jesus.",
+    reference: "Philippians 2:5",
+    topic: "humility",
+  },
+  {
+    text: "And whatsoever ye do, do it heartily, as to the Lord, and not unto men.",
+    reference: "Colossians 3:23",
+    topic: "work",
+  },
+  {
+    text: "Draw nigh to God, and he will draw nigh to you.",
+    reference: "James 4:8",
+    topic: "devotion",
+  },
+  {
+    text: "Blessed are the peacemakers: for they shall be called the children of God.",
+    reference: "Matthew 5:9",
+    topic: "peace",
+  },
+  {
+    text: "And be ye kind one to another, tenderhearted, forgiving one another, even as God for Christ's sake hath forgiven you.",
+    reference: "Ephesians 4:32",
+    topic: "kindness",
+  },
+  {
+    text: "For the wages of sin is death; but the gift of God is eternal life through Jesus Christ our Lord.",
+    reference: "Romans 6:23",
+    topic: "salvation",
+  },
+  {
+    text: "But my God shall supply all your need according to his riches in glory by Christ Jesus.",
+    reference: "Philippians 4:19",
+    topic: "provision",
+  },
+  {
+    text: "In the beginning was the Word, and the Word was with God, and the Word was God.",
+    reference: "John 1:1",
+    topic: "divinity",
+  },
+  {
+    text: "Be still, and know that I am God: I will be exalted among the heathen, I will be exalted in the earth.",
+    reference: "Psalm 46:10",
+    topic: "stillness",
+  },
+  {
+    text: "Finally, brethren, whatsoever things are true, whatsoever things are honest, whatsoever things are just, whatsoever things are pure, whatsoever things are lovely, whatsoever things are of good report; if there be any virtue, and if there be any praise, think on these things.",
+    reference: "Philippians 4:8",
+    topic: "mindfulness",
+  },
+  {
+    text: "The grace of the Lord Jesus Christ, and the love of God, and the communion of the Holy Ghost, be with you all.",
+    reference: "2 Corinthians 13:14",
+    topic: "blessing",
+  },
+  {
+    text: "And Jesus said unto them, I am the bread of life: he that cometh to me shall never hunger; and he that believeth on me shall never thirst.",
+    reference: "John 6:35",
+    topic: "sustenance",
   },
 ];
 
 /**
  * Returns today's verse based on the day of the year.
- * Cycles through all 30 verses, then repeats.
+ * Cycles through all 90 verses, then repeats.
  */
 export function getTodaysVerse(): DailyVerse {
   const now = new Date();
