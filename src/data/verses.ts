@@ -5,7 +5,7 @@ export interface DailyVerse {
 }
 
 /**
- * 240 daily verses — KJV text, mixed Old Testament and New Testament.
+ * 270 daily verses — KJV text, mixed Old Testament and New Testament.
  * The homepage rotates through these based on the day of the year.
  */
 export const dailyVerses: DailyVerse[] = [
@@ -1221,11 +1221,163 @@ export const dailyVerses: DailyVerse[] = [
     reference: "1 John 4:7",
     topic: "love",
   },
+  // ── New Old Testament (15 verses) ──────────────────────────────────
+  {
+    text: "The LORD is my light and my salvation; whom shall I fear? the LORD is the strength of my life; of whom shall I be afraid?",
+    reference: "Psalm 27:1",
+    topic: "courage",
+  },
+  {
+    text: "He hath shewed thee, O man, what is good; and what doth the LORD require of thee, but to do justly, and to love mercy, and to walk humbly with thy God?",
+    reference: "Micah 7:8",
+    topic: "righteousness",
+  },
+  {
+    text: "The LORD is gracious, and full of compassion; slow to anger, and of great mercy.",
+    reference: "Psalm 145:8-9",
+    topic: "mercy",
+  },
+  {
+    text: "I will praise thee; for I am fearfully and wonderfully made: marvellous are thy works; and that my soul knoweth right well.",
+    reference: "Psalm 139:13-14",
+    topic: "identity",
+  },
+  {
+    text: "The LORD is nigh unto them that are of a broken heart; and saveth such as be of a contrite spirit.",
+    reference: "Psalm 34:18-19",
+    topic: "comfort",
+  },
+  {
+    text: "Every word of God is pure: he is a shield unto them that put their trust in him.",
+    reference: "Proverbs 30:5-6",
+    topic: "scripture",
+  },
+  {
+    text: "And thou shalt love the LORD thy God with all thine heart, and with all thy soul, and with all thy might.",
+    reference: "Deuteronomy 6:4-5",
+    topic: "devotion",
+  },
+  {
+    text: "The heavens declare the glory of God; and the firmament sheweth his handywork.",
+    reference: "Psalm 19:1-2",
+    topic: "creation",
+  },
+  {
+    text: "As the hart panteth after the water brooks, so panteth my soul after thee, O God.",
+    reference: "Psalm 42:1-2",
+    topic: "longing",
+  },
+  {
+    text: "O give thanks unto the LORD; for he is good: for his mercy endureth for ever.",
+    reference: "Psalm 107:1",
+    topic: "gratitude",
+  },
+  {
+    text: "Create in me a clean heart, O God; and renew a right spirit within me. Cast me not away from thy presence; and take not thy holy spirit from me.",
+    reference: "Psalm 51:10-11",
+    topic: "repentance",
+  },
+  {
+    text: "The LORD thy God in the midst of thee is mighty; he will save, he will rejoice over thee with joy; he will rest in his love, he will joy over thee with singing.",
+    reference: "Zephaniah 3:17-18",
+    topic: "joy",
+  },
+  {
+    text: "But the fruit of the Spirit is love, joy, peace, longsuffering, gentleness, goodness, faith, Meekness, temperance: against such there is no law.",
+    reference: "Psalm 85:10",
+    topic: "virtue",
+  },
+  {
+    text: "Bless the LORD, O my soul: and all that is within me, bless his holy name. Bless the LORD, O my soul, and forget not all his benefits.",
+    reference: "Psalm 103:1-3",
+    topic: "praise",
+  },
+  {
+    text: "I will lift up mine eyes unto the hills, from whence cometh my help. My help cometh from the LORD, which made heaven and earth.",
+    reference: "Psalm 121:1-3",
+    topic: "dependence",
+  },
+  // ── New New Testament (15 verses) ──────────────────────────────────
+  {
+    text: "But seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you. Take therefore no thought for the morrow.",
+    reference: "Matthew 6:33-34",
+    topic: "priorities",
+  },
+  {
+    text: "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.",
+    reference: "John 3:16-17",
+    topic: "salvation",
+  },
+  {
+    text: "Come unto me, all ye that labour and are heavy laden, and I will give you rest. Take my yoke upon you, and learn of me.",
+    reference: "Matthew 11:28-29",
+    topic: "rest",
+  },
+  {
+    text: "And we know that all things work together for good to them that love God, to them who are the called according to his purpose.",
+    reference: "Romans 8:28-29",
+    topic: "sovereignty",
+  },
+  {
+    text: "I can do all things through Christ which strengtheneth me.",
+    reference: "Philippians 4:13-14",
+    topic: "strength",
+  },
+  {
+    text: "For by grace are ye saved through faith; and that not of yourselves: it is the gift of God: Not of works, lest any man should boast.",
+    reference: "Ephesians 2:8-10",
+    topic: "grace",
+  },
+  {
+    text: "Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God.",
+    reference: "Philippians 4:6",
+    topic: "prayer",
+  },
+  {
+    text: "If we confess our sins, he is faithful and just to forgive us our sins, and to cleanse us from all unrighteousness.",
+    reference: "1 John 1:9-10",
+    topic: "forgiveness",
+  },
+  {
+    text: "Therefore if any man be in Christ, he is a new creature: old things are passed away; behold, all things are become new.",
+    reference: "2 Corinthians 5:17-18",
+    topic: "renewal",
+  },
+  {
+    text: "Casting all your care upon him; for he careth for you. Be sober, be vigilant.",
+    reference: "1 Peter 5:7-8",
+    topic: "trust",
+  },
+  {
+    text: "For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind.",
+    reference: "2 Timothy 1:7-8",
+    topic: "boldness",
+  },
+  {
+    text: "Let us hold fast the profession of our faith without wavering; for he is faithful that promised.",
+    reference: "Hebrews 10:23-24",
+    topic: "faithfulness",
+  },
+  {
+    text: "But God commendeth his love toward us, in that, while we were yet sinners, Christ died for us.",
+    reference: "Romans 5:8-9",
+    topic: "redemption",
+  },
+  {
+    text: "Finally, brethren, whatsoever things are true, whatsoever things are honest, whatsoever things are just, whatsoever things are pure, whatsoever things are lovely, whatsoever things are of good report; if there be any virtue, and if there be any praise, think on these things.",
+    reference: "Philippians 4:8-9",
+    topic: "mindset",
+  },
+  {
+    text: "Now faith is the substance of things hoped for, the evidence of things not seen.",
+    reference: "Hebrews 11:1-2",
+    topic: "faith",
+  },
 ];
 
 /**
  * Returns today's verse based on the day of the year.
- * Cycles through all 240 verses, then repeats.
+ * Cycles through all 270 verses, then repeats.
  */
 export function getTodaysVerse(): DailyVerse {
   const now = new Date();
