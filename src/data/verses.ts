@@ -5,7 +5,7 @@ export interface DailyVerse {
 }
 
 /**
- * 60 daily verses — KJV text, mixed Old Testament and New Testament.
+ * 90 daily verses — KJV text, mixed Old Testament and New Testament.
  * The homepage rotates through these based on the day of the year.
  */
 export const dailyVerses: DailyVerse[] = [
@@ -310,6 +310,158 @@ export const dailyVerses: DailyVerse[] = [
     text: "For I am persuaded, that neither death, nor life, nor angels, nor principalities, nor powers, nor things present, nor things to come, nor height, nor depth, nor any other creature, shall be able to separate us from the love of God, which is in Christ Jesus our Lord.",
     reference: "Romans 8:38-39",
     topic: "assurance",
+  },
+  // ── Additional Old Testament (15 verses) ────────────────────────
+  {
+    text: "Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest.",
+    reference: "Joshua 1:9",
+    topic: "courage",
+  },
+  {
+    text: "The LORD is my strength and my shield; my heart trusted in him, and I am helped: therefore my heart greatly rejoiceth; and with my song will I praise him.",
+    reference: "Psalm 28:7",
+    topic: "praise",
+  },
+  {
+    text: "I will lift up mine eyes unto the hills, from whence cometh my help. My help cometh from the LORD, which made heaven and earth.",
+    reference: "Psalm 121:1-2",
+    topic: "help",
+  },
+  {
+    text: "The LORD thy God in the midst of thee is mighty; he will save, he will rejoice over thee with joy; he will rest in his love, he will joy over thee with singing.",
+    reference: "Zephaniah 3:17",
+    topic: "love",
+  },
+  {
+    text: "For his anger endureth but a moment; in his favour is life: weeping may endure for a night, but joy cometh in the morning.",
+    reference: "Psalm 30:5",
+    topic: "joy",
+  },
+  {
+    text: "He hath shewed thee, O man, what is good; and what doth the LORD require of thee, but to do justly, and to love mercy, and to walk humbly with thy God?",
+    reference: "Micah 6:8",
+    topic: "justice",
+  },
+  {
+    text: "The LORD is good, a strong hold in the day of trouble; and he knoweth them that trust in him.",
+    reference: "Nahum 1:7",
+    topic: "trust",
+  },
+  {
+    text: "Bless the LORD, O my soul: and all that is within me, bless his holy name. Bless the LORD, O my soul, and forget not all his benefits.",
+    reference: "Psalm 103:1-2",
+    topic: "gratitude",
+  },
+  {
+    text: "For thou art my rock and my fortress; therefore for thy name's sake lead me, and guide me.",
+    reference: "Psalm 31:3",
+    topic: "guidance",
+  },
+  {
+    text: "The grass withereth, the flower fadeth: but the word of our God shall stand for ever.",
+    reference: "Isaiah 40:8",
+    topic: "scripture",
+  },
+  {
+    text: "Be still, and know that I am God: I will be exalted among the heathen, I will be exalted in the earth.",
+    reference: "Psalm 46:10",
+    topic: "peace",
+  },
+  {
+    text: "But the mercy of the LORD is from everlasting to everlasting upon them that fear him, and his righteousness unto children's children.",
+    reference: "Psalm 103:17",
+    topic: "mercy",
+  },
+  {
+    text: "The LORD will perfect that which concerneth me: thy mercy, O LORD, endureth for ever: forsake not the works of thine own hands.",
+    reference: "Psalm 138:8",
+    topic: "faithfulness",
+  },
+  {
+    text: "Who can find a virtuous woman? for her price is far above rubies.",
+    reference: "Proverbs 31:10",
+    topic: "virtue",
+  },
+  {
+    text: "Blessed is the man that walketh not in the counsel of the ungodly, nor standeth in the way of sinners, nor sitteth in the seat of the scornful.",
+    reference: "Psalm 1:1",
+    topic: "wisdom",
+  },
+  // ── Additional New Testament (15 verses) ────────────────────────
+  {
+    text: "Jesus saith unto him, Thomas, because thou hast seen me, thou hast believed: blessed are they that have not seen, and yet have believed.",
+    reference: "John 20:29",
+    topic: "faith",
+  },
+  {
+    text: "And Jesus said unto them, I am the bread of life: he that cometh to me shall never hunger; and he that believeth on me shall never thirst.",
+    reference: "John 6:35",
+    topic: "provision",
+  },
+  {
+    text: "There is therefore now no condemnation to them which are in Christ Jesus, who walk not after the flesh, but after the Spirit.",
+    reference: "Romans 8:1",
+    topic: "freedom",
+  },
+  {
+    text: "But my God shall supply all your need according to his riches in glory by Christ Jesus.",
+    reference: "Philippians 4:19",
+    topic: "provision",
+  },
+  {
+    text: "Greater love hath no man than this, that a man lay down his life for his friends.",
+    reference: "John 15:13",
+    topic: "love",
+  },
+  {
+    text: "For we walk by faith, not by sight.",
+    reference: "2 Corinthians 5:7",
+    topic: "faith",
+  },
+  {
+    text: "And whatsoever ye do, do it heartily, as to the Lord, and not unto men.",
+    reference: "Colossians 3:23",
+    topic: "work",
+  },
+  {
+    text: "The Lord is my helper, and I will not fear what man shall do unto me.",
+    reference: "Hebrews 13:6",
+    topic: "courage",
+  },
+  {
+    text: "For where your treasure is, there will your heart be also.",
+    reference: "Matthew 6:21",
+    topic: "priorities",
+  },
+  {
+    text: "Be strong in the Lord, and in the power of his might.",
+    reference: "Ephesians 6:10",
+    topic: "strength",
+  },
+  {
+    text: "In every thing give thanks: for this is the will of God in Christ Jesus concerning you.",
+    reference: "1 Thessalonians 5:18",
+    topic: "gratitude",
+  },
+  {
+    text: "A new commandment I give unto you, That ye love one another; as I have loved you, that ye also love one another.",
+    reference: "John 13:34",
+    topic: "love",
+  },
+  {
+    text: "For the wages of sin is death; but the gift of God is eternal life through Jesus Christ our Lord.",
+    reference: "Romans 6:23",
+    topic: "salvation",
+  },
+  {
+    text: "Let the word of Christ dwell in you richly in all wisdom; teaching and admonishing one another in psalms and hymns and spiritual songs, singing with grace in your hearts to the Lord.",
+    reference: "Colossians 3:16",
+    topic: "scripture",
+  },
+  {
+    text: "I am the vine, ye are the branches: He that abideth in me, and I in him, the same bringeth forth much fruit: for without me ye can do nothing.",
+    reference: "John 15:5",
+    topic: "devotion",
   },
 ];
 
