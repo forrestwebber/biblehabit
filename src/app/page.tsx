@@ -1,10 +1,12 @@
 "use client";
 import { BookOpen, Heart, Share2, Clock, Star, ArrowRight, Calendar, TrendingUp, Smartphone, Compass, CheckCircle } from 'lucide-react';
 import NavBar from '@/components/NavBar';
+import { getTodaysVerse } from '@/data/verses';
 
+const verse = getTodaysVerse();
 const todaysVerse = {
-  text: "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.",
-  reference: "John 3:16",
+  text: verse.text,
+  reference: verse.reference,
   translation: "KJV"
 };
 
