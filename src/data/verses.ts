@@ -5,11 +5,11 @@ export interface DailyVerse {
 }
 
 /**
- * 30 daily verses — KJV text, mixed Old Testament and New Testament.
+ * 60 daily verses — KJV text, mixed Old Testament and New Testament.
  * The homepage rotates through these based on the day of the year.
  */
 export const dailyVerses: DailyVerse[] = [
-  // ── Old Testament ─────────────────────────────────────────────
+  // ── Old Testament (30 verses) ───────────────────────────────────
   {
     text: "Trust in the LORD with all thine heart; and lean not unto thine own understanding. In all thy ways acknowledge him, and he shall direct thy paths.",
     reference: "Proverbs 3:5-6",
@@ -66,11 +66,6 @@ export const dailyVerses: DailyVerse[] = [
     topic: "work",
   },
   {
-    text: "Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest.",
-    reference: "Joshua 1:9",
-    topic: "strength",
-  },
-  {
     text: "The LORD is nigh unto them that are of a broken heart; and saveth such as be of a contrite spirit.",
     reference: "Psalm 34:18",
     topic: "comfort",
@@ -85,7 +80,87 @@ export const dailyVerses: DailyVerse[] = [
     reference: "Psalm 18:30",
     topic: "trust",
   },
-  // ── New Testament ─────────────────────────────────────────────
+  {
+    text: "The heavens declare the glory of God; and the firmament sheweth his handywork.",
+    reference: "Psalm 19:1",
+    topic: "creation",
+  },
+  {
+    text: "The fear of the LORD is the beginning of wisdom: and the knowledge of the holy is understanding.",
+    reference: "Proverbs 9:10",
+    topic: "wisdom",
+  },
+  {
+    text: "Thy word is a lamp unto my feet, and a light unto my path.",
+    reference: "Psalm 119:105",
+    topic: "guidance",
+  },
+  {
+    text: "The LORD is gracious, and full of compassion; slow to anger, and of great mercy.",
+    reference: "Psalm 145:8",
+    topic: "mercy",
+  },
+  {
+    text: "He healeth the broken in heart, and bindeth up their wounds.",
+    reference: "Psalm 147:3",
+    topic: "healing",
+  },
+  {
+    text: "In the beginning God created the heaven and the earth.",
+    reference: "Genesis 1:1",
+    topic: "creation",
+  },
+  {
+    text: "And thou shalt love the LORD thy God with all thine heart, and with all thy soul, and with all thy might.",
+    reference: "Deuteronomy 6:5",
+    topic: "love",
+  },
+  {
+    text: "The LORD is my rock, and my fortress, and my deliverer; my God, my strength, in whom I will trust.",
+    reference: "Psalm 18:2",
+    topic: "strength",
+  },
+  {
+    text: "Wait on the LORD: be of good courage, and he shall strengthen thine heart: wait, I say, on the LORD.",
+    reference: "Psalm 27:14",
+    topic: "patience",
+  },
+  {
+    text: "For the LORD God is a sun and shield: the LORD will give grace and glory: no good thing will he withhold from them that walk uprightly.",
+    reference: "Psalm 84:11",
+    topic: "provision",
+  },
+  {
+    text: "A merry heart doeth good like a medicine: but a broken spirit drieth the bones.",
+    reference: "Proverbs 17:22",
+    topic: "joy",
+  },
+  {
+    text: "Iron sharpeneth iron; so a man sharpeneth the countenance of his friend.",
+    reference: "Proverbs 27:17",
+    topic: "community",
+  },
+  {
+    text: "The name of the LORD is a strong tower: the righteous runneth into it, and is safe.",
+    reference: "Proverbs 18:10",
+    topic: "protection",
+  },
+  {
+    text: "As the hart panteth after the water brooks, so panteth my soul after thee, O God.",
+    reference: "Psalm 42:1",
+    topic: "devotion",
+  },
+  {
+    text: "It is of the LORD's mercies that we are not consumed, because his compassions fail not. They are new every morning: great is thy faithfulness.",
+    reference: "Lamentations 3:22-23",
+    topic: "faithfulness",
+  },
+  {
+    text: "Humble yourselves in the sight of the Lord, and he shall lift you up.",
+    reference: "James 4:10",
+    topic: "humility",
+  },
+  // ── New Testament (30 verses) ───────────────────────────────────
   {
     text: "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.",
     reference: "John 3:16",
@@ -160,6 +235,81 @@ export const dailyVerses: DailyVerse[] = [
     text: "Casting all your care upon him; for he careth for you.",
     reference: "1 Peter 5:7",
     topic: "trust",
+  },
+  {
+    text: "For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind.",
+    reference: "2 Timothy 1:7",
+    topic: "courage",
+  },
+  {
+    text: "Let us hold fast the profession of our faith without wavering; for he is faithful that promised.",
+    reference: "Hebrews 10:23",
+    topic: "faithfulness",
+  },
+  {
+    text: "But God commendeth his love toward us, in that, while we were yet sinners, Christ died for us.",
+    reference: "Romans 5:8",
+    topic: "love",
+  },
+  {
+    text: "Be ye therefore perfect, even as your Father which is in heaven is perfect.",
+    reference: "Matthew 5:48",
+    topic: "holiness",
+  },
+  {
+    text: "The thief cometh not, but for to steal, and to kill, and to destroy: I am come that they might have life, and that they might have it more abundantly.",
+    reference: "John 10:10",
+    topic: "abundance",
+  },
+  {
+    text: "Beloved, let us love one another: for love is of God; and every one that loveth is born of God, and knoweth God.",
+    reference: "1 John 4:7",
+    topic: "love",
+  },
+  {
+    text: "Set your affection on things above, not on things on the earth.",
+    reference: "Colossians 3:2",
+    topic: "priorities",
+  },
+  {
+    text: "For where two or three are gathered together in my name, there am I in the midst of them.",
+    reference: "Matthew 18:20",
+    topic: "community",
+  },
+  {
+    text: "Now faith is the substance of things hoped for, the evidence of things not seen.",
+    reference: "Hebrews 11:1",
+    topic: "faith",
+  },
+  {
+    text: "Being confident of this very thing, that he which hath begun a good work in you will perform it until the day of Jesus Christ.",
+    reference: "Philippians 1:6",
+    topic: "perseverance",
+  },
+  {
+    text: "Let all bitterness, and wrath, and anger, and clamour, and evil speaking, be put away from you, with all malice: And be ye kind one to another, tenderhearted, forgiving one another, even as God for Christ's sake hath forgiven you.",
+    reference: "Ephesians 4:31-32",
+    topic: "forgiveness",
+  },
+  {
+    text: "I have fought a good fight, I have finished my course, I have kept the faith.",
+    reference: "2 Timothy 4:7",
+    topic: "perseverance",
+  },
+  {
+    text: "And let us not be weary in well doing: for in due season we shall reap, if we faint not.",
+    reference: "Galatians 6:9",
+    topic: "perseverance",
+  },
+  {
+    text: "But they that wait upon the Lord shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint.",
+    reference: "Isaiah 40:31",
+    topic: "endurance",
+  },
+  {
+    text: "For I am persuaded, that neither death, nor life, nor angels, nor principalities, nor powers, nor things present, nor things to come, nor height, nor depth, nor any other creature, shall be able to separate us from the love of God, which is in Christ Jesus our Lord.",
+    reference: "Romans 8:38-39",
+    topic: "assurance",
   },
 ];
 
