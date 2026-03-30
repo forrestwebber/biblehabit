@@ -5,7 +5,7 @@ export interface DailyVerse {
 }
 
 /**
- * 180 daily verses — KJV text, mixed Old Testament and New Testament.
+ * 210 daily verses — KJV text, mixed Old Testament and New Testament.
  * The homepage rotates through these based on the day of the year.
  */
 export const dailyVerses: DailyVerse[] = [
@@ -914,11 +914,162 @@ export const dailyVerses: DailyVerse[] = [
     reference: "2 Corinthians 13:14",
     topic: "blessing",
   },
+  // ── Expansion to 210 verses (30 new — mixed OT & NT, KJV) ────────
+  {
+    text: "The LORD is nigh unto them that are of a broken heart; and saveth such as be of a contrite spirit.",
+    reference: "Psalm 34:18",
+    topic: "comfort",
+  },
+  {
+    text: "Commit thy way unto the LORD; trust also in him; and he shall bring it to pass.",
+    reference: "Psalm 37:5",
+    topic: "trust",
+  },
+  {
+    text: "He hath shewed thee, O man, what is good; and what doth the LORD require of thee, but to do justly, and to love mercy, and to walk humbly with thy God?",
+    reference: "Micah 6:8",
+    topic: "obedience",
+  },
+  {
+    text: "The name of the LORD is a strong tower: the righteous runneth into it, and is safe.",
+    reference: "Proverbs 18:10",
+    topic: "refuge",
+  },
+  {
+    text: "Great is the LORD, and greatly to be praised; and his greatness is unsearchable.",
+    reference: "Psalm 145:3",
+    topic: "worship",
+  },
+  {
+    text: "Create in me a clean heart, O God; and renew a right spirit within me.",
+    reference: "Psalm 51:10",
+    topic: "repentance",
+  },
+  {
+    text: "Every good gift and every perfect gift is from above, and cometh down from the Father of lights, with whom is no variableness, neither shadow of turning.",
+    reference: "James 1:17",
+    topic: "generosity",
+  },
+  {
+    text: "And we know that all things work together for good to them that love God, to them who are the called according to his purpose.",
+    reference: "Romans 8:28",
+    topic: "sovereignty",
+  },
+  {
+    text: "The LORD is my light and my salvation; whom shall I fear? the LORD is the strength of my life; of whom shall I be afraid?",
+    reference: "Psalm 27:1",
+    topic: "confidence",
+  },
+  {
+    text: "Come now, and let us reason together, saith the LORD: though your sins be as scarlet, they shall be as white as snow; though they be red like crimson, they shall be as wool.",
+    reference: "Isaiah 1:18",
+    topic: "redemption",
+  },
+  {
+    text: "But the fruit of the Spirit is love, joy, peace, longsuffering, gentleness, goodness, faith, meekness, temperance: against such there is no law.",
+    reference: "Galatians 5:22-23",
+    topic: "character",
+  },
+  {
+    text: "Blessed are the peacemakers: for they shall be called the children of God.",
+    reference: "Matthew 5:9",
+    topic: "peace",
+  },
+  {
+    text: "In the beginning was the Word, and the Word was with God, and the Word was God.",
+    reference: "John 1:1",
+    topic: "deity",
+  },
+  {
+    text: "The heavens declare the glory of God; and the firmament sheweth his handywork.",
+    reference: "Psalm 19:1",
+    topic: "creation",
+  },
+  {
+    text: "For where your treasure is, there will your heart be also.",
+    reference: "Matthew 6:21",
+    topic: "stewardship",
+  },
+  {
+    text: "He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty.",
+    reference: "Psalm 91:1",
+    topic: "protection",
+  },
+  {
+    text: "A soft answer turneth away wrath: but grievous words stir up anger.",
+    reference: "Proverbs 15:1",
+    topic: "speech",
+  },
+  {
+    text: "And let us not be weary in well doing: for in due season we shall reap, if we faint not.",
+    reference: "Galatians 6:9",
+    topic: "perseverance",
+  },
+  {
+    text: "Beloved, let us love one another: for love is of God; and every one that loveth is born of God, and knoweth God.",
+    reference: "1 John 4:7",
+    topic: "love",
+  },
+  {
+    text: "The LORD is gracious, and full of compassion; slow to anger, and of great mercy.",
+    reference: "Psalm 145:8",
+    topic: "compassion",
+  },
+  {
+    text: "For we are his workmanship, created in Christ Jesus unto good works, which God hath before ordained that we should walk in them.",
+    reference: "Ephesians 2:10",
+    topic: "calling",
+  },
+  {
+    text: "Thy word is a lamp unto my feet, and a light unto my path.",
+    reference: "Psalm 119:105",
+    topic: "guidance",
+  },
+  {
+    text: "Let all things be done decently and in order.",
+    reference: "1 Corinthians 14:40",
+    topic: "discipline",
+  },
+  {
+    text: "Blessed is the man that walketh not in the counsel of the ungodly, nor standeth in the way of sinners, nor sitteth in the seat of the scornful.",
+    reference: "Psalm 1:1",
+    topic: "righteousness",
+  },
+  {
+    text: "If any of you lack wisdom, let him ask of God, that giveth to all men liberally, and upbraideth not; and it shall be given him.",
+    reference: "James 1:5",
+    topic: "wisdom",
+  },
+  {
+    text: "As the hart panteth after the water brooks, so panteth my soul after thee, O God.",
+    reference: "Psalm 42:1",
+    topic: "longing",
+  },
+  {
+    text: "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.",
+    reference: "John 3:16",
+    topic: "gospel",
+  },
+  {
+    text: "O taste and see that the LORD is good: blessed is the man that trusteth in him.",
+    reference: "Psalm 34:8",
+    topic: "experience",
+  },
+  {
+    text: "I can do all things through Christ which strengtheneth me.",
+    reference: "Philippians 4:13",
+    topic: "empowerment",
+  },
+  {
+    text: "The LORD thy God in the midst of thee is mighty; he will save, he will rejoice over thee with joy; he will rest in his love, he will joy over thee with singing.",
+    reference: "Zephaniah 3:17",
+    topic: "delight",
+  },
 ];
 
 /**
  * Returns today's verse based on the day of the year.
- * Cycles through all 180 verses, then repeats.
+ * Cycles through all 210 verses, then repeats.
  */
 export function getTodaysVerse(): DailyVerse {
   const now = new Date();
