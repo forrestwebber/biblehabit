@@ -5,7 +5,7 @@ export interface DailyVerse {
 }
 
 /**
- * 210 daily verses — KJV text, mixed Old Testament and New Testament.
+ * 240 daily verses — KJV text, mixed Old Testament and New Testament.
  * The homepage rotates through these based on the day of the year.
  */
 export const dailyVerses: DailyVerse[] = [
@@ -1065,11 +1065,167 @@ export const dailyVerses: DailyVerse[] = [
     reference: "Zephaniah 3:17",
     topic: "delight",
   },
+
+  // ── Batch 8 — 30 more verses (211-240) ────────────────────────────
+
+  // Old Testament (15 verses)
+  {
+    text: "Create in me a clean heart, O God; and renew a right spirit within me.",
+    reference: "Psalm 51:10",
+    topic: "repentance",
+  },
+  {
+    text: "He hath shewed thee, O man, what is good; and what doth the LORD require of thee, but to do justly, and to love mercy, and to walk humbly with thy God?",
+    reference: "Micah 6:8",
+    topic: "justice",
+  },
+  {
+    text: "The sacrifices of God are a broken spirit: a broken and a contrite heart, O God, thou wilt not despise.",
+    reference: "Psalm 51:17",
+    topic: "humility",
+  },
+  {
+    text: "O give thanks unto the LORD; for he is good: for his mercy endureth for ever.",
+    reference: "Psalm 136:1",
+    topic: "gratitude",
+  },
+  {
+    text: "Teach me to do thy will; for thou art my God: thy spirit is good; lead me into the land of uprightness.",
+    reference: "Psalm 143:10",
+    topic: "obedience",
+  },
+  {
+    text: "O come, let us worship and bow down: let us kneel before the LORD our maker.",
+    reference: "Psalm 95:6",
+    topic: "worship",
+  },
+  {
+    text: "Every word of God is pure: he is a shield unto them that put their trust in him.",
+    reference: "Proverbs 30:5",
+    topic: "scripture",
+  },
+  {
+    text: "The LORD is nigh unto them that are of a broken heart; and saveth such as be of a contrite spirit.",
+    reference: "Psalm 34:18",
+    topic: "comfort",
+  },
+  {
+    text: "Honour the LORD with thy substance, and with the firstfruits of all thine increase.",
+    reference: "Proverbs 3:9",
+    topic: "generosity",
+  },
+  {
+    text: "Who can find a virtuous woman? for her price is far above rubies.",
+    reference: "Proverbs 31:10",
+    topic: "virtue",
+  },
+  {
+    text: "The LORD is my rock, and my fortress, and my deliverer; my God, my strength, in whom I will trust.",
+    reference: "Psalm 18:2",
+    topic: "refuge",
+  },
+  {
+    text: "I will praise thee; for I am fearfully and wonderfully made: marvellous are thy works; and that my soul knoweth right well.",
+    reference: "Psalm 139:14",
+    topic: "identity",
+  },
+  {
+    text: "The fear of the LORD is the beginning of knowledge: but fools despise wisdom and instruction.",
+    reference: "Proverbs 1:7",
+    topic: "wisdom",
+  },
+  {
+    text: "Return unto the LORD thy God; for thou hast fallen by thine iniquity.",
+    reference: "Hosea 14:1",
+    topic: "restoration",
+  },
+  {
+    text: "Thus saith the LORD, Stand ye in the ways, and see, and ask for the old paths, where is the good way, and walk therein, and ye shall find rest for your souls.",
+    reference: "Jeremiah 6:16",
+    topic: "rest",
+  },
+
+  // New Testament (15 verses)
+  {
+    text: "Let nothing be done through strife or vainglory; but in lowliness of mind let each esteem other better than themselves.",
+    reference: "Philippians 2:3",
+    topic: "humility",
+  },
+  {
+    text: "Be ye therefore merciful, as your Father also is merciful.",
+    reference: "Luke 6:36",
+    topic: "compassion",
+  },
+  {
+    text: "Pure religion and undefiled before God and the Father is this, To visit the fatherless and widows in their affliction, and to keep himself unspotted from the world.",
+    reference: "James 1:27",
+    topic: "justice",
+  },
+  {
+    text: "Let us not be weary in well doing: for in due season we shall reap, if we faint not.",
+    reference: "Galatians 6:9",
+    topic: "perseverance",
+  },
+  {
+    text: "Finally, brethren, whatsoever things are true, whatsoever things are honest, whatsoever things are just, whatsoever things are pure, whatsoever things are lovely, whatsoever things are of good report; if there be any virtue, and if there be any praise, think on these things.",
+    reference: "Philippians 4:8",
+    topic: "character",
+  },
+  {
+    text: "But the fruit of the Spirit is love, joy, peace, longsuffering, gentleness, goodness, faith, meekness, temperance: against such there is no law.",
+    reference: "Galatians 5:22-23",
+    topic: "holiness",
+  },
+  {
+    text: "Blessed are the peacemakers: for they shall be called the children of God.",
+    reference: "Matthew 5:9",
+    topic: "peace",
+  },
+  {
+    text: "And be ye kind one to another, tenderhearted, forgiving one another, even as God for Christ's sake hath forgiven you.",
+    reference: "Ephesians 4:32",
+    topic: "forgiveness",
+  },
+  {
+    text: "Give, and it shall be given unto you; good measure, pressed down, and shaken together, and running over, shall men give into your bosom.",
+    reference: "Luke 6:38",
+    topic: "generosity",
+  },
+  {
+    text: "But seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you.",
+    reference: "Matthew 6:33",
+    topic: "priorities",
+  },
+  {
+    text: "For where your treasure is, there will your heart be also.",
+    reference: "Matthew 6:21",
+    topic: "stewardship",
+  },
+  {
+    text: "If we confess our sins, he is faithful and just to forgive us our sins, and to cleanse us from all unrighteousness.",
+    reference: "1 John 1:9",
+    topic: "repentance",
+  },
+  {
+    text: "Wherefore seeing we also are compassed about with so great a cloud of witnesses, let us lay aside every weight, and the sin which doth so easily beset us, and let us run with patience the race that is set before us.",
+    reference: "Hebrews 12:1",
+    topic: "endurance",
+  },
+  {
+    text: "For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind.",
+    reference: "2 Timothy 1:7",
+    topic: "confidence",
+  },
+  {
+    text: "Beloved, let us love one another: for love is of God; and every one that loveth is born of God, and knoweth God.",
+    reference: "1 John 4:7",
+    topic: "love",
+  },
 ];
 
 /**
  * Returns today's verse based on the day of the year.
- * Cycles through all 210 verses, then repeats.
+ * Cycles through all 240 verses, then repeats.
  */
 export function getTodaysVerse(): DailyVerse {
   const now = new Date();
