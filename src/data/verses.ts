@@ -5,7 +5,7 @@ export interface DailyVerse {
 }
 
 /**
- * 90 daily verses — KJV text, mixed Old Testament and New Testament.
+ * 120 daily verses — KJV text, mixed Old Testament and New Testament.
  * The homepage rotates through these based on the day of the year.
  */
 export const dailyVerses: DailyVerse[] = [
@@ -463,11 +463,163 @@ export const dailyVerses: DailyVerse[] = [
     reference: "John 15:5",
     topic: "devotion",
   },
+  // ── Additional Old Testament (15 verses) — Batch 2 ──────────────
+  {
+    text: "He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty. I will say of the LORD, He is my refuge and my fortress: my God; in him will I trust.",
+    reference: "Psalm 91:1-2",
+    topic: "protection",
+  },
+  {
+    text: "Honour the LORD with thy substance, and with the firstfruits of all thine increase: So shall thy barns be filled with plenty, and thy presses shall burst out with new wine.",
+    reference: "Proverbs 3:9-10",
+    topic: "stewardship",
+  },
+  {
+    text: "Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.",
+    reference: "Isaiah 26:3",
+    topic: "peace",
+  },
+  {
+    text: "I will praise thee; for I am fearfully and wonderfully made: marvellous are thy works; and that my soul knoweth right well.",
+    reference: "Psalm 139:14",
+    topic: "identity",
+  },
+  {
+    text: "Keep thy heart with all diligence; for out of it are the issues of life.",
+    reference: "Proverbs 4:23",
+    topic: "wisdom",
+  },
+  {
+    text: "For my thoughts are not your thoughts, neither are your ways my ways, saith the LORD. For as the heavens are higher than the earth, so are my ways higher than your ways, and my thoughts than your thoughts.",
+    reference: "Isaiah 55:8-9",
+    topic: "sovereignty",
+  },
+  {
+    text: "So teach us to number our days, that we may apply our hearts unto wisdom.",
+    reference: "Psalm 90:12",
+    topic: "wisdom",
+  },
+  {
+    text: "For the earth shall be filled with the knowledge of the glory of the LORD, as the waters cover the sea.",
+    reference: "Habakkuk 2:14",
+    topic: "glory",
+  },
+  {
+    text: "Thou wilt shew me the path of life: in thy presence is fulness of joy; at thy right hand there are pleasures for evermore.",
+    reference: "Psalm 16:11",
+    topic: "joy",
+  },
+  {
+    text: "Train up a child in the way he should go: and when he is old, he will not depart from it.",
+    reference: "Proverbs 22:6",
+    topic: "family",
+  },
+  {
+    text: "When thou passest through the waters, I will be with thee; and through the rivers, they shall not overflow thee: when thou walkest through the fire, thou shalt not be burned; neither shall the flame kindle upon thee.",
+    reference: "Isaiah 43:2",
+    topic: "protection",
+  },
+  {
+    text: "Enter into his gates with thanksgiving, and into his courts with praise: be thankful unto him, and bless his name. For the LORD is good; his mercy is everlasting; and his truth endureth to all generations.",
+    reference: "Psalm 100:4-5",
+    topic: "gratitude",
+  },
+  {
+    text: "Be strong and of a good courage, fear not, nor be afraid of them: for the LORD thy God, he it is that doth go with thee; he will not fail thee, nor forsake thee.",
+    reference: "Deuteronomy 31:6",
+    topic: "courage",
+  },
+  {
+    text: "O taste and see that the LORD is good: blessed is the man that trusteth in him.",
+    reference: "Psalm 34:8",
+    topic: "trust",
+  },
+  {
+    text: "No weapon that is formed against thee shall prosper; and every tongue that shall rise against thee in judgment thou shalt condemn. This is the heritage of the servants of the LORD, and their righteousness is of me, saith the LORD.",
+    reference: "Isaiah 54:17",
+    topic: "protection",
+  },
+  // ── Additional New Testament (15 verses) — Batch 2 ─────────────
+  {
+    text: "Let your light so shine before men, that they may see your good works, and glorify your Father which is in heaven.",
+    reference: "Matthew 5:16",
+    topic: "witness",
+  },
+  {
+    text: "Now the God of hope fill you with all joy and peace in believing, that ye may abound in hope, through the power of the Holy Ghost.",
+    reference: "Romans 15:13",
+    topic: "hope",
+  },
+  {
+    text: "If any of you lack wisdom, let him ask of God, that giveth to all men liberally, and upbraideth not; and it shall be given him.",
+    reference: "James 1:5",
+    topic: "wisdom",
+  },
+  {
+    text: "There hath no temptation taken you but such as is common to man: but God is faithful, who will not suffer you to be tempted above that ye are able; but will with the temptation also make a way to escape, that ye may be able to bear it.",
+    reference: "1 Corinthians 10:13",
+    topic: "faithfulness",
+  },
+  {
+    text: "Wherefore seeing we also are compassed about with so great a cloud of witnesses, let us lay aside every weight, and the sin which doth so easily beset us, and let us run with patience the race that is set before us, Looking unto Jesus the author and finisher of our faith.",
+    reference: "Hebrews 12:1-2",
+    topic: "perseverance",
+  },
+  {
+    text: "Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost: Teaching them to observe all things whatsoever I have commanded you: and, lo, I am with you alway, even unto the end of the world.",
+    reference: "Matthew 28:19-20",
+    topic: "mission",
+  },
+  {
+    text: "And he said unto me, My grace is sufficient for thee: for my strength is made perfect in weakness. Most gladly therefore will I rather glory in my infirmities, that the power of Christ may rest upon me.",
+    reference: "2 Corinthians 12:9",
+    topic: "grace",
+  },
+  {
+    text: "And God shall wipe away all tears from their eyes; and there shall be no more death, neither sorrow, nor crying, neither shall there be any more pain: for the former things are passed away.",
+    reference: "Revelation 21:4",
+    topic: "hope",
+  },
+  {
+    text: "Charity suffereth long, and is kind; charity envieth not; charity vaunteth not itself, is not puffed up, Doth not behave itself unseemly, seeketh not her own, is not easily provoked, thinketh no evil; Rejoiceth not in iniquity, but rejoiceth in the truth; Beareth all things, believeth all things, hopeth all things, endureth all things.",
+    reference: "1 Corinthians 13:4-7",
+    topic: "love",
+  },
+  {
+    text: "My brethren, count it all joy when ye fall into divers temptations; Knowing this, that the trying of your faith worketh patience.",
+    reference: "James 1:2-3",
+    topic: "trials",
+  },
+  {
+    text: "Now unto him that is able to do exceeding abundantly above all that we ask or think, according to the power that worketh in us.",
+    reference: "Ephesians 3:20",
+    topic: "power",
+  },
+  {
+    text: "But ye are a chosen generation, a royal priesthood, an holy nation, a peculiar people; that ye should shew forth the praises of him who hath called you out of darkness into his marvellous light.",
+    reference: "1 Peter 2:9",
+    topic: "identity",
+  },
+  {
+    text: "Therefore I say unto you, What things soever ye desire, when ye pray, believe that ye receive them, and ye shall have them.",
+    reference: "Mark 11:24",
+    topic: "prayer",
+  },
+  {
+    text: "Not by works of righteousness which we have done, but according to his mercy he saved us, by the washing of regeneration, and renewing of the Holy Ghost.",
+    reference: "Titus 3:5",
+    topic: "salvation",
+  },
+  {
+    text: "But ye shall receive power, after that the Holy Ghost is come upon you: and ye shall be witnesses unto me both in Jerusalem, and in all Judaea, and in Samaria, and unto the uttermost part of the earth.",
+    reference: "Acts 1:8",
+    topic: "mission",
+  },
 ];
 
 /**
  * Returns today's verse based on the day of the year.
- * Cycles through all 30 verses, then repeats.
+ * Cycles through all 120 verses, then repeats.
  */
 export function getTodaysVerse(): DailyVerse {
   const now = new Date();
