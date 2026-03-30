@@ -5,7 +5,7 @@ export interface DailyVerse {
 }
 
 /**
- * 150 daily verses — KJV text, mixed Old Testament and New Testament.
+ * 180 daily verses — KJV text, mixed Old Testament and New Testament.
  * The homepage rotates through these based on the day of the year.
  */
 export const dailyVerses: DailyVerse[] = [
@@ -767,11 +767,158 @@ export const dailyVerses: DailyVerse[] = [
     reference: "Ephesians 2:10",
     topic: "purpose",
   },
+  // ── Additional Old Testament (15 verses) — Batch 4 ──────────────
+  {
+    text: "The LORD God is my strength, and he will make my feet like hinds' feet, and he will make me to walk upon mine high places.",
+    reference: "Habakkuk 3:19",
+    topic: "strength",
+  },
+  {
+    text: "Blessed is the nation whose God is the LORD; and the people whom he hath chosen for his own inheritance.",
+    reference: "Psalm 33:12",
+    topic: "blessing",
+  },
+  {
+    text: "The LORD is faithful in all his words, and gracious in all his deeds.",
+    reference: "Psalm 145:13",
+    topic: "faithfulness",
+  },
+  {
+    text: "He that is slow to anger is better than the mighty; and he that ruleth his spirit than he that taketh a city.",
+    reference: "Proverbs 16:32",
+    topic: "self-control",
+  },
+  {
+    text: "The steps of a good man are ordered by the LORD: and he delighteth in his way.",
+    reference: "Psalm 37:23",
+    topic: "guidance",
+  },
+  {
+    text: "I, even I, am he that blotteth out thy transgressions for mine own sake, and will not remember thy sins.",
+    reference: "Isaiah 43:25",
+    topic: "forgiveness",
+  },
+  {
+    text: "The righteous cry, and the LORD heareth, and delivereth them out of all their troubles.",
+    reference: "Psalm 34:17",
+    topic: "deliverance",
+  },
+  {
+    text: "He hath not dealt with us after our sins; nor rewarded us according to our iniquities. For as the heaven is high above the earth, so great is his mercy toward them that fear him.",
+    reference: "Psalm 103:10-11",
+    topic: "mercy",
+  },
+  {
+    text: "I have set the LORD always before me: because he is at my right hand, I shall not be moved.",
+    reference: "Psalm 16:8",
+    topic: "steadfastness",
+  },
+  {
+    text: "And I will restore to you the years that the locust hath eaten, the cankerworm, and the caterpiller, and the palmerworm, my great army which I sent among you.",
+    reference: "Joel 2:25",
+    topic: "restoration",
+  },
+  {
+    text: "The fear of the LORD is the beginning of knowledge: but fools despise wisdom and instruction.",
+    reference: "Proverbs 1:7",
+    topic: "wisdom",
+  },
+  {
+    text: "And let the beauty of the LORD our God be upon us: and establish thou the work of our hands upon us; yea, the work of our hands establish thou it.",
+    reference: "Psalm 90:17",
+    topic: "work",
+  },
+  {
+    text: "Behold, I am the LORD, the God of all flesh: is there any thing too hard for me?",
+    reference: "Jeremiah 32:27",
+    topic: "power",
+  },
+  {
+    text: "The LORD shall fight for you, and ye shall hold your peace.",
+    reference: "Exodus 14:14",
+    topic: "deliverance",
+  },
+  {
+    text: "I will instruct thee and teach thee in the way which thou shalt go: I will guide thee with mine eye.",
+    reference: "Psalm 32:8",
+    topic: "guidance",
+  },
+  // ── Additional New Testament (15 verses) — Batch 4 ─────────────
+  {
+    text: "Blessed are the peacemakers: for they shall be called the children of God.",
+    reference: "Matthew 5:9",
+    topic: "peace",
+  },
+  {
+    text: "And this is the confidence that we have in him, that, if we ask any thing according to his will, he heareth us.",
+    reference: "1 John 5:14",
+    topic: "prayer",
+  },
+  {
+    text: "But as many as received him, to them gave he power to become the sons of God, even to them that believe on his name.",
+    reference: "John 1:12",
+    topic: "identity",
+  },
+  {
+    text: "For I reckon that the sufferings of this present time are not worthy to be compared with the glory which shall be revealed in us.",
+    reference: "Romans 8:18",
+    topic: "hope",
+  },
+  {
+    text: "Hereby perceive we the love of God, because he laid down his life for us: and we ought to lay down our lives for the brethren.",
+    reference: "1 John 3:16",
+    topic: "sacrifice",
+  },
+  {
+    text: "Ye have not chosen me, but I have chosen you, and ordained you, that ye should go and bring forth fruit, and that your fruit should remain.",
+    reference: "John 15:16",
+    topic: "purpose",
+  },
+  {
+    text: "Draw nigh to God, and he will draw nigh to you.",
+    reference: "James 4:8",
+    topic: "devotion",
+  },
+  {
+    text: "And be ye kind one to another, tenderhearted, forgiving one another, even as God for Christ's sake hath forgiven you.",
+    reference: "Ephesians 4:32",
+    topic: "forgiveness",
+  },
+  {
+    text: "The Lord is not slack concerning his promise, as some men count slackness; but is longsuffering to us-ward, not willing that any should perish, but that all should come to repentance.",
+    reference: "2 Peter 3:9",
+    topic: "grace",
+  },
+  {
+    text: "Henceforth there is laid up for me a crown of righteousness, which the Lord, the righteous judge, shall give me at that day: and not to me only, but unto all them also that love his appearing.",
+    reference: "2 Timothy 4:8",
+    topic: "reward",
+  },
+  {
+    text: "If ye then, being evil, know how to give good gifts unto your children, how much more shall your Father which is in heaven give good things to them that ask him?",
+    reference: "Matthew 7:11",
+    topic: "provision",
+  },
+  {
+    text: "Who shall separate us from the love of Christ? shall tribulation, or distress, or persecution, or famine, or nakedness, or peril, or sword?",
+    reference: "Romans 8:35",
+    topic: "assurance",
+  },
+  {
+    text: "For thou, Lord, art good, and ready to forgive; and plenteous in mercy unto all them that call upon thee.",
+    reference: "Psalm 86:5",
+    topic: "mercy",
+  },
+  {
+    text: "The grace of the Lord Jesus Christ, and the love of God, and the communion of the Holy Ghost, be with you all.",
+    reference: "2 Corinthians 13:14",
+    topic: "blessing",
+  },
 ];
 
 /**
  * Returns today's verse based on the day of the year.
- * Cycles through all 150 verses, then repeats.
+ * Cycles through all 180 verses, then repeats.
  */
 export function getTodaysVerse(): DailyVerse {
   const now = new Date();
