@@ -5,7 +5,7 @@ export interface DailyVerse {
 }
 
 /**
- * 120 daily verses — KJV text, mixed Old Testament and New Testament.
+ * 150 daily verses — KJV text, mixed Old Testament and New Testament.
  * The homepage rotates through these based on the day of the year.
  */
 export const dailyVerses: DailyVerse[] = [
@@ -615,11 +615,163 @@ export const dailyVerses: DailyVerse[] = [
     reference: "Acts 1:8",
     topic: "mission",
   },
+  // ── Additional Old Testament (15 verses) — Batch 3 ──────────────
+  {
+    text: "The LORD is my portion, saith my soul; therefore will I hope in him. The LORD is good unto them that wait for him, to the soul that seeketh him.",
+    reference: "Lamentations 3:24-25",
+    topic: "hope",
+  },
+  {
+    text: "Though he slay me, yet will I trust in him: but I will maintain mine own ways before him.",
+    reference: "Job 13:15",
+    topic: "trust",
+  },
+  {
+    text: "I will bless the LORD at all times: his praise shall continually be in my mouth.",
+    reference: "Psalm 34:1",
+    topic: "praise",
+  },
+  {
+    text: "The LORD is righteous in all his ways, and holy in all his works. The LORD is nigh unto all them that call upon him, to all that call upon him in truth.",
+    reference: "Psalm 145:17-18",
+    topic: "prayer",
+  },
+  {
+    text: "Cause me to hear thy lovingkindness in the morning; for in thee do I trust: cause me to know the way wherein I should walk; for I lift up my soul unto thee.",
+    reference: "Psalm 143:8",
+    topic: "guidance",
+  },
+  {
+    text: "A good name is rather to be chosen than great riches, and loving favour rather than silver and gold.",
+    reference: "Proverbs 22:1",
+    topic: "integrity",
+  },
+  {
+    text: "He giveth power to the faint; and to them that have no might he increaseth strength.",
+    reference: "Isaiah 40:29",
+    topic: "strength",
+  },
+  {
+    text: "Return unto thy rest, O my soul; for the LORD hath dealt bountifully with thee.",
+    reference: "Psalm 116:7",
+    topic: "rest",
+  },
+  {
+    text: "Great is the LORD, and greatly to be praised; and his greatness is unsearchable.",
+    reference: "Psalm 145:3",
+    topic: "praise",
+  },
+  {
+    text: "The LORD shall preserve thy going out and thy coming in from this time forth, and even for evermore.",
+    reference: "Psalm 121:8",
+    topic: "protection",
+  },
+  {
+    text: "Seek ye the LORD while he may be found, call ye upon him while he is near.",
+    reference: "Isaiah 55:6",
+    topic: "devotion",
+  },
+  {
+    text: "Every word of God is pure: he is a shield unto them that put their trust in him.",
+    reference: "Proverbs 30:5",
+    topic: "scripture",
+  },
+  {
+    text: "The LORD also will be a refuge for the oppressed, a refuge in times of trouble.",
+    reference: "Psalm 9:9",
+    topic: "comfort",
+  },
+  {
+    text: "And the work of righteousness shall be peace; and the effect of righteousness quietness and assurance for ever.",
+    reference: "Isaiah 32:17",
+    topic: "peace",
+  },
+  {
+    text: "Many are the afflictions of the righteous: but the LORD delivereth him out of them all.",
+    reference: "Psalm 34:19",
+    topic: "deliverance",
+  },
+  // ── Additional New Testament (15 verses) — Batch 3 ─────────────
+  {
+    text: "Grace be unto you, and peace, from God our Father, and from the Lord Jesus Christ.",
+    reference: "1 Corinthians 1:3",
+    topic: "blessing",
+  },
+  {
+    text: "For ye are bought with a price: therefore glorify God in your body, and in your spirit, which are God's.",
+    reference: "1 Corinthians 6:20",
+    topic: "identity",
+  },
+  {
+    text: "And we know that the Son of God is come, and hath given us an understanding, that we may know him that is true.",
+    reference: "1 John 5:20",
+    topic: "truth",
+  },
+  {
+    text: "Rejoice evermore. Pray without ceasing.",
+    reference: "1 Thessalonians 5:16-17",
+    topic: "prayer",
+  },
+  {
+    text: "Who his own self bare our sins in his own body on the tree, that we, being dead to sins, should live unto righteousness: by whose stripes ye were healed.",
+    reference: "1 Peter 2:24",
+    topic: "healing",
+  },
+  {
+    text: "For to me to live is Christ, and to die is gain.",
+    reference: "Philippians 1:21",
+    topic: "devotion",
+  },
+  {
+    text: "Blessed be the God and Father of our Lord Jesus Christ, who hath blessed us with all spiritual blessings in heavenly places in Christ.",
+    reference: "Ephesians 1:3",
+    topic: "blessing",
+  },
+  {
+    text: "Stand fast therefore in the liberty wherewith Christ hath made us free, and be not entangled again with the yoke of bondage.",
+    reference: "Galatians 5:1",
+    topic: "freedom",
+  },
+  {
+    text: "Be ye therefore merciful, as your Father also is merciful.",
+    reference: "Luke 6:36",
+    topic: "mercy",
+  },
+  {
+    text: "Ask, and it shall be given you; seek, and ye shall find; knock, and it shall be opened unto you.",
+    reference: "Matthew 7:7",
+    topic: "prayer",
+  },
+  {
+    text: "For the Lord himself shall descend from heaven with a shout, with the voice of the archangel, and with the trump of God: and the dead in Christ shall rise first.",
+    reference: "1 Thessalonians 4:16",
+    topic: "hope",
+  },
+  {
+    text: "And let the peace of God rule in your hearts, to the which also ye are called in one body; and be ye thankful.",
+    reference: "Colossians 3:15",
+    topic: "peace",
+  },
+  {
+    text: "Nay, in all these things we are more than conquerors through him that loved us.",
+    reference: "Romans 8:37",
+    topic: "victory",
+  },
+  {
+    text: "Ye are the salt of the earth: but if the salt have lost his savour, wherewith shall it be salted? it is thenceforth good for nothing, but to be cast out, and to be trodden under foot of men.",
+    reference: "Matthew 5:13",
+    topic: "witness",
+  },
+  {
+    text: "For we are his workmanship, created in Christ Jesus unto good works, which God hath before ordained that we should walk in them.",
+    reference: "Ephesians 2:10",
+    topic: "purpose",
+  },
 ];
 
 /**
  * Returns today's verse based on the day of the year.
- * Cycles through all 120 verses, then repeats.
+ * Cycles through all 150 verses, then repeats.
  */
 export function getTodaysVerse(): DailyVerse {
   const now = new Date();
