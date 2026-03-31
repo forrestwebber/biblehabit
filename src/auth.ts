@@ -3,10 +3,11 @@ import "next-auth/jwt"
 import Google from "next-auth/providers/google"
 import Credentials from "next-auth/providers/credentials"
 import { createClient } from "@supabase/supabase-js"
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./lib/supabase-config"
 
 const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY,
 )
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
