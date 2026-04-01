@@ -168,6 +168,101 @@ export function calculatePlan(
   };
 }
 
+// Generate FULL daily readings for the entire plan (for calendar/export)
+export interface FullDayReading {
+  day: number;
+  date: Date;
+  dateStr: string; // YYYY-MM-DD
+  book: string;
+  chapters: string;
+  summary: string; // e.g. "Genesis 1–3"
+}
+
+export function generateFullPlan(
+  startBook: string,
+  startChapter: number,
+  chaptersPerDay: number,
+  startDate: Date = new Date()
+): FullDayReading[] {
+  const total = chaptersRemaining(startBook, startChapter);
+  const totalDays = Math.ceil(total / chaptersPerDay);
+  const readings: FullDayReading[] = [];
+  let currentGlobal = getGlobalChapterIndex(startBook, startChapter);
+
+  for (let day = 0; day < totalDays; day++) {
+    if (currentGlobal >= TOTAL_CHAPTERS) break;
+
+    const dayDate = new Date(startDate);
+    dayDate.setDate(dayDate.getDate() + day);
+    const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, "0")}-${String(dayDate.getDate()).padStart(2, "0")}`;
+
+    const startBC = getBookAndChapter(currentGlobal);
+    const endGlobal = Math.min(currentGlobal + chaptersPerDay - 1, TOTAL_CHAPTERS - 1);
+    const endBC = getBookAndChapter(endGlobal);
+
+    let chapters: string;
+    let summary: string;
+
+    if (startBC.book === endBC.book) {
+      if (startBC.chapter === endBC.chapter) {
+        chapters = `${startBC.chapter}`;
+        summary = `${startBC.book} ${startBC.chapter}`;
+      } else {
+        chapters = `${startBC.chapter}–${endBC.chapter}`;
+        summary = `${startBC.book} ${startBC.chapter}–${endBC.chapter}`;
+      }
+    } else {
+      chapters = `${startBC.chapter}+ → ${endBC.book} ${endBC.chapter}`;
+      summary = `${startBC.book} ${startBC.chapter} – ${endBC.book} ${endBC.chapter}`;
+    }
+
+    readings.push({
+      day: day + 1,
+      date: dayDate,
+      dateStr,
+      book: startBC.book,
+      chapters,
+      summary,
+    });
+
+    currentGlobal = endGlobal + 1;
+  }
+
+  return readings;
+}
+
+// Get book color for calendar display
+const BOOK_COLORS: Record<string, string> = {
+  // Pentateuch
+  Genesis: "#7c6dff", Exodus: "#7c6dff", Leviticus: "#7c6dff", Numbers: "#7c6dff", Deuteronomy: "#7c6dff",
+  // History
+  Joshua: "#00b4d8", Judges: "#00b4d8", Ruth: "#00b4d8", "1 Samuel": "#00b4d8", "2 Samuel": "#00b4d8",
+  "1 Kings": "#00b4d8", "2 Kings": "#00b4d8", "1 Chronicles": "#00b4d8", "2 Chronicles": "#00b4d8",
+  Ezra: "#00b4d8", Nehemiah: "#00b4d8", Esther: "#00b4d8",
+  // Poetry
+  Job: "#f59e0b", Psalms: "#f59e0b", Proverbs: "#f59e0b", Ecclesiastes: "#f59e0b", "Song of Solomon": "#f59e0b",
+  // Major Prophets
+  Isaiah: "#ef4444", Jeremiah: "#ef4444", Lamentations: "#ef4444", Ezekiel: "#ef4444", Daniel: "#ef4444",
+  // Minor Prophets
+  Hosea: "#f97316", Joel: "#f97316", Amos: "#f97316", Obadiah: "#f97316", Jonah: "#f97316",
+  Micah: "#f97316", Nahum: "#f97316", Habakkuk: "#f97316", Zephaniah: "#f97316", Haggai: "#f97316",
+  Zechariah: "#f97316", Malachi: "#f97316",
+  // Gospels
+  Matthew: "#10b981", Mark: "#10b981", Luke: "#10b981", John: "#10b981",
+  // Acts & Paul
+  Acts: "#06b6d4", Romans: "#8b5cf6", "1 Corinthians": "#8b5cf6", "2 Corinthians": "#8b5cf6",
+  Galatians: "#8b5cf6", Ephesians: "#8b5cf6", Philippians: "#8b5cf6", Colossians: "#8b5cf6",
+  "1 Thessalonians": "#8b5cf6", "2 Thessalonians": "#8b5cf6", "1 Timothy": "#8b5cf6", "2 Timothy": "#8b5cf6",
+  Titus: "#8b5cf6", Philemon: "#8b5cf6",
+  // General & Revelation
+  Hebrews: "#ec4899", James: "#ec4899", "1 Peter": "#ec4899", "2 Peter": "#ec4899",
+  "1 John": "#ec4899", "2 John": "#ec4899", "3 John": "#ec4899", Jude: "#ec4899", Revelation: "#ec4899",
+};
+
+export function getBookColor(bookName: string): string {
+  return BOOK_COLORS[bookName] || "#7c6dff";
+}
+
 // Get today's reading based on a saved plan
 export function getTodaysReading(
   startBook: string,
