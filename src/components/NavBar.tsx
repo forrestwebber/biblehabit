@@ -41,7 +41,15 @@ export default function NavBar() {
   return (
     <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
       <a href="/" className="text-2xl font-bold text-slate-900">BibleHabit</a>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
+        <a
+          href="https://www.amazon.com/s?k=study+bible&tag=hdsignals-20"
+          target="_blank"
+          rel="noopener noreferrer sponsored"
+          className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-500 hover:text-violet-600 transition font-medium border border-slate-200 hover:border-violet-300 rounded-full px-3 py-1.5"
+        >
+          <span>📖</span> Get a Physical Bible
+        </a>
         {!loading && user ? (
           <Link href="/profile" title={user.email ?? "Profile"}>
             {user.avatarUrl ? (

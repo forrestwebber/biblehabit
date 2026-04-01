@@ -9,6 +9,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
+import BibleAffiliate from "@/components/BibleAffiliate";
 import {
   BIBLE_BOOKS,
   TOTAL_CHAPTERS,
@@ -387,6 +388,14 @@ export default function TodayPage() {
           </a>
         </div>
       </div>
+
+      {/* Bible recommendations */}
+      <BibleAffiliate
+        count={4}
+        heading="Take It Offline"
+        subheading="Reading digitally is great — owning a physical Bible is even better."
+        variant="violet"
+      />
     </div>
   );
 }

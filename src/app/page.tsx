@@ -1,6 +1,7 @@
 "use client";
 import { BookOpen, Heart, Share2, Clock, Star, ArrowRight, Calendar, TrendingUp, Smartphone, Compass, CheckCircle } from 'lucide-react';
 import NavBar from '@/components/NavBar';
+import BibleAffiliate from '@/components/BibleAffiliate';
 import { getTodaysVerse } from '@/data/verses';
 
 const verse = getTodaysVerse();
@@ -333,28 +334,12 @@ export default function HomePage() {
       </section>
 
       {/* Get Your Own Copy — Amazon Affiliate */}
-      <section className="py-16 px-6 bg-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-slate-900 mb-4">Get Your Own Copy</h2>
-          <p className="text-slate-500 mb-8">Hold Scripture in your hands. Our recommended editions.</p>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { title: "ESV Study Bible", desc: "The gold standard for study. Notes, maps, articles.", price: "$29.99", asin: "1433502410" },
-              { title: "KJV Large Print", desc: "Classic translation, easy on the eyes.", price: "$14.99", asin: "0785215611" },
-              { title: "NIV Life Application", desc: "Practical notes for daily living.", price: "$24.99", asin: "1496439694" },
-            ].map((book) => (
-              <div key={book.title} className="bg-violet-50 rounded-xl p-6 hover:shadow-md transition">
-                <h3 className="font-bold text-slate-900 mb-1">{book.title}</h3>
-                <p className="text-sm text-slate-500 mb-3">{book.desc}</p>
-                <p className="text-violet-600 font-bold mb-3">{book.price}</p>
-                <a href={`https://www.amazon.com/dp/${book.asin}?tag=wandereadvisor-20`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-violet-600 hover:text-violet-800 font-semibold">
-                  View on Amazon <ArrowRight className="h-4 w-4" />
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <BibleAffiliate
+        count={4}
+        heading="Get Your Own Copy"
+        subheading="Hold Scripture in your hands. Our recommended editions for every kind of reader."
+        variant="white"
+      />
 
       {/* Stats */}
       <section className="py-16 px-6 bg-violet-50">
