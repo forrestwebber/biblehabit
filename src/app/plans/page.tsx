@@ -11,24 +11,36 @@ import {
 } from "@/lib/bible-data";
 import { savePlan } from "@/lib/reading-store";
 
+const TRANSLATIONS = ["KJV", "NIV", "ESV", "NKJV", "NASB"];
+
 const PACE_OPTIONS = [
-  { label: "1 chapter", perDay: 1, time: "~5 min", months: null },
-  { label: "2–3 chapters", perDay: 3, time: "~15 min", months: null },
-  { label: "4–5 chapters", perDay: 4, time: "~20 min", months: null },
-  { label: "6+ chapters", perDay: 7, time: "~30 min", months: null },
+  { label: "1 chapter", perDay: 1, time: "~5 min" },
+  { label: "2–3 chapters", perDay: 3, time: "~15 min" },
+  { label: "4–5 chapters", perDay: 4, time: "~20 min" },
+  { label: "6+ chapters", perDay: 7, time: "~30 min" },
+];
+
+const TIME_OPTIONS = [
+  { label: "15 min/day", minutes: 15, perDay: 3 },
+  { label: "30 min/day", minutes: 30, perDay: 6 },
+  { label: "45 min/day", minutes: 45, perDay: 9 },
+  { label: "60 min/day", minutes: 60, perDay: 12 },
 ];
 
 const DURATION_OPTIONS = [
-  { label: "6 months", days: 182 },
-  { label: "12 months", days: 365 },
-  { label: "18 months", days: 548 },
+  { label: "2 months", days: 56, weeks: 8 },
+  { label: "3 months", days: 84, weeks: 12 },
+  { label: "6 months", days: 182, weeks: 26 },
+  { label: "12 months", days: 365, weeks: 52 },
 ];
 
 export default function PlansPage() {
   const [selectedBook, setSelectedBook] = useState("Genesis");
   const [selectedChapter, setSelectedChapter] = useState(1);
-  const [mode, setMode] = useState<"pace" | "duration">("pace");
+  const [selectedTranslation, setSelectedTranslation] = useState("KJV");
+  const [mode, setMode] = useState<"pace" | "time" | "duration">("pace");
   const [selectedPace, setSelectedPace] = useState(3);
+  const [selectedTime, setSelectedTime] = useState(30);
   const [selectedDuration, setSelectedDuration] = useState(365);
   const [planSaved, setPlanSaved] = useState(false);
 
@@ -38,9 +50,13 @@ export default function PlansPage() {
   // Calculate chapters per day based on mode
   const chaptersPerDay = useMemo(() => {
     if (mode === "pace") return selectedPace;
+    if (mode === "time") {
+      const timeOpt = TIME_OPTIONS.find((t) => t.minutes === selectedTime);
+      return timeOpt?.perDay ?? 3;
+    }
     const remaining = chaptersRemaining(selectedBook, selectedChapter);
     return Math.max(1, Math.ceil(remaining / selectedDuration));
-  }, [mode, selectedPace, selectedDuration, selectedBook, selectedChapter]);
+  }, [mode, selectedPace, selectedTime, selectedDuration, selectedBook, selectedChapter]);
 
   const plan = useMemo(
     () => calculatePlan(selectedBook, selectedChapter, chaptersPerDay),
@@ -99,6 +115,22 @@ export default function PlansPage() {
           <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-violet-100">
             {/* Left: Inputs */}
             <div className="p-8 space-y-6">
+              {/* Translation selector */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Preferred Translation
+                </label>
+                <select
+                  value={selectedTranslation}
+                  onChange={(e) => setSelectedTranslation(e.target.value)}
+                  className="w-full px-4 py-3 border border-violet-200 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-violet-500 focus:outline-none"
+                >
+                  {TRANSLATIONS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Where are you starting?
@@ -138,30 +170,49 @@ export default function PlansPage() {
                   Choose by...
                 </label>
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => setMode("pace")}
-                    className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${
-                      mode === "pace"
-                        ? "bg-violet-600 text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
-                  >
-                    Daily Pace
-                  </button>
-                  <button
-                    onClick={() => setMode("duration")}
-                    className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${
-                      mode === "duration"
-                        ? "bg-violet-600 text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
-                  >
-                    Target Duration
-                  </button>
+                  {(["pace", "time", "duration"] as const).map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => setMode(m)}
+                      className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${
+                        mode === m
+                          ? "bg-violet-600 text-white"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      }`}
+                    >
+                      {m === "pace" ? "Chapters" : m === "time" ? "Minutes" : "Duration"}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {mode === "pace" ? (
+              {mode === "time" ? (
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Daily reading time
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {TIME_OPTIONS.map((t) => (
+                      <button
+                        key={t.minutes}
+                        onClick={() => setSelectedTime(t.minutes)}
+                        className={`py-3 px-2 border-2 rounded-lg text-center transition text-sm ${
+                          selectedTime === t.minutes
+                            ? "border-violet-500 bg-violet-50"
+                            : "border-violet-200 hover:border-violet-300"
+                        }`}
+                      >
+                        <p className={`font-bold ${selectedTime === t.minutes ? "text-violet-700" : "text-slate-900"}`}>
+                          {t.label}
+                        </p>
+                        <p className={`text-xs ${selectedTime === t.minutes ? "text-violet-500" : "text-slate-500"}`}>
+                          ~{t.perDay} chapters
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : mode === "pace" ? (
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     How much per day?
@@ -204,7 +255,7 @@ export default function PlansPage() {
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Finish in...
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {DURATION_OPTIONS.map((d) => (
                       <button
                         key={d.days}
@@ -231,7 +282,7 @@ export default function PlansPage() {
                               : "text-slate-500"
                           }`}
                         >
-                          ~{Math.ceil(
+                          {d.weeks} weeks · ~{Math.ceil(
                             chaptersRemaining(selectedBook, selectedChapter) /
                               d.days
                           )}{" "}
@@ -251,6 +302,12 @@ export default function PlansPage() {
               </h3>
 
               <div className="space-y-4 mb-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 text-sm">Translation</span>
+                  <span className="font-semibold text-slate-900">
+                    {selectedTranslation}
+                  </span>
+                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 text-sm">Starting from</span>
                   <span className="font-semibold text-slate-900">
