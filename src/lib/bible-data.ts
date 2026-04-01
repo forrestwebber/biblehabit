@@ -263,6 +263,51 @@ export function getBookColor(bookName: string): string {
   return BOOK_COLORS[bookName] || "#7c6dff";
 }
 
+// ─── Range Calculator (for /plans form) ─────────────────────────
+export interface RangeResult {
+  totalChapters: number;
+  chaptersPerDay: number;
+  totalDays: number;
+  endDate: Date;
+  error?: string;
+}
+
+/**
+ * Calculate a reading plan between two books (inclusive).
+ * chaptersPerMinute = 1 (task spec: 30 min → 30 ch/day).
+ */
+export function calculateRange(
+  startBookName: string,
+  endBookName: string,
+  minutesPerDay: number,
+  startDate: Date = new Date()
+): RangeResult {
+  const startIdx = BIBLE_BOOKS.findIndex((b) => b.name === startBookName);
+  const endIdx = BIBLE_BOOKS.findIndex((b) => b.name === endBookName);
+
+  if (startIdx === -1 || endIdx === -1) {
+    return { totalChapters: 0, chaptersPerDay: 0, totalDays: 0, endDate: startDate, error: "Book not found" };
+  }
+
+  if (endIdx < startIdx) {
+    return { totalChapters: 0, chaptersPerDay: 0, totalDays: 0, endDate: startDate, error: "End book must come after start book" };
+  }
+
+  // Total chapters from startBook through endBook (inclusive)
+  let totalChapters = 0;
+  for (let i = startIdx; i <= endIdx; i++) {
+    totalChapters += BIBLE_BOOKS[i].chapters;
+  }
+
+  // 1 chapter ≈ 1 minute reading time
+  const chaptersPerDay = minutesPerDay;
+  const totalDays = Math.ceil(totalChapters / chaptersPerDay);
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + totalDays);
+
+  return { totalChapters, chaptersPerDay, totalDays, endDate };
+}
+
 // Get today's reading based on a saved plan
 export function getTodaysReading(
   startBook: string,
