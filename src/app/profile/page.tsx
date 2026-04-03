@@ -9,8 +9,10 @@ import {
   ChevronLeft,
   ChevronRight,
   RotateCcw,
+  CloudUpload,
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
+import { supabase } from "@/lib/supabase";
 import {
   BIBLE_BOOKS,
   TOTAL_CHAPTERS,
@@ -35,12 +37,22 @@ export default function ProfilePage() {
   const [totalRead, setTotalRead] = useState(0);
   const [calMonth, setCalMonth] = useState(new Date().getMonth() + 1);
   const [calYear, setCalYear] = useState(new Date().getFullYear());
+  const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
     setPlanState(getPlan());
     setStreak(getCurrentStreak());
     setTotalRead(getTotalChaptersRead());
     setLoading(false);
+
+    // Check auth state for sync banner
+    supabase.auth.getSession().then(({ data }) => {
+      setIsSignedIn(!!data.session?.user);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsSignedIn(!!session?.user);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   const monthReadings = useMemo(
@@ -185,6 +197,22 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <NavBar />
+
+      {/* Sync prompt banner — only for signed-out users */}
+      {isSignedIn === false && (
+        <div className="sticky top-0 z-40 bg-violet-700 text-white px-4 py-3 flex items-center justify-between gap-3 shadow-md">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <CloudUpload className="h-4 w-4 flex-shrink-0" />
+            <span>Your progress is saved locally. Sign in to sync across devices.</span>
+          </div>
+          <a
+            href="/login"
+            className="flex-shrink-0 bg-white text-violet-700 hover:bg-violet-50 font-semibold text-xs px-4 py-1.5 rounded-full transition"
+          >
+            Sign In
+          </a>
+        </div>
+      )}
 
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}

@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import BibleAffiliate from "@/components/BibleAffiliate";
+import SignUpGate from "@/components/SignUpGate";
+import { supabase } from "@/lib/supabase";
 import {
   BIBLE_BOOKS,
   TOTAL_CHAPTERS,
@@ -63,6 +65,9 @@ export default function TodayPage() {
   const [todayDone, setTodayDone] = useState(false);
   const [streak, setStreak] = useState(0);
   const [totalRead, setTotalRead] = useState(0);
+  const [showSignUpGate, setShowSignUpGate] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null);
+  const [showAffiliate, setShowAffiliate] = useState(false);
 
   // Calculate today's reading
   const getTodayInfo = useCallback(() => {
@@ -116,6 +121,27 @@ export default function TodayPage() {
     const todayStr = formatDate(new Date());
     setTodayDone(isDayComplete(todayStr));
     setLoading(false);
+
+    // Check auth for sign-up gate logic
+    supabase.auth.getSession().then(({ data }) => {
+      setIsSignedIn(!!data.session?.user);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsSignedIn(!!session?.user);
+    });
+
+    // Show affiliate section once per session
+    const affiliateShown = typeof sessionStorage !== "undefined"
+      ? sessionStorage.getItem("affiliate_shown")
+      : null;
+    if (!affiliateShown) {
+      setShowAffiliate(true);
+      if (typeof sessionStorage !== "undefined") {
+        sessionStorage.setItem("affiliate_shown", "1");
+      }
+    }
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const todayInfo = getTodayInfo();
@@ -141,8 +167,18 @@ export default function TodayPage() {
     const indices = todayInfo.chapters.map((c) => c.globalIndex);
     markDayComplete(todayStr, indices);
     setTodayDone(true);
-    setStreak(getCurrentStreak());
+    const newStreak = getCurrentStreak();
+    setStreak(newStreak);
     setTotalRead(getTotalChaptersRead());
+
+    // Show sign-up gate if user is not signed in:
+    // — always after completing Day 3
+    // — or on any day after day 3 (streak >= 3)
+    if (isSignedIn === false) {
+      if (todayInfo.dayNumber >= 3 || newStreak >= 3) {
+        setShowSignUpGate(true);
+      }
+    }
   };
 
   if (loading) {
@@ -219,6 +255,14 @@ export default function TodayPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <NavBar />
+
+      {/* Sign-up gate modal */}
+      {showSignUpGate && (
+        <SignUpGate
+          streak={streak}
+          onDismiss={() => setShowSignUpGate(false)}
+        />
+      )}
 
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Reading Card */}
@@ -389,13 +433,14 @@ export default function TodayPage() {
         </div>
       </div>
 
-      {/* Bible recommendations */}
-      <BibleAffiliate
-        count={4}
-        heading="Take It Offline"
-        subheading="Reading digitally is great — owning a physical Bible is even better."
-        variant="violet"
-      />
+      {/* Bible recommendations — shown once per session */}
+      {showAffiliate && (
+        <BibleAffiliate
+          count={2}
+          heading="Own a Great Bible"
+          variant="violet"
+        />
+      )}
     </div>
   );
 }
