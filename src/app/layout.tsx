@@ -1,6 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover", // Required for iPhone notch / Dynamic Island safe areas
+};
 
 export const metadata: Metadata = {
   title: "BibleHabit — Daily Bible Reading",

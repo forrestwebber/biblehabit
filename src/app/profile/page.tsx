@@ -28,6 +28,7 @@ import {
   getMonthReadings,
   getProgress,
   formatDate,
+  syncProgress,
 } from "@/lib/reading-store";
 
 export default function ProfilePage() {
@@ -45,12 +46,27 @@ export default function ProfilePage() {
     setTotalRead(getTotalChaptersRead());
     setLoading(false);
 
-    // Check auth state for sync banner
-    supabase.auth.getSession().then(({ data }) => {
-      setIsSignedIn(!!data.session?.user);
+    supabase.auth.getSession().then(async ({ data }) => {
+      const loggedIn = !!data.session?.user;
+      setIsSignedIn(loggedIn);
+      if (loggedIn) {
+        await syncProgress();
+        // Refresh stats after sync pulls in Supabase data
+        setPlanState(getPlan());
+        setStreak(getCurrentStreak());
+        setTotalRead(getTotalChaptersRead());
+      }
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsSignedIn(!!session?.user);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const loggedIn = !!session?.user;
+      setIsSignedIn(loggedIn);
+      if (loggedIn) {
+        await syncProgress();
+        setPlanState(getPlan());
+        setStreak(getCurrentStreak());
+        setTotalRead(getTotalChaptersRead());
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -198,16 +214,16 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-slate-50">
       <NavBar />
 
-      {/* Sync prompt banner — only for signed-out users */}
+      {/* Sign-in nudge for logged-out users */}
       {isSignedIn === false && (
-        <div className="sticky top-0 z-40 bg-violet-700 text-white px-4 py-3 flex items-center justify-between gap-3 shadow-md">
-          <div className="flex items-center gap-2 text-sm font-medium">
+        <div className="bg-violet-50 border-b border-violet-100 px-4 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm text-violet-700">
             <CloudUpload className="h-4 w-4 flex-shrink-0" />
-            <span>Your progress is saved locally. Sign in to sync across devices.</span>
+            <span>Progress saved locally — sign in to sync across devices.</span>
           </div>
           <a
             href="/login"
-            className="flex-shrink-0 bg-white text-violet-700 hover:bg-violet-50 font-semibold text-xs px-4 py-1.5 rounded-full transition"
+            className="flex-shrink-0 bg-violet-700 text-white hover:bg-violet-800 font-semibold text-xs px-4 py-1.5 rounded-full transition"
           >
             Sign In
           </a>
