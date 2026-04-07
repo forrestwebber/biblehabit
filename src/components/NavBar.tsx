@@ -50,8 +50,11 @@ export default function NavBar() {
         >
           <span>📖</span> Get a Physical Bible
         </a>
+        {!loading && user && (
+          <a href="/today" className="hidden sm:inline text-sm font-medium text-slate-600 hover:text-violet-600 transition">Today</a>
+        )}
         {!loading && user ? (
-          <Link href="/profile" title={user.email ?? "Profile"}>
+          <Link href="/dashboard" title={user.email ?? "Dashboard"}>
             {user.avatarUrl ? (
               <img src={user.avatarUrl} alt="Profile" className="w-9 h-9 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-violet-400 transition" style={{ border: "2px solid rgba(139,92,246,0.4)" }} />
             ) : (
