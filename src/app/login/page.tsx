@@ -57,10 +57,13 @@ function LoginContent() {
     setMessage("");
     setIsError(false);
     if (mode === "signup") {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) {
         setIsError(true);
         setMessage(error.message);
+      } else if (data.session) {
+        window.location.href = "/dashboard";
+        return;
       } else {
         setIsError(false);
         setMessage("Check your email for a confirmation link!");
