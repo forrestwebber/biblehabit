@@ -40,7 +40,7 @@ function LoginContent() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/today` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
     });
     if (error) {
       setIsError(true);
@@ -71,7 +71,7 @@ function LoginContent() {
         setIsError(true);
         setMessage(error.message);
       } else {
-        window.location.href = "/today";
+        window.location.href = "/dashboard";
       }
     }
     setLoading(false);

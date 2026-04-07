@@ -3,6 +3,7 @@
 
 import { supabase } from "./supabase";
 import { getBookAndChapter, getGlobalChapterIndex } from "@/data/bible";
+import { chaptersRemaining, TOTAL_CHAPTERS } from "@/lib/bible-data";
 
 export interface SavedPlan {
   startBook: string;
@@ -311,3 +312,53 @@ function formatDate(d: Date): string {
 }
 
 export { formatDate };
+
+export interface ProgressAnalysis {
+  daysSinceStart: number;
+  expectedChapters: number;
+  actualChapters: number;
+  daysBehind: number;      // positive = behind, 0 = on track
+  daysAhead: number;       // positive = ahead, 0 = on track
+  scheduledFinishDate: Date;
+  projectedFinishDate: Date;
+  missedDates: string[];   // "YYYY-MM-DD" dates with 0 progress
+}
+
+export function getProgressAnalysis(plan: SavedPlan): ProgressAnalysis {
+  const startDate = new Date(plan.startDate + "T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysSinceStart = Math.max(0, Math.floor((today.getTime() - startDate.getTime()) / 86400000));
+
+  const totalChapters = chaptersRemaining(plan.startBook, plan.startChapter);
+  const totalDays = Math.ceil(totalChapters / plan.chaptersPerDay);
+
+  const expectedChapters = Math.min(daysSinceStart * plan.chaptersPerDay, totalChapters);
+  const actualChapters = getTotalChaptersRead();
+
+  const diff = actualChapters - expectedChapters;
+  const daysAhead = diff > 0 ? Math.floor(diff / plan.chaptersPerDay) : 0;
+  const daysBehind = diff < 0 ? Math.floor(Math.abs(diff) / plan.chaptersPerDay) : 0;
+
+  const scheduledFinishDate = new Date(startDate);
+  scheduledFinishDate.setDate(scheduledFinishDate.getDate() + totalDays);
+
+  const remainingChapters = totalChapters - actualChapters;
+  const remainingDays = Math.ceil(remainingChapters / plan.chaptersPerDay);
+  const projectedFinishDate = new Date(today);
+  projectedFinishDate.setDate(projectedFinishDate.getDate() + remainingDays);
+
+  // Find missed dates in the last 14 days
+  const progress = localGetProgress();
+  const missedDates: string[] = [];
+  for (let i = 1; i <= Math.min(daysSinceStart, 14); i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const ds = formatDate(d);
+    if (!progress[ds] || progress[ds].length === 0) {
+      missedDates.push(ds);
+    }
+  }
+
+  return { daysSinceStart, expectedChapters, actualChapters, daysBehind, daysAhead, scheduledFinishDate, projectedFinishDate, missedDates };
+}
