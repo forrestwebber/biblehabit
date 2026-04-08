@@ -35,13 +35,48 @@ function LoginContent() {
 
   const handleGoogle = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "keycloak",
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
-    });
-    if (error) {
-      setIsError(true);
-      setMessage(error.message);
+    const isNative = typeof (window as any).Capacitor !== "undefined" && (window as any).Capacitor.isNativePlatform?.();
+
+    if (isNative) {
+      // On iOS/Android: use in-app browser (SFSafariViewController) to avoid bouncing to Safari
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "keycloak",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+          skipBrowserRedirect: true,
+        },
+      });
+      if (error) {
+        setIsError(true);
+        setMessage(error.message);
+        setLoading(false);
+        return;
+      }
+      if (data.url) {
+        try {
+          const { Browser } = await import("@capacitor/browser");
+          await Browser.open({ url: data.url, presentationStyle: "popover" });
+          // Listen for the callback — when SFSafariViewController navigates back to biblehabit.co,
+          // Supabase will have set the session via the auth/callback route.
+          Browser.addListener("browserFinished", () => {
+            supabase.auth.getSession().then(({ data: { session } }) => {
+              if (session) window.location.href = "/dashboard";
+            });
+          });
+        } catch {
+          // Fallback if Browser plugin unavailable
+          window.location.href = data.url;
+        }
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "keycloak",
+        options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
+      });
+      if (error) {
+        setIsError(true);
+        setMessage(error.message);
+      }
     }
     setLoading(false);
   };
