@@ -48,6 +48,7 @@ import {
 } from "@/lib/sub-plans";
 import { addXP, getLevelInfo, XP_PER_CHAPTER, type LevelInfo } from "@/lib/xp-store";
 import { saveHighlight } from "@/lib/highlights-store";
+import { getNote, saveNote } from "@/lib/notes-store";
 
 // ─── Translations ────────────────────────────────────────────────
 const TRANSLATIONS = [
@@ -224,6 +225,10 @@ export default function TodayPage() {
   // Verse selection / sharing / highlights
   const [selectedVerses, setSelectedVerses] = useState<Set<number>>(new Set());
   const [highlightSaved, setHighlightSaved] = useState(false);
+
+  // Chapter notes
+  const [noteText, setNoteText] = useState("");
+  const [noteSaved, setNoteSaved] = useState(false);
 
   const refreshStats = useCallback(() => {
     setPlanState(getPlan());
@@ -452,6 +457,16 @@ export default function TodayPage() {
       if (data) setChapterTexts((prev) => new Map(prev).set(key, data));
     });
   }, [extraInfo, extraView, extraOffset, chapterTexts, translation]);
+
+  // Load note for the current chapter
+  useEffect(() => {
+    if (!todayInfo) return;
+    const ch = todayInfo.chapters[currentChapterView];
+    if (!ch) return;
+    const saved = getNote(ch.book, ch.chapter);
+    setNoteText(saved?.text ?? "");
+    setNoteSaved(false);
+  }, [todayInfo, currentChapterView]);
 
   function handleTranslationChange(id: string) {
     setTranslation(id);
@@ -1113,6 +1128,52 @@ export default function TodayPage() {
                 </button>
               </div>
             )}
+
+            {/* Chapter notes */}
+            <div className="px-6 py-4" style={{ borderTop: `1px solid ${readingBorder}` }}>
+              <p className="text-xs font-semibold mb-2" style={{ color: readingMuted }}>MY NOTES</p>
+              <textarea
+                value={noteText}
+                onChange={(e) => { setNoteText(e.target.value); setNoteSaved(false); }}
+                placeholder="Jot down a reflection, prayer, or insight…"
+                rows={3}
+                style={{
+                  width: "100%",
+                  background: readingSurface,
+                  color: readingText,
+                  border: `1px solid ${readingBorder}`,
+                  borderRadius: "0.75rem",
+                  padding: "0.75rem",
+                  fontSize: "0.875rem",
+                  lineHeight: 1.6,
+                  resize: "vertical",
+                  outline: "none",
+                  fontFamily: "inherit",
+                  transition: "background 0.3s, border-color 0.3s",
+                }}
+                onFocus={(e) => { e.target.style.borderColor = "#7c3aed"; }}
+                onBlur={(e) => { e.target.style.borderColor = readingBorder; }}
+              />
+              {noteText.trim() && (
+                <button
+                  onClick={() => {
+                    if (!todayInfo) return;
+                    const ch = todayInfo.chapters[currentChapterView];
+                    if (!ch) return;
+                    saveNote(ch.book, ch.chapter, noteText);
+                    setNoteSaved(true);
+                    setTimeout(() => setNoteSaved(false), 2000);
+                  }}
+                  className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition active:scale-95"
+                  style={{
+                    background: noteSaved ? "#22c55e" : "#7c3aed",
+                    color: "#ffffff",
+                  }}
+                >
+                  {noteSaved ? "Saved ✓" : "Save Note"}
+                </button>
+              )}
+            </div>
 
             {/* Mark as Done */}
             <div className="px-6 py-4" style={{ borderTop: `1px solid ${readingBorder}` }}>
