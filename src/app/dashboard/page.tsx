@@ -736,10 +736,10 @@ export default function DashboardPage() {
               <div className="flex-1 space-y-3">
                 <div>
                   <p className="text-xs text-slate-400 mb-0.5">Chapters read</p>
-                  <p className="text-lg font-bold text-slate-900">{totalRead} <span className="text-sm font-normal text-slate-400">of {totalPlanChapters}</span></p>
+                  <p className="text-lg font-bold text-slate-900">{totalRead} <span className="text-sm font-normal text-slate-400">of {totalPlanChapters} in plan</span></p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Currently in</p>
+                  <p className="text-xs text-slate-400 mb-0.5">Reading now</p>
                   <p className="text-sm font-semibold text-slate-800">{currentBookName}</p>
                 </div>
                 <div>
