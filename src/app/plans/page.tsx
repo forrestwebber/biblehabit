@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   ArrowRight,
   Calendar,
@@ -28,6 +28,12 @@ import {
   type FullDayReading,
 } from "@/lib/bible-data";
 import { savePlan } from "@/lib/reading-store";
+import {
+  addSubPlan,
+  getSubPlans,
+  removeSubPlan,
+  DEVOTIONAL_PRESETS,
+} from "@/lib/sub-plans";
 
 const TRANSLATIONS = ["KJV", "NIV", "ESV", "NKJV", "NASB"];
 
@@ -134,6 +140,13 @@ export default function PlansPage() {
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [copied, setCopied] = useState(false);
   const [startDate, setStartDate] = useState(formatDateISO(new Date()));
+  const [activeSubPlans, setActiveSubPlans] = useState<string[]>([]);
+  const [addedPreset, setAddedPreset] = useState<string | null>(null);
+
+  // Load active sub-plans on mount
+  useEffect(() => {
+    setActiveSubPlans(getSubPlans().filter(p => !p.paused).map(p => p.book));
+  }, []);
 
   const parsedStartDate = useMemo(() => {
     const [y, m, d] = startDate.split("-").map(Number);
@@ -647,6 +660,81 @@ export default function PlansPage() {
           </div>
         </section>
       )}
+
+      {/* Daily Devotionals Section */}
+      <section className="bg-violet-50 border-t border-violet-100 px-4 py-10">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-xl font-bold text-slate-900 mb-1">Add Daily Devotionals</h2>
+          <p className="text-sm text-slate-500 mb-6">
+            Stack short daily readings alongside your main plan. Each takes ~5 minutes.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {DEVOTIONAL_PRESETS.map((preset) => {
+              const isActive = activeSubPlans.includes(preset.book);
+              const justAdded = addedPreset === preset.id;
+              return (
+                <div
+                  key={preset.id}
+                  className={`bg-white rounded-2xl border p-5 flex flex-col gap-3 transition ${
+                    isActive ? "border-violet-300" : "border-slate-200"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">{preset.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-900 text-sm">{preset.label}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{preset.desc}</p>
+                    </div>
+                  </div>
+                  {isActive ? (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-violet-600 font-semibold flex items-center gap-1">
+                        <CheckCircle className="h-3.5 w-3.5" /> Active
+                      </span>
+                      <button
+                        onClick={() => {
+                          const plans = getSubPlans();
+                          const match = plans.find(p => p.book === preset.book);
+                          if (match) {
+                            removeSubPlan(match.id);
+                            setActiveSubPlans(prev => prev.filter(b => b !== preset.book));
+                          }
+                        }}
+                        className="text-xs text-slate-400 hover:text-red-500 transition"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        addSubPlan({
+                          label: preset.label,
+                          book: preset.book,
+                          totalChapters: preset.totalChapters,
+                          chaptersPerDay: preset.chaptersPerDay,
+                          startDate: formatDateISO(new Date()),
+                        });
+                        setActiveSubPlans(prev => [...prev, preset.book]);
+                        setAddedPreset(preset.id);
+                        setTimeout(() => setAddedPreset(null), 2000);
+                      }}
+                      className="w-full bg-violet-700 text-white text-sm font-semibold py-2 rounded-xl hover:bg-violet-800 active:scale-95 transition-all"
+                    >
+                      {justAdded ? "Added! ✓" : `Add ${preset.label}`}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {activeSubPlans.length > 0 && (
+            <p className="text-center text-xs text-slate-400 mt-5">
+              Your devotionals appear on the <a href="/today" className="text-violet-600 underline">Today</a> page alongside your main reading.
+            </p>
+          )}
+        </div>
+      </section>
 
       {/* Amazon Affiliate Section */}
       <BibleAffiliate
