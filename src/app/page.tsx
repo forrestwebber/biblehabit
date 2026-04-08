@@ -396,7 +396,11 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="bg-white border-t border-violet-100 py-8 px-6 text-center text-slate-400 text-sm">
-        <p>&copy; {new Date().getFullYear()} BibleHabit, a division of HD Signals LLC. Scripture changes everything.</p>
+        <p suppressHydrationWarning>&copy; {new Date().getFullYear()} BibleHabit, a division of HD Signals LLC. Scripture changes everything.</p>
+        <div className="flex justify-center gap-4 mt-2 text-xs">
+          <a href="/privacy" className="hover:text-slate-600 transition">Privacy Policy</a>
+          <a href="/terms" className="hover:text-slate-600 transition">Terms of Service</a>
+        </div>
       </footer>
     </div>
   );

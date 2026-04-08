@@ -81,6 +81,21 @@ function LoginContent() {
     setLoading(false);
   };
 
+  const handleForgotPassword = async () => {
+    if (!isValidEmail(email)) {
+      setIsError(true);
+      setMessage("Enter your email address above, then click Forgot password.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+    });
+    setIsError(!!error);
+    setMessage(error ? error.message : "Password reset email sent! Check your inbox.");
+    setLoading(false);
+  };
+
   const handleEmail = async () => {
     setEmailTouched(true);
     if (!isValidEmail(email)) return;
@@ -231,6 +246,18 @@ function LoginContent() {
                 )}
               </button>
             </div>
+
+            {mode === "signin" && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-sm text-violet-600 hover:text-violet-800"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
 
             {/* Password strength requirements (signup only) */}
             {mode === "signup" && password.length > 0 && (

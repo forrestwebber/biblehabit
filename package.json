@@ -11,6 +11,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.85.0",
     "@auth/supabase-adapter": "^1.11.1",
+    "@capacitor/browser": "^8.0.3",
     "@capacitor/cli": "^8.3.0",
     "@capacitor/core": "^8.3.0",
     "@capacitor/ios": "^8.3.0",

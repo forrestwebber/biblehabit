@@ -28,6 +28,7 @@ import {
   type FullDayReading,
 } from "@/lib/bible-data";
 import { savePlan } from "@/lib/reading-store";
+import { supabase } from "@/lib/supabase";
 import {
   addSubPlan,
   getSubPlans,
@@ -146,11 +147,24 @@ export default function PlansPage() {
   const [selectedTime, setSelectedTime] = useState(30);
   const [planSaved, setPlanSaved] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [calendarMonth, setCalendarMonth] = useState<Date | null>(null);
   const [copied, setCopied] = useState(false);
-  const [startDate, setStartDate] = useState(formatDateISO(new Date()));
+  const [startDate, setStartDate] = useState("");
   const [activeSubPlans, setActiveSubPlans] = useState<string[]>([]);
   const [addedPreset, setAddedPreset] = useState<string | null>(null);
+  const [user, setUser] = useState<{ id: string } | null>(null);
+
+  // Initialize date-dependent state on mount (client only) to avoid hydration mismatch
+  useEffect(() => {
+    const today = new Date();
+    setStartDate(formatDateISO(today));
+    setCalendarMonth(today);
+  }, []);
+
+  // Check auth state on mount
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+  }, []);
 
   // Load active sub-plans on mount
   useEffect(() => {
@@ -158,6 +172,7 @@ export default function PlansPage() {
   }, []);
 
   const parsedStartDate = useMemo(() => {
+    if (!startDate) return new Date(0); // stable fallback during SSR / before hydration
     const [y, m, d] = startDate.split("-").map(Number);
     return new Date(y, m - 1, d);
   }, [startDate]);
@@ -199,8 +214,9 @@ export default function PlansPage() {
 
   // Calendar month data
   const calendarDays = useMemo(() => {
-    const year = calendarMonth.getFullYear();
-    const month = calendarMonth.getMonth();
+    const ref = calendarMonth ?? new Date(0);
+    const year = ref.getFullYear();
+    const month = ref.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const startPad = firstDay.getDay();
@@ -249,13 +265,13 @@ export default function PlansPage() {
   }, [fullPlan]);
 
   const prevMonth = () => {
-    const d = new Date(calendarMonth);
+    const d = new Date(calendarMonth ?? new Date());
     d.setMonth(d.getMonth() - 1);
     setCalendarMonth(d);
   };
 
   const nextMonth = () => {
-    const d = new Date(calendarMonth);
+    const d = new Date(calendarMonth ?? new Date());
     d.setMonth(d.getMonth() + 1);
     setCalendarMonth(d);
   };
@@ -263,6 +279,20 @@ export default function PlansPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
       <NavBar />
+
+      {/* Sign-in nudge — shown after anonymous user starts a plan */}
+      {!user && planSaved && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 mx-6 mt-4 flex items-start gap-3 max-w-4xl mx-auto">
+          <span className="text-amber-500 text-xl">⚠️</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-amber-900">Sign in to save your progress</p>
+            <p className="text-xs text-amber-700 mt-0.5">Your reading plan will be lost when you close the browser unless you sign in.</p>
+          </div>
+          <a href="/login?mode=signin" className="bg-amber-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-amber-600 transition flex-shrink-0">
+            Sign In
+          </a>
+        </div>
+      )}
 
       {/* Hero */}
       <section className="text-center py-12 px-6 max-w-3xl mx-auto">
@@ -577,8 +607,8 @@ export default function PlansPage() {
               >
                 <ChevronLeft className="h-5 w-5 text-slate-600" />
               </button>
-              <h3 className="text-xl font-bold text-slate-900">
-                {formatMonthYear(calendarMonth)}
+              <h3 className="text-xl font-bold text-slate-900" suppressHydrationWarning>
+                {calendarMonth ? formatMonthYear(calendarMonth) : ""}
               </h3>
               <button
                 onClick={nextMonth}
@@ -729,7 +759,7 @@ export default function PlansPage() {
                           book: preset.book,
                           totalChapters: preset.totalChapters,
                           chaptersPerDay: preset.chaptersPerDay,
-                          startDate: formatDateISO(new Date()),
+                          startDate: startDate || formatDateISO(new Date()),
                         });
                         setActiveSubPlans(prev => [...prev, preset.book]);
                         setAddedPreset(preset.id);
@@ -761,10 +791,14 @@ export default function PlansPage() {
       />
 
       <footer className="bg-white border-t border-violet-100 py-8 px-6 text-center text-slate-400 text-sm">
-        <p>
+        <p suppressHydrationWarning>
           &copy; {new Date().getFullYear()} BibleHabit, a division of HD Signals
           LLC. Scripture changes everything.
         </p>
+        <div className="flex justify-center gap-4 mt-2 text-xs">
+          <a href="/privacy" className="hover:text-slate-600 transition">Privacy Policy</a>
+          <a href="/terms" className="hover:text-slate-600 transition">Terms of Service</a>
+        </div>
       </footer>
     </div>
   );
