@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import AppStoreBanner from "@/components/AppStoreBanner";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
         )}
+        <AppStoreBanner />
         {children}
       </body>
     </html>
