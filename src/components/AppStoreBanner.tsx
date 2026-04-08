@@ -31,11 +31,10 @@ export default function AppStoreBanner() {
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         <a
-          href="https://apps.apple.com/app/biblehabit/id0"
+          href="/login?mode=signup"
           className="bg-white text-violet-700 text-xs font-bold px-3 py-1.5 rounded-full hover:bg-violet-50 transition"
-          onClick={(e) => { e.preventDefault(); alert("Coming to the App Store soon! Sign up at biblehabit.co to be notified."); }}
         >
-          Notify Me
+          Get Early Access
         </a>
         <button onClick={dismiss} className="text-violet-200 hover:text-white transition p-1" aria-label="Dismiss">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
