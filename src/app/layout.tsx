@@ -3,6 +3,7 @@ import "./globals.css";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import AppStoreBanner from "@/components/AppStoreBanner";
 import ChatWidget from "@/components/ChatWidget";
+import MobileTabBar from "@/components/MobileTabBar";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppStoreBanner />
         {children}
         <ChatWidget />
+        <MobileTabBar />
       </body>
     </html>
   );
