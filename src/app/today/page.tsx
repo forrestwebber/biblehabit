@@ -15,6 +15,7 @@ import {
 import NavBar from "@/components/NavBar";
 import BibleAffiliate from "@/components/BibleAffiliate";
 import SignUpGate from "@/components/SignUpGate";
+import CompletionCelebration from "@/components/CompletionCelebration";
 import { supabase } from "@/lib/supabase";
 import {
   BIBLE_BOOKS,
@@ -43,6 +44,8 @@ import {
   removeSubPlan,
   type SubPlan,
 } from "@/lib/sub-plans";
+import { addXP, getLevelInfo, XP_PER_CHAPTER, type LevelInfo } from "@/lib/xp-store";
+import { saveHighlight } from "@/lib/highlights-store";
 
 // ─── Translations ────────────────────────────────────────────────
 const TRANSLATIONS = [
@@ -128,6 +131,10 @@ export default function TodayPage() {
   const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null);
   const [showAffiliate, setShowAffiliate] = useState(false);
   const [justCompleted, setJustCompleted] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationData, setCelebrationData] = useState<{
+    xpEarned: number; levelInfo: LevelInfo; chaptersCount: number;
+  } | null>(null);
 
   // "Keep Going" / "Go Back" state
   const [extraOffset, setExtraOffset] = useState(0); // 0=today, 1=next day, -1=prev day
@@ -136,6 +143,10 @@ export default function TodayPage() {
   // Sub-plans (Psalms, Proverbs, John, etc.)
   const [subPlans, setSubPlans] = useState<SubPlan[]>([]);
   const [subPlanDone, setSubPlanDone] = useState<Set<string>>(new Set());
+
+  // Verse selection / sharing / highlights
+  const [selectedVerses, setSelectedVerses] = useState<Set<number>>(new Set());
+  const [highlightSaved, setHighlightSaved] = useState(false);
 
   const refreshStats = useCallback(() => {
     setPlanState(getPlan());
@@ -380,6 +391,13 @@ export default function TodayPage() {
     const newStreak = getCurrentStreak();
     setStreak(newStreak);
     setTotalRead(getTotalChaptersRead());
+
+    // XP + celebration
+    const xpEarned = addXP(todayInfo.chapters.length * XP_PER_CHAPTER);
+    const levelInfo = getLevelInfo(xpEarned);
+    setCelebrationData({ xpEarned: todayInfo.chapters.length * XP_PER_CHAPTER, levelInfo, chaptersCount: todayInfo.chapters.length });
+    setShowCelebration(true);
+
     if (isSignedIn === false) {
       if (todayInfo.dayNumber >= 3 || newStreak >= 3) setShowSignUpGate(true);
     }
@@ -498,6 +516,17 @@ export default function TodayPage() {
         <SignUpGate streak={streak} onDismiss={() => setShowSignUpGate(false)} />
       )}
 
+      {showCelebration && celebrationData && (
+        <CompletionCelebration
+          dayNumber={todayInfo?.dayNumber ?? 1}
+          chaptersCount={celebrationData.chaptersCount}
+          xpEarned={celebrationData.xpEarned}
+          streak={streak}
+          levelInfo={celebrationData.levelInfo}
+          onDismiss={() => setShowCelebration(false)}
+        />
+      )}
+
       <div className="max-w-2xl mx-auto px-4 py-6">
 
         {/* ─── COMPLETION STATE ─────────────────────────────────── */}
@@ -582,36 +611,39 @@ export default function TodayPage() {
               </div>
             )}
 
-            {/* Tomorrow preview */}
+            {/* Tomorrow preview — clickable to read ahead */}
             {tomorrowPreview && (
-              <div className="bg-white rounded-2xl border border-violet-100 p-5 flex items-center justify-between shadow-sm">
+              <button
+                onClick={() => { setExtraOffset(1); setExtraView(0); }}
+                className="w-full bg-white rounded-2xl border border-violet-100 p-5 flex items-center justify-between shadow-sm hover:border-violet-300 hover:shadow-md transition-all active:scale-[0.99] text-left"
+              >
                 <div>
                   <p className="text-xs font-semibold text-violet-400 uppercase tracking-wide mb-1">
-                    Tomorrow
+                    Up Next — Read Ahead?
                   </p>
                   <p className="text-base font-bold text-slate-900">{tomorrowPreview.label}</p>
-                  <p className="text-sm text-slate-400 mt-0.5">
-                    {tomorrowPreview.count} {tomorrowPreview.count === 1 ? "chapter" : "chapters"}
+                  <p className="text-sm text-violet-500 font-medium mt-1 flex items-center gap-1">
+                    Read now <ChevronRight className="h-3.5 w-3.5" />
                   </p>
                 </div>
-                <BookOpen className="h-8 w-8 text-violet-200 flex-shrink-0" />
-              </div>
+                <BookOpen className="h-8 w-8 text-violet-300 flex-shrink-0" />
+              </button>
             )}
 
             {/* Keep Going / Go Back */}
             {extraOffset === 0 ? (
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => { setExtraOffset(-1); setExtraView(0); }}
-                  className="flex items-center justify-center gap-2 py-3.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-medium text-sm active:scale-95 transition-all"
-                >
-                  <ChevronLeft className="h-4 w-4" /> Re-read
-                </button>
+              <div className="space-y-2">
                 <button
                   onClick={() => { setExtraOffset(1); setExtraView(0); }}
-                  className="flex items-center justify-center gap-2 py-3.5 bg-violet-50 border border-violet-200 text-violet-700 rounded-xl font-semibold text-sm active:scale-95 transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-4 bg-violet-700 hover:bg-violet-800 text-white rounded-xl font-bold text-base active:scale-95 transition-all shadow-lg shadow-violet-200"
                 >
-                  Keep Going <ChevronRight className="h-4 w-4" />
+                  Keep Going <ChevronRight className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => { setExtraOffset(-1); setExtraView(0); }}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 text-slate-500 rounded-xl font-medium text-sm active:scale-95 transition-all"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Re-read previous
                 </button>
               </div>
             ) : (
@@ -779,20 +811,55 @@ export default function TodayPage() {
             {/* Chapter text */}
             <div className="px-6 py-6">
               {currentCh && (
-                <h2 className="text-lg font-bold text-slate-900 mb-4">
-                  {currentCh.book} {currentCh.chapter}{" "}
-                  <span className="text-sm font-normal text-slate-400">{translationLabel}</span>
-                </h2>
+                <div className="flex items-baseline justify-between mb-4">
+                  <h2 className="text-lg font-bold text-slate-900">
+                    {currentCh.book} {currentCh.chapter}{" "}
+                    <span className="text-sm font-normal text-slate-400">{translationLabel}</span>
+                  </h2>
+                  {selectedVerses.size > 0 && (
+                    <button
+                      onClick={() => setSelectedVerses(new Set())}
+                      className="text-xs text-slate-400 hover:text-slate-600 transition"
+                    >
+                      Clear selection
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {selectedVerses.size === 0 && (
+                <p className="text-xs text-violet-400 mb-3 italic">Tap any verse to highlight &amp; share</p>
               )}
 
               {chapterData ? (
-                <div className="text-slate-700 leading-relaxed space-y-2 text-[15px]">
-                  {chapterData.verses.map((v) => (
-                    <p key={v.verse}>
-                      <sup className="text-violet-400 mr-1 text-xs font-semibold">{v.verse}</sup>
-                      {v.text}
-                    </p>
-                  ))}
+                <div className="text-slate-700 leading-relaxed space-y-1 text-[15px]">
+                  {chapterData.verses.map((v) => {
+                    const isSelected = selectedVerses.has(v.verse);
+                    return (
+                      <p
+                        key={v.verse}
+                        onClick={() => {
+                          setSelectedVerses((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(v.verse)) next.delete(v.verse);
+                            else next.add(v.verse);
+                            return next;
+                          });
+                          setHighlightSaved(false);
+                        }}
+                        className={`px-2 py-1.5 rounded-lg cursor-pointer transition-all select-none ${
+                          isSelected
+                            ? "bg-yellow-100 border-l-4 border-yellow-400 text-slate-900"
+                            : "hover:bg-slate-50"
+                        }`}
+                      >
+                        <sup className={`mr-1.5 text-xs font-bold ${isSelected ? "text-yellow-600" : "text-violet-400"}`}>
+                          {v.verse}
+                        </sup>
+                        {v.text}
+                      </p>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -965,6 +1032,81 @@ export default function TodayPage() {
 
       {showAffiliate && (
         <BibleAffiliate count={2} heading="Own a Great Bible" variant="violet" />
+      )}
+
+      {/* ─── FLOATING VERSE ACTION BAR ─────────────────────────── */}
+      {selectedVerses.size > 0 && currentCh && chapterData && (
+        <div className="fixed bottom-20 left-0 right-0 z-40 flex justify-center px-4">
+          <div className="bg-slate-900 rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 max-w-sm w-full animate-slide-up">
+            <span className="text-white text-sm font-semibold flex-1">
+              {selectedVerses.size} verse{selectedVerses.size > 1 ? "s" : ""} selected
+            </span>
+
+            {/* Copy */}
+            <button
+              onClick={() => {
+                const sortedVerses = [...selectedVerses].sort((a, b) => a - b);
+                const text = sortedVerses.map((vn) => {
+                  const v = chapterData.verses.find((v) => v.verse === vn);
+                  return v ? `[${currentCh.book} ${currentCh.chapter}:${vn}] ${v.text}` : "";
+                }).filter(Boolean).join("\n");
+                navigator.clipboard.writeText(text).catch(() => {});
+              }}
+              className="bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95"
+            >
+              Copy
+            </button>
+
+            {/* Share */}
+            <button
+              onClick={() => {
+                const sortedVerses = [...selectedVerses].sort((a, b) => a - b);
+                const text = sortedVerses.map((vn) => {
+                  const v = chapterData.verses.find((v) => v.verse === vn);
+                  return v ? `"${v.text}" — ${currentCh.book} ${currentCh.chapter}:${vn}` : "";
+                }).filter(Boolean).join("\n");
+                if (navigator.share) {
+                  navigator.share({ text, title: `${currentCh.book} ${currentCh.chapter}`, url: "https://biblehabit.co" }).catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(text).catch(() => {});
+                }
+              }}
+              className="bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95"
+            >
+              Share
+            </button>
+
+            {/* Save highlight */}
+            <button
+              onClick={() => {
+                if (highlightSaved) return;
+                const sortedVerses = [...selectedVerses].sort((a, b) => a - b);
+                const text = sortedVerses.map((vn) => {
+                  const v = chapterData.verses.find((v) => v.verse === vn);
+                  return v?.text ?? "";
+                }).filter(Boolean).join(" ");
+                saveHighlight({ book: currentCh.book, chapter: currentCh.chapter, verses: sortedVerses, text });
+                setHighlightSaved(true);
+                setTimeout(() => { setSelectedVerses(new Set()); setHighlightSaved(false); }, 1200);
+              }}
+              className={`text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95 ${
+                highlightSaved
+                  ? "bg-green-500 text-white"
+                  : "bg-yellow-400 hover:bg-yellow-300 text-slate-900"
+              }`}
+            >
+              {highlightSaved ? "Saved ✓" : "Save"}
+            </button>
+
+            {/* Dismiss */}
+            <button
+              onClick={() => { setSelectedVerses(new Set()); setHighlightSaved(false); }}
+              className="text-slate-400 hover:text-white transition p-1"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

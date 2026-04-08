@@ -23,6 +23,7 @@ import {
   isDayComplete, formatDate, syncProgress, getProgressAnalysis,
   type SavedPlan, type ProgressAnalysis,
 } from "@/lib/reading-store";
+import { getXP, getLevelInfo, type LevelInfo } from "@/lib/xp-store";
 
 type User = { id: string; email?: string; name?: string; avatarUrl?: string };
 
@@ -152,6 +153,7 @@ export default function DashboardPage() {
   const [totalRead, setTotalRead] = useState(0);
   const [todayDone, setTodayDone] = useState(false);
   const [analysis, setAnalysis] = useState<ProgressAnalysis | null>(null);
+  const [levelInfo, setLevelInfo] = useState<LevelInfo | null>(null);
 
   // Onboarding state
   const [obQuickPick, setObQuickPick] = useState(0);
@@ -188,6 +190,7 @@ export default function DashboardPage() {
         setAnalysis(getProgressAnalysis(savedPlan));
         setOnboardingStep(-1);
       }
+      setLevelInfo(getLevelInfo(getXP()));
       setLoading(false);
 
       // Sync in background — refresh stats when done
@@ -540,7 +543,9 @@ export default function DashboardPage() {
   // ─── Dashboard (has plan) ─────────────────────────────────────
 
   const firstName = user?.name?.split(" ")[0] ?? (user?.email?.split("@")[0] ?? "");
-  const totalPlanChapters = plan ? chaptersRemaining(plan.startBook, plan.startChapter) : 0;
+  const totalPlanChapters = plan
+    ? getChaptersInPlan(plan.startBook, plan.startChapter, plan.endBook)
+    : 0;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -596,10 +601,29 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Streak message */}
-        {streak > 0 && (
+        {/* Streak urgency — Duolingo-style "Don't lose your streak!" */}
+        {streak > 0 && !todayDone && (
+          <div className="bg-orange-500 rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-orange-200">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl animate-flame-pulse inline-block">🔥</span>
+              <div>
+                <p className="text-white font-bold text-sm">Don&apos;t lose your {streak}-day streak!</p>
+                <p className="text-orange-100 text-xs">Read today to keep it alive.</p>
+              </div>
+            </div>
+            <a
+              href="/today"
+              className="bg-white text-orange-600 font-bold text-sm px-4 py-2 rounded-xl hover:bg-orange-50 transition active:scale-95 flex-shrink-0"
+            >
+              Read Now
+            </a>
+          </div>
+        )}
+
+        {/* Streak celebration (already done today) */}
+        {streak > 0 && todayDone && (
           <div className="flex items-center gap-3 bg-orange-50 border border-orange-100 rounded-xl px-4 py-3">
-            <Flame className="w-5 h-5 text-orange-500 flex-shrink-0" />
+            <span className="text-lg animate-flame-pulse inline-block">🔥</span>
             <p className="text-sm font-medium text-orange-700">{getStreakMessage(streak)}</p>
           </div>
         )}
@@ -653,44 +677,93 @@ export default function DashboardPage() {
           }
           // On track
           return (
-            <div className="flex items-center gap-3 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
-              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-              <p className="text-sm font-medium text-green-700">You're right on track — keep it up!</p>
+            <div className="flex items-center justify-between gap-3 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <p className="text-sm font-medium text-green-700">You&apos;re right on track — keep it up!</p>
+              </div>
+              {!todayDone && (
+                <a href="/today" className="text-xs font-bold text-green-700 bg-green-200 hover:bg-green-300 px-3 py-1.5 rounded-lg transition flex-shrink-0">
+                  Read Now
+                </a>
+              )}
             </div>
           );
         })()}
 
-        {/* Progress section */}
+        {/* Progress section — circular ring + XP level */}
         {plan && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">Your Progress</h2>
+            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-5">Your Progress</h2>
 
-            {/* Progress bar */}
-            <div className="mb-4">
-              <div className="flex justify-between text-sm mb-1.5">
-                <span className="text-slate-700 font-medium">{progressPct}% complete</span>
-                <span className="text-slate-400">{totalRead} / {totalPlanChapters} chapters</span>
+            {/* Ring + stats row */}
+            <div className="flex items-center gap-6 mb-5">
+              {/* Circular progress ring */}
+              <div className="relative flex-shrink-0">
+                <svg viewBox="0 0 100 100" className="w-28 h-28 -rotate-90">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#f1f5f9" strokeWidth="10" />
+                  <circle
+                    cx="50" cy="50" r="42" fill="none"
+                    stroke="url(#progress-ring-grad)" strokeWidth="10"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 42}`}
+                    strokeDashoffset={`${2 * Math.PI * 42 * (1 - progressPct / 100)}`}
+                    style={{ transition: "stroke-dashoffset 1s ease-out" }}
+                  />
+                  <defs>
+                    <linearGradient id="progress-ring-grad" x1="1" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#7c3aed" />
+                      <stop offset="100%" stopColor="#a78bfa" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center rotate-90">
+                  <span className="text-xl font-extrabold text-slate-900">{progressPct}%</span>
+                  <span className="text-xs text-slate-400">done</span>
+                </div>
               </div>
-              <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${progressPct}%`, background: "linear-gradient(90deg, #7c3aed, #8b5cf6)" }}
-                />
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-50 rounded-xl p-4">
-                <div className="text-xs text-slate-400 mb-1">Currently in</div>
-                <div className="font-semibold text-slate-800 text-sm">{currentBookName}</div>
-              </div>
-              <div className="bg-slate-50 rounded-xl p-4">
-                <div className="text-xs text-slate-400 mb-1">Projected finish</div>
-                <div className="font-semibold text-slate-800 text-sm">
-                  {analysis ? formatFinishDate(analysis.projectedFinishDate) : "—"}
+              {/* Stats */}
+              <div className="flex-1 space-y-3">
+                <div>
+                  <p className="text-xs text-slate-400 mb-0.5">Chapters read</p>
+                  <p className="text-lg font-bold text-slate-900">{totalRead} <span className="text-sm font-normal text-slate-400">of {totalPlanChapters}</span></p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 mb-0.5">Currently in</p>
+                  <p className="text-sm font-semibold text-slate-800">{currentBookName}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 mb-0.5">Finish by</p>
+                  <p className="text-sm font-semibold text-slate-800">
+                    {analysis ? formatFinishDate(analysis.projectedFinishDate) : "—"}
+                  </p>
                 </div>
               </div>
             </div>
+
+            {/* XP / Level bar */}
+            {levelInfo && (
+              <div className="border-t border-slate-100 pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{levelInfo.emoji}</span>
+                    <span className="font-bold text-slate-800">{levelInfo.title}</span>
+                    <span className="text-xs bg-violet-100 text-violet-700 font-semibold px-2 py-0.5 rounded-full">Lv.{levelInfo.level}</span>
+                  </div>
+                  <span className="text-xs text-slate-400">{levelInfo.currentXP} XP</span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 transition-all duration-700"
+                    style={{ width: `${levelInfo.progressPct}%` }}
+                  />
+                </div>
+                {!levelInfo.isMax && (
+                  <p className="text-xs text-slate-400 mt-1">{levelInfo.nextXP - levelInfo.currentXP} XP to {levelInfo.level < 6 ? ["Student","Disciple","Scholar","Elder","Prophet"][levelInfo.level - 1] : "max"}</p>
+                )}
+              </div>
+            )}
           </div>
         )}
 

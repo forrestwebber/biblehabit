@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(req: NextRequest) {
+  const resend = new Resend(process.env.RESEND_API_KEY ?? "missing");
   try {
     const { email, name, startBook, startChapter, chaptersPerDay, finishDate } = await req.json();
     if (!email) return NextResponse.json({ error: "Missing email" }, { status: 400 });

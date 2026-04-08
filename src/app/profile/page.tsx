@@ -30,6 +30,8 @@ import {
   formatDate,
   syncProgress,
 } from "@/lib/reading-store";
+import { getHighlights, removeHighlight, type Highlight } from "@/lib/highlights-store";
+import { getUserLevel } from "@/lib/xp-store";
 
 export default function ProfilePage() {
   const [plan, setPlanState] = useState<ReturnType<typeof getPlan>>(null);
@@ -39,11 +41,15 @@ export default function ProfilePage() {
   const [calMonth, setCalMonth] = useState(new Date().getMonth() + 1);
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null);
+  const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const [levelInfo, setLevelInfo] = useState(getUserLevel());
 
   useEffect(() => {
     setPlanState(getPlan());
     setStreak(getCurrentStreak());
     setTotalRead(getTotalChaptersRead());
+    setHighlights(getHighlights());
+    setLevelInfo(getUserLevel());
     setLoading(false);
 
     supabase.auth.getSession().then(async ({ data }) => {
@@ -457,6 +463,69 @@ export default function ProfilePage() {
                   {b}
                 </span>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* XP / Level */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{levelInfo.emoji}</span>
+              <div>
+                <p className="font-bold text-slate-900">{levelInfo.title}</p>
+                <p className="text-xs text-slate-400">Level {levelInfo.level} · {levelInfo.currentXP} Scripture Points</p>
+              </div>
+            </div>
+            {!levelInfo.isMax && (
+              <span className="text-xs text-violet-600 font-semibold bg-violet-50 px-2 py-1 rounded-lg">
+                {levelInfo.nextXP - levelInfo.currentXP} XP to next
+              </span>
+            )}
+          </div>
+          <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 transition-all duration-700"
+              style={{ width: `${levelInfo.progressPct}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Saved Highlights */}
+        {highlights.length > 0 && (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                Saved Highlights
+              </h3>
+              <span className="text-xs text-slate-400">{highlights.length} saved</span>
+            </div>
+            <div className="space-y-3">
+              {highlights.slice(0, 5).map((h) => (
+                <div key={h.id} className="bg-yellow-50 border-l-4 border-yellow-400 rounded-r-xl px-4 py-3">
+                  <p className="text-xs font-semibold text-yellow-700 mb-1">
+                    {h.book} {h.chapter}:{h.verses.join(",")}
+                  </p>
+                  <p className="text-sm text-slate-700 leading-relaxed line-clamp-3">{h.text}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-slate-400">
+                      {new Date(h.savedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </p>
+                    <button
+                      onClick={() => {
+                        removeHighlight(h.id);
+                        setHighlights(getHighlights());
+                      }}
+                      className="text-xs text-slate-300 hover:text-red-400 transition"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {highlights.length > 5 && (
+                <p className="text-xs text-center text-violet-500 pt-1">+{highlights.length - 5} more highlights</p>
+              )}
             </div>
           </div>
         )}

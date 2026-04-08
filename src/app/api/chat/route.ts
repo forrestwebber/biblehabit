@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 const SYSTEM_PROMPT = `You are a warm, knowledgeable assistant for BibleHabit.co — a daily Bible reading app. Help users with:
 - Setting up or adjusting reading plans (pace, book selection, picking up mid-book)
 - Understanding features (streak tracking, translations, keep going / re-read)
@@ -13,6 +11,7 @@ If users seem overwhelmed or behind, suggest slowing down their pace. Always be 
 
 export async function POST(req: NextRequest) {
   try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY ?? 'missing' });
     const { messages } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
