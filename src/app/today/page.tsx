@@ -50,6 +50,7 @@ import { addXP, getLevelInfo, XP_PER_CHAPTER, type LevelInfo } from "@/lib/xp-st
 import { saveHighlight } from "@/lib/highlights-store";
 import { getNote, saveNote } from "@/lib/notes-store";
 import { getDailyVerse } from "@/lib/reflection-verses";
+import { hapticTap, hapticMedium, hapticSuccess } from "@/lib/haptics";
 
 // ─── Translations ────────────────────────────────────────────────
 const TRANSLATIONS = [
@@ -476,6 +477,7 @@ export default function TodayPage() {
 
   const handleMarkDone = () => {
     if (!todayInfo) return;
+    hapticSuccess();
     const todayStr = formatDate(new Date());
     const indices = todayInfo.chapters.map((c) => c.globalIndex);
     markDayComplete(todayStr, indices);
@@ -1096,6 +1098,7 @@ export default function TodayPage() {
                       <p
                         key={v.verse}
                         onClick={() => {
+                          hapticTap();
                           setSelectedVerses((prev) => {
                             const next = new Set(prev);
                             if (next.has(v.verse)) next.delete(v.verse);
@@ -1187,6 +1190,7 @@ export default function TodayPage() {
                     if (!todayInfo) return;
                     const ch = todayInfo.chapters[currentChapterView];
                     if (!ch) return;
+                    hapticMedium();
                     saveNote(ch.book, ch.chapter, noteText);
                     setNoteSaved(true);
                     setTimeout(() => setNoteSaved(false), 2000);
@@ -1418,6 +1422,7 @@ export default function TodayPage() {
               <button
                 onClick={() => {
                   if (highlightSaved) return;
+                  hapticMedium();
                   const sortedVerses = [...selectedVerses].sort((a, b) => a - b);
                   const text = sortedVerses.map((vn) => {
                     const v = activeData.verses.find((v) => v.verse === vn);
