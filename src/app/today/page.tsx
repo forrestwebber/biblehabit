@@ -60,7 +60,7 @@ const TRANSLATIONS = [
   { id: "asv", label: "ASV", name: "American Standard", api: "bible-api" },
   { id: "bbe", label: "BBE", name: "Basic English", api: "bible-api" },
 ];
-const DEFAULT_TRANSLATION = "kjv";
+const DEFAULT_TRANSLATION = "niv";
 const TRANSLATION_STORAGE_KEY = "biblehabit_translation";
 
 // bolls.life uses book numbers 1-66
@@ -674,6 +674,24 @@ export default function TodayPage() {
                   />
                 </div>
               </div>
+              <div className="flex items-center gap-2 text-xs text-violet-200 mt-2">
+                <Sparkles className="h-3 w-3 text-yellow-300" />
+                <span>+{todayInfo.chapters.length * 10} XP earned today</span>
+              </div>
+              <button
+                onClick={() => {
+                  const text = `Just read ${headerLabel} — Day ${todayInfo.dayNumber} of my Bible plan! 🔥 ${streak}-day streak. Join me at biblehabit.co`;
+                  if (navigator.share) {
+                    navigator.share({ text, title: "BibleHabit Daily Reading", url: "https://biblehabit.co" }).catch(() => {});
+                  } else {
+                    navigator.clipboard.writeText(text).catch(() => {});
+                  }
+                }}
+                className="w-full mt-3 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold py-2.5 rounded-xl transition active:scale-95"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                Share my streak
+              </button>
             </div>
 
             {/* Book finished! Banner */}
@@ -755,7 +773,7 @@ export default function TodayPage() {
                 {/* Nav header */}
                 <div className="bg-slate-800 text-white px-5 py-3 flex items-center justify-between">
                   <button
-                    onClick={() => { setExtraOffset((o) => o - 1); setExtraView(0); }}
+                    onClick={() => { setExtraOffset((o) => o - 1); setExtraView(0); setSelectedVerses(new Set()); setHighlightSaved(false); }}
                     disabled={extraOffset <= -30}
                     className="flex items-center gap-1 text-xs text-slate-300 hover:text-white disabled:opacity-30 transition"
                   >
@@ -767,7 +785,7 @@ export default function TodayPage() {
                     <p className="text-sm font-bold">{extraInfo?.label}</p>
                   </div>
                   <button
-                    onClick={() => { setExtraOffset((o) => o + 1); setExtraView(0); }}
+                    onClick={() => { setExtraOffset((o) => o + 1); setExtraView(0); setSelectedVerses(new Set()); setHighlightSaved(false); }}
                     disabled={extraOffset >= 30}
                     className="flex items-center gap-1 text-xs text-slate-300 hover:text-white disabled:opacity-30 transition"
                   >
@@ -776,7 +794,7 @@ export default function TodayPage() {
                   </button>
                 </div>
                 <button
-                  onClick={() => { setExtraOffset(0); setExtraView(0); }}
+                  onClick={() => { setExtraOffset(0); setExtraView(0); setSelectedVerses(new Set()); setHighlightSaved(false); }}
                   className="w-full text-center text-xs text-violet-500 py-2 border-b border-slate-100 hover:text-violet-700 transition"
                 >
                   ← Back to today&apos;s summary
@@ -817,16 +835,48 @@ export default function TodayPage() {
                                 {translationLabel}
                               </span>
                             </h3>
-                            <div className="text-slate-700 leading-relaxed space-y-2 text-[15px]">
-                              {data.verses.map((v) => (
-                                <p key={v.verse}>
-                                  <sup className="text-violet-400 mr-1 text-xs font-semibold">
-                                    {v.verse}
-                                  </sup>
-                                  {v.text}
-                                </p>
-                              ))}
+                            {selectedVerses.size === 0 && (
+                              <p className="text-xs text-violet-400 mb-3 italic">Tap any verse to highlight &amp; share</p>
+                            )}
+                            <div className="text-slate-700 leading-relaxed space-y-1 text-[15px]">
+                              {data.verses.map((v) => {
+                                const isSelected = selectedVerses.has(v.verse);
+                                return (
+                                  <p
+                                    key={v.verse}
+                                    onClick={() => {
+                                      setSelectedVerses((prev) => {
+                                        const next = new Set(prev);
+                                        if (next.has(v.verse)) next.delete(v.verse);
+                                        else next.add(v.verse);
+                                        return next;
+                                      });
+                                      setHighlightSaved(false);
+                                    }}
+                                    className={`px-2 py-1.5 rounded-lg cursor-pointer transition-all select-none ${
+                                      isSelected
+                                        ? "bg-yellow-100 border-l-4 border-yellow-400 text-slate-900"
+                                        : "hover:bg-slate-50"
+                                    }`}
+                                  >
+                                    <sup className={`mr-1.5 text-xs font-bold ${isSelected ? "text-yellow-600" : "text-violet-400"}`}>
+                                      {v.verse}
+                                    </sup>
+                                    {v.text}
+                                  </p>
+                                );
+                              })}
                             </div>
+                            {!todayDone && (
+                              <div className="pt-4 border-t border-slate-100 mt-4">
+                                <button
+                                  onClick={handleMarkDone}
+                                  className="w-full flex items-center justify-center gap-2 bg-violet-700 text-white py-3 rounded-xl hover:bg-violet-800 active:scale-95 transition-all font-semibold text-sm"
+                                >
+                                  <CheckCircle className="h-4 w-4" /> Mark Today Complete
+                                </button>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className="space-y-3">
@@ -1169,79 +1219,87 @@ export default function TodayPage() {
       )}
 
       {/* ─── FLOATING VERSE ACTION BAR ─────────────────────────── */}
-      {selectedVerses.size > 0 && currentCh && chapterData && (
-        <div className="fixed bottom-20 left-0 right-0 z-40 flex justify-center px-4">
-          <div className="bg-slate-900 rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 max-w-sm w-full animate-slide-up">
-            <span className="text-white text-sm font-semibold flex-1">
-              {selectedVerses.size} verse{selectedVerses.size > 1 ? "s" : ""} selected
-            </span>
+      {selectedVerses.size > 0 && (() => {
+        const activeCh = extraOffset !== 0
+          ? (extraInfo?.chapters[extraView] ?? extraInfo?.chapters[0])
+          : currentCh;
+        const activeKey = activeCh ? `${translation}-${activeCh.book}-${activeCh.chapter}` : "";
+        const activeData = chapterTexts.get(activeKey);
+        if (!activeCh || !activeData) return null;
+        return (
+          <div className="fixed bottom-20 left-0 right-0 z-40 flex justify-center px-4">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 max-w-sm w-full animate-slide-up">
+              <span className="text-white text-sm font-semibold flex-1">
+                {selectedVerses.size} verse{selectedVerses.size > 1 ? "s" : ""} selected
+              </span>
 
-            {/* Copy */}
-            <button
-              onClick={() => {
-                const sortedVerses = [...selectedVerses].sort((a, b) => a - b);
-                const text = sortedVerses.map((vn) => {
-                  const v = chapterData.verses.find((v) => v.verse === vn);
-                  return v ? `[${currentCh.book} ${currentCh.chapter}:${vn}] ${v.text}` : "";
-                }).filter(Boolean).join("\n");
-                navigator.clipboard.writeText(text).catch(() => {});
-              }}
-              className="bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95"
-            >
-              Copy
-            </button>
-
-            {/* Share */}
-            <button
-              onClick={() => {
-                const sortedVerses = [...selectedVerses].sort((a, b) => a - b);
-                const text = sortedVerses.map((vn) => {
-                  const v = chapterData.verses.find((v) => v.verse === vn);
-                  return v ? `"${v.text}" — ${currentCh.book} ${currentCh.chapter}:${vn}` : "";
-                }).filter(Boolean).join("\n");
-                if (navigator.share) {
-                  navigator.share({ text, title: `${currentCh.book} ${currentCh.chapter}`, url: "https://biblehabit.co" }).catch(() => {});
-                } else {
+              {/* Copy */}
+              <button
+                onClick={() => {
+                  const sortedVerses = [...selectedVerses].sort((a, b) => a - b);
+                  const text = sortedVerses.map((vn) => {
+                    const v = activeData.verses.find((v) => v.verse === vn);
+                    return v ? `[${activeCh.book} ${activeCh.chapter}:${vn}] ${v.text}` : "";
+                  }).filter(Boolean).join("\n");
                   navigator.clipboard.writeText(text).catch(() => {});
-                }
-              }}
-              className="bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95"
-            >
-              Share
-            </button>
+                }}
+                className="bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95"
+              >
+                Copy
+              </button>
 
-            {/* Save highlight */}
-            <button
-              onClick={() => {
-                if (highlightSaved) return;
-                const sortedVerses = [...selectedVerses].sort((a, b) => a - b);
-                const text = sortedVerses.map((vn) => {
-                  const v = chapterData.verses.find((v) => v.verse === vn);
-                  return v?.text ?? "";
-                }).filter(Boolean).join(" ");
-                saveHighlight({ book: currentCh.book, chapter: currentCh.chapter, verses: sortedVerses, text });
-                setHighlightSaved(true);
-                setTimeout(() => { setSelectedVerses(new Set()); setHighlightSaved(false); }, 1200);
-              }}
-              className={`text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95 ${
-                highlightSaved
-                  ? "bg-green-500 text-white"
-                  : "bg-yellow-400 hover:bg-yellow-300 text-slate-900"
-              }`}
-            >
-              {highlightSaved ? "Saved ✓" : "Save"}
-            </button>
+              {/* Share */}
+              <button
+                onClick={() => {
+                  const sortedVerses = [...selectedVerses].sort((a, b) => a - b);
+                  const text = sortedVerses.map((vn) => {
+                    const v = activeData.verses.find((v) => v.verse === vn);
+                    return v ? `"${v.text}" — ${activeCh.book} ${activeCh.chapter}:${vn}` : "";
+                  }).filter(Boolean).join("\n");
+                  if (navigator.share) {
+                    navigator.share({ text, title: `${activeCh.book} ${activeCh.chapter}`, url: "https://biblehabit.co" }).catch(() => {});
+                  } else {
+                    navigator.clipboard.writeText(text).catch(() => {});
+                  }
+                }}
+                className="bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95"
+              >
+                Share
+              </button>
 
-            {/* Dismiss */}
-            <button
-              onClick={() => { setSelectedVerses(new Set()); setHighlightSaved(false); }}
-              className="text-slate-400 hover:text-white transition p-1"
-            >
-              <X className="h-4 w-4" />
-            </button>
+              {/* Save highlight */}
+              <button
+                onClick={() => {
+                  if (highlightSaved) return;
+                  const sortedVerses = [...selectedVerses].sort((a, b) => a - b);
+                  const text = sortedVerses.map((vn) => {
+                    const v = activeData.verses.find((v) => v.verse === vn);
+                    return v?.text ?? "";
+                  }).filter(Boolean).join(" ");
+                  saveHighlight({ book: activeCh.book, chapter: activeCh.chapter, verses: sortedVerses, text });
+                  setHighlightSaved(true);
+                  setTimeout(() => { setSelectedVerses(new Set()); setHighlightSaved(false); }, 1200);
+                }}
+                className={`text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95 ${
+                  highlightSaved
+                    ? "bg-green-500 text-white"
+                    : "bg-yellow-400 hover:bg-yellow-300 text-slate-900"
+                }`}
+              >
+                {highlightSaved ? "Saved ✓" : "Save"}
+              </button>
+
+              {/* Dismiss */}
+              <button
+                onClick={() => { setSelectedVerses(new Set()); setHighlightSaved(false); }}
+                className="text-slate-400 hover:text-white transition p-1"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
