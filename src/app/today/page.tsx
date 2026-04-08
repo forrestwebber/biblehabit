@@ -438,18 +438,77 @@ export default function TodayPage() {
     return (
       <div className="min-h-screen bg-slate-50">
         <NavBar />
-        <div className="text-center py-32 px-6 max-w-lg mx-auto">
-          <BookOpen className="h-16 w-16 text-violet-300 mx-auto mb-6" />
-          <h1 className="text-2xl font-bold text-slate-900 mb-4">No Reading Plan Yet</h1>
-          <p className="text-slate-500 mb-8">
-            Create a reading plan first, then come back here for your daily reading.
-          </p>
-          <a
-            href="/plans"
-            className="inline-flex items-center gap-2 bg-violet-700 text-white px-6 py-3 rounded-lg hover:bg-violet-800 transition font-semibold"
-          >
-            Create Your Plan <ArrowRight className="h-4 w-4" />
-          </a>
+        <div className="max-w-lg mx-auto px-4 py-16">
+          <div className="text-center mb-10">
+            <BookOpen className="h-14 w-14 text-violet-300 mx-auto mb-5" />
+            <h1 className="text-2xl font-bold text-slate-900 mb-3">No Reading Plan Yet</h1>
+            <p className="text-slate-500 mb-6 text-sm">
+              Create a reading plan to track your daily Bible reading.
+            </p>
+            <a
+              href="/plans"
+              className="inline-flex items-center gap-2 bg-violet-700 text-white px-6 py-3 rounded-lg hover:bg-violet-800 transition font-semibold"
+            >
+              Create Your Plan <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
+
+          {/* Show devotionals even without a main plan */}
+          {subPlans.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                Daily Devotionals
+              </p>
+              {subPlans.map((sp) => {
+                const todayChapter = getSubPlanChapterToday(sp);
+                const isDone = subPlanDone.has(sp.id);
+                return (
+                  <div key={sp.id} className={`bg-white rounded-xl border p-4 flex items-center justify-between ${isDone ? "border-green-200 opacity-75" : "border-violet-100"}`}>
+                    <div>
+                      <p className="text-xs text-violet-500 font-semibold uppercase tracking-wide">{sp.label}</p>
+                      <p className="text-base font-bold text-slate-900">{sp.book} {todayChapter}</p>
+                    </div>
+                    {isDone ? (
+                      <span className="flex items-center gap-1 text-green-600 text-sm font-semibold"><CheckCircle className="h-4 w-4" /> Done</span>
+                    ) : (
+                      <button onClick={() => handleSubPlanDone(sp.id)} className="bg-violet-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-violet-800 active:scale-95 transition-all">Done</button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Devotional picker for users with no plan */}
+          {subPlans.length === 0 && !showDevotionalPicker && (
+            <div className="bg-white border border-slate-200 rounded-xl px-5 py-4 text-center">
+              <p className="text-sm font-semibold text-slate-700 mb-1">📖 Start with a devotional</p>
+              <p className="text-xs text-slate-500 mb-3">Add a short daily reading while you set up your plan.</p>
+              <button onClick={() => setShowDevotionalPicker(true)} className="text-xs text-violet-600 font-semibold hover:text-violet-800 transition">Choose a devotional →</button>
+            </div>
+          )}
+          {showDevotionalPicker && (
+            <div className="bg-violet-50 border border-violet-200 rounded-xl px-5 py-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-semibold text-slate-800">Pick a devotional</p>
+                <button onClick={() => setShowDevotionalPicker(false)} className="text-slate-400 hover:text-slate-600 text-lg leading-none">×</button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {DEVOTIONAL_PRESETS.map((preset) => (
+                  <button key={preset.id} onClick={() => {
+                    const d = new Date();
+                    const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+                    addSubPlan({ label: preset.label, book: preset.book, totalChapters: preset.totalChapters, chaptersPerDay: preset.chaptersPerDay, startDate: iso });
+                    refreshSubPlans();
+                    setShowDevotionalPicker(false);
+                  }} className="flex items-center gap-2 bg-white border border-violet-100 rounded-xl px-3 py-2 text-left hover:border-violet-400 active:scale-95 transition-all">
+                    <span className="text-xl">{preset.emoji}</span>
+                    <div><p className="text-xs font-bold text-slate-900 leading-tight">{preset.label}</p><p className="text-[10px] text-slate-400">{preset.book}</p></div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
