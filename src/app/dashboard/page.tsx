@@ -582,12 +582,21 @@ export default function DashboardPage() {
 
           <div className="mt-5">
             {todayDone ? (
-              <div>
-                <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 text-sm font-semibold px-3 py-1.5 rounded-full mb-3">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 text-sm font-semibold px-3 py-1.5 rounded-full">
                   <CheckCircle className="w-4 h-4" /> Complete for today
                 </div>
                 {tomorrowReading && (
-                  <p className="text-sm text-slate-400">Tomorrow: <span className="text-slate-200 font-medium">{tomorrowReading}</span></p>
+                  <a
+                    href="/today"
+                    className="flex items-center justify-between bg-slate-800 hover:bg-slate-700 rounded-xl px-4 py-3 transition group"
+                  >
+                    <div>
+                      <p className="text-xs text-slate-400 mb-0.5">Read ahead — tomorrow</p>
+                      <p className="text-sm font-semibold text-white">{tomorrowReading}</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-violet-400 group-hover:translate-x-1 transition-transform" />
+                  </a>
                 )}
               </div>
             ) : (
@@ -717,7 +726,7 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                 </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center rotate-90">
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-xl font-extrabold text-slate-900">{progressPct}%</span>
                   <span className="text-xs text-slate-400">done</span>
                 </div>
