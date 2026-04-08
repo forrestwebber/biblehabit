@@ -42,6 +42,8 @@ import {
   isSubPlanDoneToday,
   pauseSubPlan,
   removeSubPlan,
+  addSubPlan,
+  DEVOTIONAL_PRESETS,
   type SubPlan,
 } from "@/lib/sub-plans";
 import { addXP, getLevelInfo, XP_PER_CHAPTER, type LevelInfo } from "@/lib/xp-store";
@@ -143,6 +145,7 @@ export default function TodayPage() {
   // Sub-plans (Psalms, Proverbs, John, etc.)
   const [subPlans, setSubPlans] = useState<SubPlan[]>([]);
   const [subPlanDone, setSubPlanDone] = useState<Set<string>>(new Set());
+  const [showDevotionalPicker, setShowDevotionalPicker] = useState(false);
 
   // Verse selection / sharing / highlights
   const [selectedVerses, setSelectedVerses] = useState<Set<number>>(new Set());
@@ -1011,21 +1014,52 @@ export default function TodayPage() {
           </div>
         )}
 
-        {/* ─── ADD DEVOTIONAL NUDGE (no sub-plans) ─────────────── */}
-        {subPlans.length === 0 && (
+        {/* ─── ADD DEVOTIONAL NUDGE / INLINE PICKER ────────────── */}
+        {subPlans.length === 0 && !showDevotionalPicker && (
           <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 mb-4">
             <p className="text-sm font-semibold text-slate-700 mb-1">
-              📖 Want to add daily devotionals?
+              📖 Add daily devotionals
             </p>
             <p className="text-xs text-slate-500 mb-3">
-              Read 1 Psalm, 1 Proverb, and 1 chapter of John each day — a beloved devotional combination.
+              Stack a short daily reading alongside your main plan — Psalms, Proverbs, John, and more.
             </p>
-            <a
-              href="/plans"
+            <button
+              onClick={() => setShowDevotionalPicker(true)}
               className="text-xs text-violet-600 font-semibold hover:text-violet-800 transition"
             >
-              Add devotional readings →
-            </a>
+              Choose a devotional →
+            </button>
+          </div>
+        )}
+
+        {/* ─── INLINE DEVOTIONAL PICKER ────────────────────────── */}
+        {showDevotionalPicker && (
+          <div className="bg-violet-50 border border-violet-200 rounded-xl px-5 py-4 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold text-slate-800">Pick a devotional</p>
+              <button onClick={() => setShowDevotionalPicker(false)} className="text-slate-400 hover:text-slate-600 text-lg leading-none">×</button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {DEVOTIONAL_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => {
+                    const d = new Date();
+                    const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+                    addSubPlan({ label: preset.label, book: preset.book, totalChapters: preset.totalChapters, chaptersPerDay: preset.chaptersPerDay, startDate: iso });
+                    refreshSubPlans();
+                    setShowDevotionalPicker(false);
+                  }}
+                  className="flex items-center gap-2 bg-white border border-violet-100 rounded-xl px-3 py-2 text-left hover:border-violet-400 active:scale-95 transition-all"
+                >
+                  <span className="text-xl">{preset.emoji}</span>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900 leading-tight">{preset.label}</p>
+                    <p className="text-[10px] text-slate-400">{preset.book}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

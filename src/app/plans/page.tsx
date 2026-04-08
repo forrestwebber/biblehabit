@@ -35,7 +35,12 @@ import {
   DEVOTIONAL_PRESETS,
 } from "@/lib/sub-plans";
 
-const TRANSLATIONS = ["KJV", "NIV", "ESV", "NKJV", "NASB"];
+const TRANSLATIONS = [
+  { id: "kjv", label: "KJV — King James" },
+  { id: "web", label: "WEB — World English (modern)" },
+  { id: "asv", label: "ASV — American Standard" },
+  { id: "bbe", label: "BBE — Basic English" },
+];
 
 const TIME_OPTIONS = [
   { label: "15 min/day", minutes: 15 },
@@ -133,7 +138,7 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 export default function PlansPage() {
   const [startBook, setStartBook] = useState("Genesis");
   const [endBook, setEndBook] = useState("Revelation");
-  const [selectedTranslation, setSelectedTranslation] = useState("KJV");
+  const [selectedTranslation, setSelectedTranslation] = useState("kjv");
   const [selectedTime, setSelectedTime] = useState(30);
   const [planSaved, setPlanSaved] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -281,13 +286,20 @@ export default function PlansPage() {
                 </label>
                 <select
                   value={selectedTranslation}
-                  onChange={(e) => setSelectedTranslation(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedTranslation(e.target.value);
+                    // Save so /today picks it up
+                    if (typeof window !== "undefined") {
+                      localStorage.setItem("biblehabit_translation", e.target.value);
+                    }
+                  }}
                   className="w-full px-4 py-3 border border-violet-200 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-violet-500 focus:outline-none"
                 >
                   {TRANSLATIONS.map((t) => (
-                    <option key={t} value={t}>{t}</option>
+                    <option key={t.id} value={t.id}>{t.label}</option>
                   ))}
                 </select>
+                <p className="text-xs text-slate-400 mt-1">All 4 translations are free &amp; copyright-free. NIV/ESV coming soon.</p>
               </div>
 
               {/* Starting Book */}
@@ -397,7 +409,7 @@ export default function PlansPage() {
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between items-center">
                       <span className="text-slate-500 text-sm">Translation</span>
-                      <span className="font-semibold text-slate-900">{selectedTranslation}</span>
+                      <span className="font-semibold text-slate-900">{TRANSLATIONS.find(t => t.id === selectedTranslation)?.label.split(" — ")[0] ?? selectedTranslation.toUpperCase()}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-slate-500 text-sm">Range</span>
@@ -662,7 +674,7 @@ export default function PlansPage() {
       )}
 
       {/* Daily Devotionals Section */}
-      <section className="bg-violet-50 border-t border-violet-100 px-4 py-10">
+      <section id="devotionals" className="bg-violet-50 border-t border-violet-100 px-4 py-10">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-xl font-bold text-slate-900 mb-1">Add Daily Devotionals</h2>
           <p className="text-sm text-slate-500 mb-6">
