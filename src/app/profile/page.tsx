@@ -31,6 +31,7 @@ import {
   syncProgress,
 } from "@/lib/reading-store";
 import { getHighlights, removeHighlight, type Highlight } from "@/lib/highlights-store";
+import { getAllNotes, type ChapterNote } from "@/lib/notes-store";
 import { getUserLevel } from "@/lib/xp-store";
 
 export default function ProfilePage() {
@@ -42,6 +43,7 @@ export default function ProfilePage() {
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const [notes, setNotes] = useState<ChapterNote[]>([]);
   const [levelInfo, setLevelInfo] = useState(getUserLevel());
 
   useEffect(() => {
@@ -49,6 +51,7 @@ export default function ProfilePage() {
     setStreak(getCurrentStreak());
     setTotalRead(getTotalChaptersRead());
     setHighlights(getHighlights());
+    setNotes(getAllNotes());
     setLevelInfo(getUserLevel());
     setLoading(false);
 
@@ -525,6 +528,34 @@ export default function ProfilePage() {
               ))}
               {highlights.length > 5 && (
                 <p className="text-xs text-center text-violet-500 pt-1">+{highlights.length - 5} more highlights</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Chapter Notes */}
+        {notes.length > 0 && (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                My Notes
+              </h3>
+              <span className="text-xs text-slate-400">{notes.length} {notes.length === 1 ? "note" : "notes"}</span>
+            </div>
+            <div className="space-y-3">
+              {notes.slice(0, 5).map((n) => (
+                <div key={`${n.book}${n.chapter}`} className="bg-violet-50 border-l-4 border-violet-400 rounded-r-xl px-4 py-3">
+                  <p className="text-xs font-semibold text-violet-700 mb-1">
+                    {n.book} {n.chapter}
+                  </p>
+                  <p className="text-sm text-slate-700 leading-relaxed line-clamp-3">{n.text}</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {new Date(n.savedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </p>
+                </div>
+              ))}
+              {notes.length > 5 && (
+                <p className="text-xs text-center text-violet-500 pt-1">+{notes.length - 5} more notes</p>
               )}
             </div>
           </div>
