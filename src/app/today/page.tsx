@@ -49,6 +49,7 @@ import {
 import { addXP, getLevelInfo, XP_PER_CHAPTER, type LevelInfo } from "@/lib/xp-store";
 import { saveHighlight } from "@/lib/highlights-store";
 import { getNote, saveNote } from "@/lib/notes-store";
+import { getDailyVerse } from "@/lib/reflection-verses";
 
 // ─── Translations ────────────────────────────────────────────────
 const TRANSLATIONS = [
@@ -801,6 +802,32 @@ export default function TodayPage() {
                 </div>
               </div>
             )}
+
+            {/* Daily Reflection Verse */}
+            {(() => {
+              const v = getDailyVerse();
+              return (
+                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5">
+                  <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2">Today&apos;s Reflection</p>
+                  <p className="text-sm text-amber-900 leading-relaxed italic mb-2">&ldquo;{v.text}&rdquo;</p>
+                  <p className="text-xs font-semibold text-amber-700">— {v.ref}</p>
+                  <button
+                    onClick={() => {
+                      const text = `"${v.text}" — ${v.ref}`;
+                      if (navigator.share) {
+                        navigator.share({ text, url: "https://biblehabit.co" }).catch(() => {});
+                      } else {
+                        navigator.clipboard.writeText(text).catch(() => {});
+                      }
+                    }}
+                    className="mt-3 flex items-center gap-1.5 text-xs text-amber-600 font-semibold hover:text-amber-800 transition"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                    Share this verse
+                  </button>
+                </div>
+              );
+            })()}
 
             {/* Tomorrow preview — clickable to read ahead */}
             {tomorrowPreview && (
