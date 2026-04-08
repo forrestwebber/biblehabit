@@ -944,6 +944,7 @@ export default function TodayPage() {
                                   <p
                                     key={v.verse}
                                     onClick={() => {
+                                      hapticTap();
                                       setSelectedVerses((prev) => {
                                         const next = new Set(prev);
                                         if (next.has(v.verse)) next.delete(v.verse);
