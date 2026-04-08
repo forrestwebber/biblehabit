@@ -753,9 +753,9 @@ export default function TodayPage() {
               </div>
               <button
                 onClick={() => {
-                  const text = `Just read ${headerLabel} — Day ${todayInfo.dayNumber} of my Bible plan! 🔥 ${streak}-day streak. Join me at biblehabit.co`;
+                  const text = `Just read ${headerLabel} — Day ${todayInfo.dayNumber} of my Bible plan! 🔥 ${streak}-day streak.\n\nbiblehabit.co`;
                   if (navigator.share) {
-                    navigator.share({ text, title: "BibleHabit Daily Reading", url: "https://biblehabit.co" }).catch(() => {});
+                    navigator.share({ text, title: "BibleHabit Daily Reading" }).catch(() => {});
                   } else {
                     navigator.clipboard.writeText(text).catch(() => {});
                   }
@@ -815,9 +815,9 @@ export default function TodayPage() {
                   <p className="text-xs font-semibold text-amber-700">— {v.ref}</p>
                   <button
                     onClick={() => {
-                      const text = `"${v.text}" — ${v.ref}`;
+                      const text = `"${v.text}"\n— ${v.ref}\n\nbiblehabit.co`;
                       if (navigator.share) {
-                        navigator.share({ text, url: "https://biblehabit.co" }).catch(() => {});
+                        navigator.share({ text }).catch(() => {});
                       } else {
                         navigator.clipboard.writeText(text).catch(() => {});
                       }
@@ -1408,10 +1408,11 @@ export default function TodayPage() {
                     const v = activeData.verses.find((v) => v.verse === vn);
                     return v ? `"${v.text}" — ${activeCh.book} ${activeCh.chapter}:${vn}` : "";
                   }).filter(Boolean).join("\n");
+                  const shareText = text + "\n\nbiblehabit.co";
                   if (navigator.share) {
-                    navigator.share({ text, title: `${activeCh.book} ${activeCh.chapter}`, url: "https://biblehabit.co" }).catch(() => {});
+                    navigator.share({ text: shareText, title: `${activeCh.book} ${activeCh.chapter}` }).catch(() => {});
                   } else {
-                    navigator.clipboard.writeText(text).catch(() => {});
+                    navigator.clipboard.writeText(shareText).catch(() => {});
                   }
                 }}
                 className="bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95"
@@ -1431,7 +1432,7 @@ export default function TodayPage() {
                   }).filter(Boolean).join(" ");
                   saveHighlight({ book: activeCh.book, chapter: activeCh.chapter, verses: sortedVerses, text });
                   setHighlightSaved(true);
-                  setTimeout(() => { setSelectedVerses(new Set()); setHighlightSaved(false); }, 1200);
+                  setTimeout(() => { setSelectedVerses(new Set()); setHighlightSaved(false); }, 2500);
                 }}
                 className={`text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95 ${
                   highlightSaved
@@ -1441,6 +1442,9 @@ export default function TodayPage() {
               >
                 {highlightSaved ? "Saved ✓" : "Save"}
               </button>
+              {highlightSaved && (
+                <a href="/profile" className="text-xs text-violet-400 underline whitespace-nowrap">View in Profile →</a>
+              )}
 
               {/* Dismiss */}
               <button

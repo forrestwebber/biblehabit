@@ -1,4 +1,5 @@
 "use client"
+import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { Capacitor } from "@capacitor/core"
@@ -42,9 +43,14 @@ const TABS = [
 
 export default function MobileTabBar() {
   const pathname = usePathname()
+  const [isNative, setIsNative] = useState(false)
 
-  // Only show in Capacitor native app
-  if (typeof window !== "undefined" && !Capacitor.isNativePlatform()) return null
+  useEffect(() => {
+    setIsNative(Capacitor.isNativePlatform())
+  }, [])
+
+  // Only show in Capacitor native app — use state so SSR never renders it
+  if (!isNative) return null
 
   return (
     <nav

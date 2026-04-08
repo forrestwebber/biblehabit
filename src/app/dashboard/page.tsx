@@ -803,9 +803,19 @@ export default function DashboardPage() {
             <span className="font-medium text-slate-800 text-sm">Today's Reading</span>
           </a>
           <a href="/profile" className="bg-white border border-slate-100 rounded-xl p-4 flex items-center gap-3 hover:border-violet-200 transition shadow-sm">
-            <Calendar className="w-5 h-5 text-violet-600" />
-            <span className="font-medium text-slate-800 text-sm">Calendar</span>
+            <BookOpen className="w-5 h-5 text-amber-500" />
+            <span className="font-medium text-slate-800 text-sm">Highlights &amp; Notes</span>
           </a>
+        </div>
+
+        {/* Change plan */}
+        <div className="text-center">
+          <button
+            onClick={() => setOnboardingStep(1)}
+            className="text-sm text-slate-400 hover:text-violet-600 transition underline underline-offset-2"
+          >
+            Change reading plan
+          </button>
         </div>
 
       </div>
