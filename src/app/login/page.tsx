@@ -1,10 +1,7 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../../lib/supabase-config";
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { supabase } from "@/lib/supabase";
 
 function checkPasswordStrength(pw: string) {
   return {
@@ -39,7 +36,7 @@ function LoginContent() {
   const handleGoogle = async () => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
+      provider: "keycloak",
       options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
     });
     if (error) {
@@ -59,14 +56,31 @@ function LoginContent() {
     if (mode === "signup") {
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) {
-        setIsError(true);
-        setMessage(error.message);
+        // "User already registered" — try signing in instead
+        if (error.message?.toLowerCase().includes("already registered")) {
+          const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+          if (signInError) {
+            setIsError(true);
+            setMessage(signInError.message);
+          } else {
+            window.location.href = "/dashboard";
+          }
+        } else {
+          setIsError(true);
+          setMessage(error.message);
+        }
       } else if (data.session) {
         window.location.href = "/dashboard";
         return;
       } else {
-        setIsError(false);
-        setMessage("Check your email for a confirmation link!");
+        // Autoconfirm on — sign in immediately to get a session
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) {
+          setIsError(false);
+          setMessage("Account created! Check your email to confirm, then sign in.");
+        } else {
+          window.location.href = "/dashboard";
+        }
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
