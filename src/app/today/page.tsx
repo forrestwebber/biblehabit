@@ -218,6 +218,8 @@ export default function TodayPage() {
   const readingBg = readingMode === "dark" ? "#1a1a2e" : readingMode === "sepia" ? "#f5f0e8" : "#ffffff";
   const readingText = readingMode === "dark" ? "#e2e8f0" : readingMode === "sepia" ? "#5c4a32" : "#334155";
   const readingMuted = readingMode === "dark" ? "#94a3b8" : readingMode === "sepia" ? "#9c8060" : "#94a3b8";
+  const readingBorder = readingMode === "dark" ? "#2d3748" : readingMode === "sepia" ? "#ddd0b8" : "#e8e0f7";
+  const readingSurface = readingMode === "dark" ? "#252540" : readingMode === "sepia" ? "#ede8dc" : "#f8f7ff";
 
   // Verse selection / sharing / highlights
   const [selectedVerses, setSelectedVerses] = useState<Set<number>>(new Set());
@@ -631,11 +633,11 @@ export default function TodayPage() {
             key={t.id}
             onClick={() => handleTranslationChange(t.id)}
             title={t.name}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 ${
-              translation === t.id
-                ? "bg-violet-600 text-white shadow-sm"
-                : "bg-slate-100 text-slate-500 hover:bg-violet-100 hover:text-violet-700"
-            }`}
+            className="px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95"
+            style={translation === t.id
+              ? { background: "#7c3aed", color: "#ffffff" }
+              : { background: readingSurface, color: readingMuted }
+            }
           >
             {t.label}
           </button>
@@ -643,16 +645,20 @@ export default function TodayPage() {
       </div>
       {/* Reading controls */}
       <div className="flex items-center gap-2">
-        <button onClick={() => changeFontSize(-1)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition flex items-center justify-center text-sm font-bold active:scale-95">A−</button>
-        <button onClick={() => changeFontSize(1)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition flex items-center justify-center text-sm font-bold active:scale-95">A+</button>
+        <button
+          onClick={() => changeFontSize(-1)}
+          className="w-7 h-7 rounded-full transition flex items-center justify-center text-sm font-bold active:scale-95"
+          style={{ background: readingSurface, color: readingText }}
+        >A−</button>
+        <button
+          onClick={() => changeFontSize(1)}
+          className="w-7 h-7 rounded-full transition flex items-center justify-center text-sm font-bold active:scale-95"
+          style={{ background: readingSurface, color: readingText }}
+        >A+</button>
         <button
           onClick={cycleReadingMode}
           className="px-3 py-1 rounded-full text-xs font-semibold border transition active:scale-95"
-          style={{
-            background: readingBg,
-            color: readingText,
-            borderColor: readingMode === "dark" ? "#334155" : readingMode === "sepia" ? "#c4a882" : "#e2e8f0",
-          }}
+          style={{ background: readingSurface, color: readingText, borderColor: readingBorder }}
         >
           {readingMode === "light" ? "☀ Light" : readingMode === "sepia" ? "📜 Sepia" : "🌙 Dark"}
         </button>
@@ -818,7 +824,7 @@ export default function TodayPage() {
               </div>
             ) : (
               /* Extra reading panel */
-              <div className="bg-white rounded-2xl shadow-sm border border-violet-100 overflow-hidden">
+              <div className="rounded-2xl shadow-sm overflow-hidden" style={{ background: readingBg, border: `1px solid ${readingBorder}`, transition: "background 0.3s, border-color 0.3s" }}>
                 {/* Nav header */}
                 <div className="bg-slate-800 text-white px-5 py-3 flex items-center justify-between">
                   <button
@@ -877,7 +883,7 @@ export default function TodayPage() {
                         const data = chapterTexts.get(key);
                         if (!ch) return null;
                         return data ? (
-                          <div style={{ background: readingBg, transition: "background 0.3s" }}>
+                          <div>
                             <h3 className="text-base font-bold mb-4" style={{ color: readingText }}>
                               {ch.book} {ch.chapter}{" "}
                               <span className="text-sm font-normal" style={{ color: readingMuted }}>
@@ -960,7 +966,7 @@ export default function TodayPage() {
           </div>
         ) : (
           /* ─── READING CARD (not done today) ─────────────────────── */
-          <div className="bg-white rounded-2xl shadow-sm border border-violet-100 overflow-hidden mb-6">
+          <div className="rounded-2xl shadow-sm overflow-hidden mb-6" style={{ background: readingBg, border: `1px solid ${readingBorder}`, transition: "background 0.3s, border-color 0.3s" }}>
             {/* Header */}
             <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
               <div>
@@ -987,16 +993,16 @@ export default function TodayPage() {
 
             {/* Chapter tabs */}
             {todayInfo.chapters.length > 1 && (
-              <div className="flex items-center border-b border-violet-100 px-4 gap-1 overflow-x-auto">
+              <div className="flex items-center px-4 gap-1 overflow-x-auto" style={{ borderBottom: `1px solid ${readingBorder}` }}>
                 {todayInfo.chapters.map((ch, i) => (
                   <button
                     key={ch.globalIndex}
                     onClick={() => setCurrentChapterView(i)}
-                    className={`px-3 py-2 text-sm font-medium whitespace-nowrap transition border-b-2 ${
-                      i === currentChapterView
-                        ? "border-violet-600 text-violet-700"
-                        : "border-transparent text-slate-400 hover:text-slate-600"
-                    }`}
+                    className="px-3 py-2 text-sm font-medium whitespace-nowrap transition border-b-2"
+                    style={i === currentChapterView
+                      ? { borderColor: "#7c3aed", color: "#7c3aed" }
+                      : { borderColor: "transparent", color: readingMuted }
+                    }
                   >
                     {ch.book} {ch.chapter}
                   </button>
@@ -1008,7 +1014,7 @@ export default function TodayPage() {
             <TranslationPicker />
 
             {/* Chapter text */}
-            <div className="px-6 py-6" style={{ background: readingBg, transition: "background 0.3s" }}>
+            <div className="px-6 py-6">
               {currentCh && (
                 <div className="flex items-baseline justify-between mb-4">
                   <h2 className="text-lg font-bold" style={{ color: readingText }}>
@@ -1027,7 +1033,16 @@ export default function TodayPage() {
                 </div>
               )}
 
-              {selectedVerses.size === 0 && (
+              {chapterData && selectedVerses.size === 0 && (() => {
+                const wordCount = chapterData.verses.reduce((sum, v) => sum + v.text.split(/\s+/).length, 0);
+                const mins = Math.ceil(wordCount / 238);
+                return (
+                  <p className="text-xs mb-3 italic" style={{ color: readingMuted }}>
+                    ~{mins} min read · Tap any verse to highlight &amp; share
+                  </p>
+                );
+              })()}
+              {!chapterData && selectedVerses.size === 0 && (
                 <p className="text-xs mb-3 italic" style={{ color: readingMuted }}>Tap any verse to highlight &amp; share</p>
               )}
 
@@ -1100,7 +1115,7 @@ export default function TodayPage() {
             )}
 
             {/* Mark as Done */}
-            <div className="px-6 py-4 border-t border-violet-100">
+            <div className="px-6 py-4" style={{ borderTop: `1px solid ${readingBorder}` }}>
               <button
                 onClick={handleMarkDone}
                 className="w-full flex items-center justify-center gap-2 bg-violet-700 text-white py-3.5 rounded-xl hover:bg-violet-800 active:scale-95 transition-all font-semibold text-base"
