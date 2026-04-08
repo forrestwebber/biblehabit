@@ -41,13 +41,13 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
 
   // Translations
   {
-    patterns: ["translation", "kjv", "web", "asv", "bbe", "niv", "esv", "version", "which bible"],
-    response: "Right now we support **KJV, WEB, ASV, and BBE** — all free and public domain. We're working on adding NIV and ESV (they require licensing). Tap the translation pills at the top of your reading to switch instantly. KJV is classic; WEB is modern and readable.",
-    followUps: ["When will NIV/ESV be available?", "Which translation is best for beginners?"]
+    patterns: ["translation", "kjv", "web", "asv", "bbe", "niv", "esv", "nkjv", "nlt", "version", "which bible"],
+    response: "We support **KJV, NIV, ESV, NKJV, NLT, WEB, ASV, and BBE**. Tap the translation pills at the top of your reading to switch instantly. NIV and NLT are the most readable for everyday use; ESV is great for study; KJV is the classic.",
+    followUps: ["Which translation is best for beginners?", "Can I change my translation later?"]
   },
   {
-    patterns: ["niv", "esv", "when", "coming soon"],
-    response: "NIV and ESV require licensing agreements — we're working on it! For now, **WEB (World English Bible)** is our most readable modern translation and it's free. ASV is also excellent for study.",
+    patterns: ["niv", "esv", "nkjv", "nlt", "new international", "english standard", "new living"],
+    response: "**NIV, ESV, NKJV, and NLT** are all available now! Tap the translation pills at the top of your reading view to switch. NIV is the most popular modern translation; NLT is easiest to read; ESV is great for study.",
   },
 
   // Keep Going / Re-read

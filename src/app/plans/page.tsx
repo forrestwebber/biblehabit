@@ -37,7 +37,11 @@ import {
 
 const TRANSLATIONS = [
   { id: "kjv", label: "KJV — King James" },
-  { id: "web", label: "WEB — World English (modern)" },
+  { id: "niv", label: "NIV — New International" },
+  { id: "esv", label: "ESV — English Standard" },
+  { id: "nkjv", label: "NKJV — New King James" },
+  { id: "nlt", label: "NLT — New Living" },
+  { id: "web", label: "WEB — World English" },
   { id: "asv", label: "ASV — American Standard" },
   { id: "bbe", label: "BBE — Basic English" },
 ];
@@ -299,7 +303,7 @@ export default function PlansPage() {
                     <option key={t.id} value={t.id}>{t.label}</option>
                   ))}
                 </select>
-                <p className="text-xs text-slate-400 mt-1">All 4 translations are free &amp; copyright-free. NIV/ESV coming soon.</p>
+                <p className="text-xs text-slate-400 mt-1">8 translations available — switch anytime while reading.</p>
               </div>
 
               {/* Starting Book */}
