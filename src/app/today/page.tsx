@@ -189,6 +189,36 @@ export default function TodayPage() {
   const [subPlanDone, setSubPlanDone] = useState<Set<string>>(new Set());
   const [showDevotionalPicker, setShowDevotionalPicker] = useState(false);
 
+  // Reading preferences
+  const [fontSize, setFontSize] = useState<number>(() => {
+    if (typeof window === "undefined") return 16;
+    return parseInt(localStorage.getItem("bh-font-size") ?? "16", 10);
+  });
+  const [readingMode, setReadingMode] = useState<"light" | "sepia" | "dark">(() => {
+    if (typeof window === "undefined") return "light";
+    return (localStorage.getItem("bh-reading-mode") as "light" | "sepia" | "dark") ?? "light";
+  });
+
+  const changeFontSize = (delta: number) => {
+    setFontSize(prev => {
+      const next = Math.max(13, Math.min(22, prev + delta));
+      localStorage.setItem("bh-font-size", String(next));
+      return next;
+    });
+  };
+  const cycleReadingMode = () => {
+    setReadingMode(prev => {
+      const modes: Array<"light" | "sepia" | "dark"> = ["light", "sepia", "dark"];
+      const next = modes[(modes.indexOf(prev) + 1) % 3];
+      localStorage.setItem("bh-reading-mode", next);
+      return next;
+    });
+  };
+
+  const readingBg = readingMode === "dark" ? "#1a1a2e" : readingMode === "sepia" ? "#f5f0e8" : "#ffffff";
+  const readingText = readingMode === "dark" ? "#e2e8f0" : readingMode === "sepia" ? "#5c4a32" : "#334155";
+  const readingMuted = readingMode === "dark" ? "#94a3b8" : readingMode === "sepia" ? "#9c8060" : "#94a3b8";
+
   // Verse selection / sharing / highlights
   const [selectedVerses, setSelectedVerses] = useState<Set<number>>(new Set());
   const [highlightSaved, setHighlightSaved] = useState(false);
@@ -593,21 +623,40 @@ export default function TodayPage() {
 
   // Translation pill bar (shared between today and extra reading)
   const TranslationPicker = () => (
-    <div className="px-5 pt-3 pb-0 flex items-center gap-1.5 flex-wrap">
-      {TRANSLATIONS.map((t) => (
+    <div className="px-5 pt-3 pb-0 space-y-2">
+      {/* Translation buttons */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {TRANSLATIONS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => handleTranslationChange(t.id)}
+            title={t.name}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 ${
+              translation === t.id
+                ? "bg-violet-600 text-white shadow-sm"
+                : "bg-slate-100 text-slate-500 hover:bg-violet-100 hover:text-violet-700"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {/* Reading controls */}
+      <div className="flex items-center gap-2">
+        <button onClick={() => changeFontSize(-1)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition flex items-center justify-center text-sm font-bold active:scale-95">A−</button>
+        <button onClick={() => changeFontSize(1)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition flex items-center justify-center text-sm font-bold active:scale-95">A+</button>
         <button
-          key={t.id}
-          onClick={() => handleTranslationChange(t.id)}
-          title={t.name}
-          className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 ${
-            translation === t.id
-              ? "bg-violet-600 text-white shadow-sm"
-              : "bg-slate-100 text-slate-500 hover:bg-violet-100 hover:text-violet-700"
-          }`}
+          onClick={cycleReadingMode}
+          className="px-3 py-1 rounded-full text-xs font-semibold border transition active:scale-95"
+          style={{
+            background: readingBg,
+            color: readingText,
+            borderColor: readingMode === "dark" ? "#334155" : readingMode === "sepia" ? "#c4a882" : "#e2e8f0",
+          }}
         >
-          {t.label}
+          {readingMode === "light" ? "☀ Light" : readingMode === "sepia" ? "📜 Sepia" : "🌙 Dark"}
         </button>
-      ))}
+      </div>
     </div>
   );
 
@@ -828,17 +877,17 @@ export default function TodayPage() {
                         const data = chapterTexts.get(key);
                         if (!ch) return null;
                         return data ? (
-                          <div>
-                            <h3 className="text-base font-bold text-slate-900 mb-4">
+                          <div style={{ background: readingBg, transition: "background 0.3s" }}>
+                            <h3 className="text-base font-bold mb-4" style={{ color: readingText }}>
                               {ch.book} {ch.chapter}{" "}
-                              <span className="text-sm font-normal text-slate-400">
+                              <span className="text-sm font-normal" style={{ color: readingMuted }}>
                                 {translationLabel}
                               </span>
                             </h3>
                             {selectedVerses.size === 0 && (
-                              <p className="text-xs text-violet-400 mb-3 italic">Tap any verse to highlight &amp; share</p>
+                              <p className="text-xs mb-3 italic" style={{ color: readingMuted }}>Tap any verse to highlight &amp; share</p>
                             )}
-                            <div className="text-slate-700 leading-relaxed space-y-1 text-[15px]">
+                            <div className="leading-relaxed space-y-1" style={{ color: readingText, fontSize: `${fontSize}px` }}>
                               {data.verses.map((v) => {
                                 const isSelected = selectedVerses.has(v.verse);
                                 return (
@@ -853,13 +902,10 @@ export default function TodayPage() {
                                       });
                                       setHighlightSaved(false);
                                     }}
-                                    className={`px-2 py-1.5 rounded-lg cursor-pointer transition-all select-none ${
-                                      isSelected
-                                        ? "bg-yellow-100 border-l-4 border-yellow-400 text-slate-900"
-                                        : "hover:bg-slate-50"
-                                    }`}
+                                    className="px-2 py-1.5 rounded-lg cursor-pointer transition-all select-none"
+                                    style={isSelected ? { background: "#fef08a", borderLeft: "4px solid #facc15", color: "#1e293b" } : {}}
                                   >
-                                    <sup className={`mr-1.5 text-xs font-bold ${isSelected ? "text-yellow-600" : "text-violet-400"}`}>
+                                    <sup className="mr-1.5 text-xs font-bold" style={{ color: isSelected ? "#ca8a04" : "#8b5cf6" }}>
                                       {v.verse}
                                     </sup>
                                     {v.text}
@@ -962,17 +1008,18 @@ export default function TodayPage() {
             <TranslationPicker />
 
             {/* Chapter text */}
-            <div className="px-6 py-6">
+            <div className="px-6 py-6" style={{ background: readingBg, transition: "background 0.3s" }}>
               {currentCh && (
                 <div className="flex items-baseline justify-between mb-4">
-                  <h2 className="text-lg font-bold text-slate-900">
+                  <h2 className="text-lg font-bold" style={{ color: readingText }}>
                     {currentCh.book} {currentCh.chapter}{" "}
-                    <span className="text-sm font-normal text-slate-400">{translationLabel}</span>
+                    <span className="text-sm font-normal" style={{ color: readingMuted }}>{translationLabel}</span>
                   </h2>
                   {selectedVerses.size > 0 && (
                     <button
                       onClick={() => setSelectedVerses(new Set())}
-                      className="text-xs text-slate-400 hover:text-slate-600 transition"
+                      className="text-xs transition"
+                      style={{ color: readingMuted }}
                     >
                       Clear selection
                     </button>
@@ -981,11 +1028,11 @@ export default function TodayPage() {
               )}
 
               {selectedVerses.size === 0 && (
-                <p className="text-xs text-violet-400 mb-3 italic">Tap any verse to highlight &amp; share</p>
+                <p className="text-xs mb-3 italic" style={{ color: readingMuted }}>Tap any verse to highlight &amp; share</p>
               )}
 
               {chapterData ? (
-                <div className="text-slate-700 leading-relaxed space-y-1 text-[15px]">
+                <div className="leading-relaxed space-y-1" style={{ color: readingText, fontSize: `${fontSize}px` }}>
                   {chapterData.verses.map((v) => {
                     const isSelected = selectedVerses.has(v.verse);
                     return (
@@ -1000,13 +1047,10 @@ export default function TodayPage() {
                           });
                           setHighlightSaved(false);
                         }}
-                        className={`px-2 py-1.5 rounded-lg cursor-pointer transition-all select-none ${
-                          isSelected
-                            ? "bg-yellow-100 border-l-4 border-yellow-400 text-slate-900"
-                            : "hover:bg-slate-50"
-                        }`}
+                        className="px-2 py-1.5 rounded-lg cursor-pointer transition-all select-none"
+                        style={isSelected ? { background: "#fef08a", borderLeft: "4px solid #facc15", color: "#1e293b" } : {}}
                       >
-                        <sup className={`mr-1.5 text-xs font-bold ${isSelected ? "text-yellow-600" : "text-violet-400"}`}>
+                        <sup className="mr-1.5 text-xs font-bold" style={{ color: isSelected ? "#ca8a04" : "#8b5cf6" }}>
                           {v.verse}
                         </sup>
                         {v.text}

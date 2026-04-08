@@ -33,16 +33,76 @@ function LoginContent() {
   const allStrengthMet = strength.length && strength.upper && strength.lower && strength.numberOrSymbol;
   const emailInvalid = emailTouched && email.length > 0 && !isValidEmail(email);
 
+  // Handle deep link callback on native (biblehabit://auth/callback#access_token=...&refresh_token=...)
+  useEffect(() => {
+    let cleanupFn: (() => void) | undefined;
+
+    const setupAppUrlListener = async () => {
+      const isNative = typeof (window as any).Capacitor !== "undefined" && (window as any).Capacitor.isNativePlatform?.();
+      if (!isNative) return;
+
+      try {
+        const { App } = await import("@capacitor/app");
+        const { Browser } = await import("@capacitor/browser");
+
+        const listener = await App.addListener("appUrlOpen", async (event: { url: string }) => {
+          const url = event.url;
+          if (url.startsWith("biblehabit://")) {
+            // Close the in-app browser
+            await Browser.close();
+
+            // Extract tokens from URL hash or query params
+            const hashPart = url.split("#")[1] || url.split("?")[1] || "";
+            const params = new URLSearchParams(hashPart);
+            const access_token = params.get("access_token");
+            const refresh_token = params.get("refresh_token");
+
+            if (access_token && refresh_token) {
+              const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+              if (!error) {
+                window.location.href = "/dashboard";
+              } else {
+                setIsError(true);
+                setMessage("Sign-in failed. Please try again.");
+                setLoading(false);
+              }
+            } else {
+              // No tokens in hash — may be a code-flow redirect; exchange code
+              const code = params.get("code");
+              if (code) {
+                const { error } = await supabase.auth.exchangeCodeForSession(code);
+                if (!error) {
+                  window.location.href = "/dashboard";
+                } else {
+                  setIsError(true);
+                  setMessage("Sign-in failed. Please try again.");
+                  setLoading(false);
+                }
+              }
+            }
+          }
+        });
+
+        cleanupFn = () => listener.remove();
+      } catch (e) {
+        console.error("App URL listener setup failed:", e);
+      }
+    };
+
+    setupAppUrlListener();
+    return () => { cleanupFn?.(); };
+  }, []);
+
   const handleGoogle = async () => {
     setLoading(true);
     const isNative = typeof (window as any).Capacitor !== "undefined" && (window as any).Capacitor.isNativePlatform?.();
 
     if (isNative) {
-      // On iOS/Android: use in-app browser (SFSafariViewController) to avoid bouncing to Safari
+      // Use custom URL scheme so the session lands in WKWebView, not SFSafariViewController
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "keycloak",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+          redirectTo: `biblehabit://auth/callback`,
           skipBrowserRedirect: true,
         },
       });
@@ -56,15 +116,8 @@ function LoginContent() {
         try {
           const { Browser } = await import("@capacitor/browser");
           await Browser.open({ url: data.url, presentationStyle: "popover" });
-          // Listen for the callback — when SFSafariViewController navigates back to biblehabit.co,
-          // Supabase will have set the session via the auth/callback route.
-          Browser.addListener("browserFinished", () => {
-            supabase.auth.getSession().then(({ data: { session } }) => {
-              if (session) window.location.href = "/dashboard";
-            });
-          });
+          // Deep link callback handled by appUrlOpen listener above
         } catch {
-          // Fallback if Browser plugin unavailable
           window.location.href = data.url;
         }
       }
