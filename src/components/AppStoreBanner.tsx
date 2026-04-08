@@ -6,7 +6,10 @@ export default function AppStoreBanner() {
 
   useEffect(() => {
     const dismissed = localStorage.getItem("ios-banner-dismissed");
-    if (!dismissed) setVisible(true);
+    // Only show on iOS Safari (not desktop, not Android, not Capacitor in-app)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isCapacitor = typeof (window as any).Capacitor !== "undefined" && (window as any).Capacitor.isNativePlatform?.();
+    if (isIOS && !isCapacitor && !dismissed) setVisible(true);
   }, []);
 
   const dismiss = () => {
@@ -26,15 +29,17 @@ export default function AppStoreBanner() {
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold leading-tight">BibleHabit for iPhone</p>
-          <p className="text-xs text-violet-200 leading-tight">Daily reading on the go — coming soon</p>
+          <p className="text-xs text-violet-200 leading-tight">Read on the go — now in beta</p>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         <a
-          href="/login?mode=signup"
+          href="https://testflight.apple.com/join/fx8k8Dnk"
+          target="_blank"
+          rel="noopener noreferrer"
           className="bg-white text-violet-700 text-xs font-bold px-3 py-1.5 rounded-full hover:bg-violet-50 transition"
         >
-          Get Early Access
+          Join Beta
         </a>
         <button onClick={dismiss} className="text-violet-200 hover:text-white transition p-1" aria-label="Dismiss">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
