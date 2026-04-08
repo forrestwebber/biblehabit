@@ -3,7 +3,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'co.biblehabit.app',
   appName: 'BibleHabit',
-  webDir: 'out',
+  webDir: 'public',
   ios: {
     scheme: 'BibleHabit',
   },

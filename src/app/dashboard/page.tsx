@@ -13,6 +13,8 @@ import {
   getGlobalChapterIndex,
   getBookAndChapter,
   chaptersRemaining,
+  getChaptersInPlan,
+  getPlanEndGlobal,
   getTodaysReading,
   getMilestones,
 } from "@/lib/bible-data";
@@ -57,13 +59,78 @@ function monthsDiff(a: Date, b: Date): number {
 const QUICK_PICKS = [
   { label: "Entire Bible", desc: "Genesis to Revelation (66 books)", startBook: "Genesis", endBook: "Revelation" },
   { label: "New Testament", desc: "Matthew to Revelation", startBook: "Matthew", endBook: "Revelation" },
-  { label: "Custom Range", desc: "Choose your own start and end", startBook: "", endBook: "" },
+  { label: "Pick Up Mid-Book", desc: "Finish a book you've already started", startBook: "", endBook: "" },
+  { label: "Custom Range", desc: "Choose your own start and end books", startBook: "", endBook: "" },
 ];
 
+const BIBLE_GROUPS = [
+  { name: "Torah", books: ["Genesis","Exodus","Leviticus","Numbers","Deuteronomy"] },
+  { name: "History", books: ["Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther"] },
+  { name: "Poetry", books: ["Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon"] },
+  { name: "Major Prophets", books: ["Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel"] },
+  { name: "Minor Prophets", books: ["Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi"] },
+  { name: "Gospels & Acts", books: ["Matthew","Mark","Luke","John","Acts"] },
+  { name: "Paul's Letters", books: ["Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon"] },
+  { name: "Letters & Prophecy", books: ["Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"] },
+];
+
+function BookPicker({ selected, onSelect }: { selected: string; onSelect: (book: string) => void }) {
+  return (
+    <div className="space-y-3">
+      {BIBLE_GROUPS.map((group) => (
+        <div key={group.name}>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">{group.name}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {group.books.map((book) => (
+              <button
+                key={book}
+                onClick={() => onSelect(book)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                  selected === book
+                    ? "bg-violet-600 text-white shadow-sm"
+                    : "bg-slate-100 text-slate-600 hover:bg-violet-100 hover:text-violet-700"
+                }`}
+              >
+                {book}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ChapterPicker({ book, selected, onSelect }: { book: string; selected: number; onSelect: (ch: number) => void }) {
+  const bookData = BIBLE_BOOKS.find((b) => b.name === book);
+  const total = bookData?.chapters ?? 1;
+  return (
+    <div>
+      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Starting chapter in {book}</p>
+      <div className="flex flex-wrap gap-1.5">
+        {Array.from({ length: total }, (_, i) => i + 1).map((ch) => (
+          <button
+            key={ch}
+            onClick={() => onSelect(ch)}
+            className={`w-9 h-9 rounded-lg text-xs font-semibold transition-all ${
+              selected === ch
+                ? "bg-violet-600 text-white shadow-sm"
+                : "bg-slate-100 text-slate-600 hover:bg-violet-100 hover:text-violet-700"
+            }`}
+          >
+            {ch}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const PACE_OPTIONS = [
-  { minutes: 15, chaptersPerDay: 1, label: "15 min/day", sub: "~1 chapter/day" },
-  { minutes: 30, chaptersPerDay: 3, label: "30 min/day", sub: "~3 chapters/day" },
-  { minutes: 60, chaptersPerDay: 5, label: "60 min/day", sub: "~5 chapters/day" },
+  { minutes: 1, chaptersPerDay: 1, label: "1 min/day", sub: "~1 chapter/day · just start the habit" },
+  { minutes: 5, chaptersPerDay: 2, label: "5 min/day", sub: "~2 chapters/day" },
+  { minutes: 15, chaptersPerDay: 3, label: "15 min/day", sub: "~3 chapters/day" },
+  { minutes: 30, chaptersPerDay: 5, label: "30 min/day", sub: "~5 chapters/day" },
 ];
 
 function todayDateStr() {
@@ -89,9 +156,10 @@ export default function DashboardPage() {
   // Onboarding state
   const [obQuickPick, setObQuickPick] = useState(0);
   const [obStartBook, setObStartBook] = useState("Genesis");
+  const [obStartChapter, setObStartChapter] = useState(1);
   const [obEndBook, setObEndBook] = useState("Revelation");
-  const [obMinutesPerDay, setObMinutesPerDay] = useState(30);
-  const [obChaptersPerDay, setObChaptersPerDay] = useState(3);
+  const [obMinutesPerDay, setObMinutesPerDay] = useState(1);
+  const [obChaptersPerDay, setObChaptersPerDay] = useState(1);
   const [obStartDate, setObStartDate] = useState(todayDateStr());
 
   useEffect(() => {
@@ -108,23 +176,32 @@ export default function DashboardPage() {
         avatarUrl: u.user_metadata?.avatar_url ?? undefined,
       });
 
-      setSyncing(true);
-      await syncProgress();
-      setSyncing(false);
-
+      // Load from localStorage immediately — don't block on sync
       const savedPlan = getPlan();
       if (!savedPlan) {
         setOnboardingStep(0);
-        setLoading(false);
-        return;
+      } else {
+        setPlan(savedPlan);
+        setStreak(getCurrentStreak());
+        setTotalRead(getTotalChaptersRead());
+        setTodayDone(isDayComplete(formatDate(new Date())));
+        setAnalysis(getProgressAnalysis(savedPlan));
+        setOnboardingStep(-1);
       }
-      setPlan(savedPlan);
-      setStreak(getCurrentStreak());
-      setTotalRead(getTotalChaptersRead());
-      setTodayDone(isDayComplete(formatDate(new Date())));
-      setAnalysis(getProgressAnalysis(savedPlan));
-      setOnboardingStep(-1);
       setLoading(false);
+
+      // Sync in background — refresh stats when done
+      setSyncing(true);
+      await syncProgress();
+      setSyncing(false);
+      const refreshedPlan = getPlan();
+      if (refreshedPlan) {
+        setPlan(refreshedPlan);
+        setStreak(getCurrentStreak());
+        setTotalRead(getTotalChaptersRead());
+        setTodayDone(isDayComplete(formatDate(new Date())));
+        setAnalysis(getProgressAnalysis(refreshedPlan));
+      }
     });
   }, []);
 
@@ -149,12 +226,13 @@ export default function DashboardPage() {
   // Computed: tomorrow's reading
   const tomorrowReading = useMemo(() => {
     if (!plan || !todayReading) return null;
+    const planEnd = getPlanEndGlobal(plan.endBook);
     const startIdx = getGlobalChapterIndex(plan.startBook, plan.startChapter);
     const dayNum = todayReading.dayNumber; // 1-based today
     const tomorrowGlobal = startIdx + dayNum * plan.chaptersPerDay;
-    if (tomorrowGlobal >= TOTAL_CHAPTERS) return null;
+    if (tomorrowGlobal > planEnd) return null;
     const bc = getBookAndChapter(tomorrowGlobal);
-    const bcEnd = getBookAndChapter(Math.min(tomorrowGlobal + plan.chaptersPerDay - 1, TOTAL_CHAPTERS - 1));
+    const bcEnd = getBookAndChapter(Math.min(tomorrowGlobal + plan.chaptersPerDay - 1, planEnd));
     if (bc.book === bcEnd.book) {
       return bc.chapter === bcEnd.chapter ? `${bc.book} ${bc.chapter}` : `${bc.book} ${bc.chapter}–${bcEnd.chapter}`;
     }
@@ -173,7 +251,7 @@ export default function DashboardPage() {
   // Computed: overall progress %
   const progressPct = useMemo(() => {
     if (!plan) return 0;
-    const total = chaptersRemaining(plan.startBook, plan.startChapter);
+    const total = getChaptersInPlan(plan.startBook, plan.startChapter, plan.endBook);
     return total > 0 ? Math.min(100, Math.round((totalRead / total) * 100)) : 0;
   }, [plan, totalRead]);
 
@@ -199,20 +277,23 @@ export default function DashboardPage() {
       if (si === -1 || ei === -1 || ei < si) return 0;
       let t = 0;
       for (let i = si; i <= ei; i++) t += BIBLE_BOOKS[i].chapters;
-      return t;
+      // Subtract chapters already passed in the starting book
+      return t - (obStartChapter - 1);
     })();
     if (total === 0 || obChaptersPerDay === 0) return null;
     const days = Math.ceil(total / obChaptersPerDay);
     const d = new Date(obStartDate + "T00:00:00");
     d.setDate(d.getDate() + days);
     return { d, days };
-  }, [obStartBook, obEndBook, obChaptersPerDay, obStartDate]);
+  }, [obStartBook, obStartChapter, obEndBook, obChaptersPerDay, obStartDate]);
 
   function handleQuickPick(idx: number) {
     setObQuickPick(idx);
     const qp = QUICK_PICKS[idx];
-    if (qp.startBook) setObStartBook(qp.startBook);
-    if (qp.endBook) setObEndBook(qp.endBook);
+    if (qp.startBook) { setObStartBook(qp.startBook); setObEndBook(qp.endBook); }
+    // Mid-book: endBook = startBook (just finish this one book)
+    if (idx === 2) setObEndBook(obStartBook);
+    setObStartChapter(1);
   }
 
   function handlePaceSelect(cpd: number, minutes: number) {
@@ -223,12 +304,33 @@ export default function DashboardPage() {
   function handleStartPlan() {
     const newPlan: SavedPlan = {
       startBook: obStartBook,
-      startChapter: 1,
+      startChapter: obStartChapter,
       chaptersPerDay: obChaptersPerDay,
       startDate: obStartDate,
       createdAt: new Date().toISOString(),
+      endBook: obEndBook !== "Revelation" ? obEndBook : undefined,
     };
     savePlan(newPlan);
+
+    // Fire welcome email (fire-and-forget)
+    if (user?.email) {
+      const finishLabel = obFinishDate
+        ? obFinishDate.d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+        : undefined;
+      fetch("/api/email/welcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          name: user.name,
+          startBook: obStartBook,
+          startChapter: obStartChapter,
+          chaptersPerDay: obChaptersPerDay,
+          finishDate: finishLabel,
+        }),
+      }).catch(() => {});
+    }
+
     setPlan(newPlan);
     setStreak(getCurrentStreak());
     setTotalRead(getTotalChaptersRead());
@@ -265,9 +367,9 @@ export default function DashboardPage() {
 
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 mb-8 space-y-5">
             {[
-              { icon: <BookOpen className="w-5 h-5 text-violet-500" />, title: "Read at your own pace", desc: "15, 30, or 60 minutes a day — you choose what fits your life." },
-              { icon: <Flame className="w-5 h-5 text-orange-500" />, title: "Track your streak", desc: "Every day you read counts. Watch your consistency grow." },
-              { icon: <Calendar className="w-5 h-5 text-blue-500" />, title: "See your finish date", desc: "Know exactly when you'll be done. Stay motivated with a clear goal." },
+              { icon: <BookOpen className="w-5 h-5 text-violet-500" />, title: "As little as 1 minute a day", desc: "Pick your pace — 1 chapter/day takes just a few minutes. No pressure." },
+              { icon: <Flame className="w-5 h-5 text-orange-500" />, title: "Track your streak", desc: "Every day you read counts. Watch your consistency grow over time." },
+              { icon: <Calendar className="w-5 h-5 text-blue-500" />, title: "See your finish date", desc: "Know exactly when you'll finish. Stay motivated with a real goal." },
             ].map(({ icon, title, desc }) => (
               <div key={title} className="flex gap-4">
                 <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">{icon}</div>
@@ -319,27 +421,30 @@ export default function DashboardPage() {
             ))}
           </div>
 
+          {/* Pick Up Mid-Book — book + chapter picker */}
           {obQuickPick === 2 && (
-            <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6 space-y-4">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6 space-y-5">
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">Start book</label>
-                <select
-                  value={obStartBook}
-                  onChange={(e) => setObStartBook(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                >
-                  {BIBLE_BOOKS.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}
-                </select>
+                <p className="text-sm font-semibold text-slate-700 mb-3">Which book are you in?</p>
+                <BookPicker selected={obStartBook} onSelect={(b) => { setObStartBook(b); setObEndBook(b); setObStartChapter(1); }} />
               </div>
+              <div className="border-t border-slate-100 pt-4">
+                <ChapterPicker book={obStartBook} selected={obStartChapter} onSelect={setObStartChapter} />
+              </div>
+              <p className="text-xs text-slate-400">Finishes {obStartBook} from chapter {obStartChapter}. After completing, start a new plan for the next book.</p>
+            </div>
+          )}
+
+          {/* Custom Range — start + end book pickers */}
+          {obQuickPick === 3 && (
+            <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6 space-y-5">
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">End book</label>
-                <select
-                  value={obEndBook}
-                  onChange={(e) => setObEndBook(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                >
-                  {BIBLE_BOOKS.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}
-                </select>
+                <p className="text-sm font-semibold text-slate-700 mb-3">Start book</p>
+                <BookPicker selected={obStartBook} onSelect={(b) => { setObStartBook(b); setObStartChapter(1); }} />
+              </div>
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-sm font-semibold text-slate-700 mb-3">End book</p>
+                <BookPicker selected={obEndBook} onSelect={setObEndBook} />
               </div>
             </div>
           )}
@@ -615,7 +720,7 @@ export default function DashboardPage() {
             <BookOpen className="w-5 h-5 text-violet-600" />
             <span className="font-medium text-slate-800 text-sm">Today's Reading</span>
           </a>
-          <a href="/calendar" className="bg-white border border-slate-100 rounded-xl p-4 flex items-center gap-3 hover:border-violet-200 transition shadow-sm">
+          <a href="/profile" className="bg-white border border-slate-100 rounded-xl p-4 flex items-center gap-3 hover:border-violet-200 transition shadow-sm">
             <Calendar className="w-5 h-5 text-violet-600" />
             <span className="font-medium text-slate-800 text-sm">Calendar</span>
           </a>

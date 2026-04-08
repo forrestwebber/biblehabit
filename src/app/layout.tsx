@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import AppStoreBanner from "@/components/AppStoreBanner";
+import ChatWidget from "@/components/ChatWidget";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         )}
         <AppStoreBanner />
         {children}
+        <ChatWidget />
       </body>
     </html>
   );

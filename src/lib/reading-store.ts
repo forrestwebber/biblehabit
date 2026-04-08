@@ -11,6 +11,7 @@ export interface SavedPlan {
   chaptersPerDay: number;
   startDate: string; // ISO date
   createdAt: string;
+  endBook?: string;  // last book to read (inclusive). Undefined = read to Revelation.
 }
 
 export interface ReadingProgress {
@@ -207,6 +208,12 @@ export function isDayComplete(date: string): boolean {
  * If user is not logged in, this is a no-op.
  */
 export async function syncProgress(): Promise<void> {
+  // Timeout wrapper — never hang the UI for more than 6 seconds
+  const timeout = new Promise<void>((resolve) => setTimeout(resolve, 6000));
+  return Promise.race([_syncProgress(), timeout]);
+}
+
+async function _syncProgress(): Promise<void> {
   const user = await getUser();
   if (!user) return;
 

@@ -1,4 +1,5 @@
 "use client";
+import { useState, useRef, useEffect } from 'react';
 import { BookOpen, Heart, Share2, Clock, Star, ArrowRight, Calendar, TrendingUp, Smartphone, Compass, CheckCircle } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import BibleAffiliate from '@/components/BibleAffiliate';
@@ -14,18 +15,49 @@ const todaysVerse = {
 function ShareButton({ verse, ref: verseRef }: { verse: string; ref: string }) {
   const shareText = `"${verse}" — ${verseRef}\n\nRead more at biblehabit.co`;
   const shareUrl = `https://biblehabit.co`;
-  
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: shareText, url: shareUrl });
+        return;
+      } catch {}
+    }
+    setOpen((v) => !v);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard?.writeText(shareText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <div className="relative group inline-block">
-      <button className="flex items-center gap-2 border border-violet-200 text-slate-600 px-6 py-3 rounded-lg hover:bg-violet-100 transition">
+    <div className="relative inline-block" ref={ref}>
+      <button onClick={handleShare} className="flex items-center gap-2 border border-violet-200 text-slate-600 px-6 py-3 rounded-lg hover:bg-violet-100 transition">
         <Share2 className="h-5 w-5" /> Share This Verse
       </button>
-      <div className="hidden group-hover:flex absolute top-full left-0 mt-2 bg-white rounded-xl shadow-lg border border-violet-100 p-3 gap-2 z-10">
-        <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-sm bg-slate-100 rounded-lg hover:bg-violet-100 transition whitespace-nowrap">Twitter/X</a>
-        <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-sm bg-slate-100 rounded-lg hover:bg-violet-100 transition whitespace-nowrap">Facebook</a>
-        <a href={`sms:?body=${encodeURIComponent(shareText)}`} className="px-3 py-2 text-sm bg-slate-100 rounded-lg hover:bg-violet-100 transition whitespace-nowrap">iMessage</a>
-        <button onClick={() => { if (typeof navigator !== 'undefined') navigator.clipboard?.writeText(shareText) }} className="px-3 py-2 text-sm bg-slate-100 rounded-lg hover:bg-violet-100 transition whitespace-nowrap cursor-pointer">Copy</button>
-      </div>
+      {open && (
+        <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-lg border border-violet-100 p-3 flex flex-wrap gap-2 z-10 min-w-max">
+          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-sm bg-slate-100 rounded-lg hover:bg-violet-100 transition whitespace-nowrap">Twitter/X</a>
+          <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-sm bg-slate-100 rounded-lg hover:bg-violet-100 transition whitespace-nowrap">Facebook</a>
+          <a href={`sms:?body=${encodeURIComponent(shareText)}`} className="px-3 py-2 text-sm bg-slate-100 rounded-lg hover:bg-violet-100 transition whitespace-nowrap">iMessage</a>
+          <button onClick={handleCopy} className="px-3 py-2 text-sm bg-slate-100 rounded-lg hover:bg-violet-100 transition whitespace-nowrap cursor-pointer">
+            {copied ? "Copied!" : "Copy"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

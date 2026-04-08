@@ -109,6 +109,31 @@ export function chaptersRemaining(bookName: string, chapter: number): number {
   return TOTAL_CHAPTERS - startIndex;
 }
 
+// Calculate chapters in a plan range (start → end book inclusive)
+// If endBook is omitted, counts to end of Bible.
+export function getChaptersInPlan(
+  startBook: string,
+  startChapter: number,
+  endBook?: string
+): number {
+  const startGlobal = getGlobalChapterIndex(startBook, startChapter);
+  if (!endBook || endBook === "Revelation") {
+    return TOTAL_CHAPTERS - startGlobal;
+  }
+  const endBookData = BIBLE_BOOKS.find((b) => b.name === endBook);
+  if (!endBookData) return TOTAL_CHAPTERS - startGlobal;
+  const endGlobal = getGlobalChapterIndex(endBook, endBookData.chapters); // last chapter of endBook
+  return Math.max(1, endGlobal - startGlobal + 1);
+}
+
+// Global index of the last chapter of a plan (used to cap reading)
+export function getPlanEndGlobal(endBook?: string): number {
+  if (!endBook || endBook === "Revelation") return TOTAL_CHAPTERS - 1;
+  const endBookData = BIBLE_BOOKS.find((b) => b.name === endBook);
+  if (!endBookData) return TOTAL_CHAPTERS - 1;
+  return getGlobalChapterIndex(endBook, endBookData.chapters);
+}
+
 // Calculate reading plan
 export interface ReadingPlan {
   startBook: string;
