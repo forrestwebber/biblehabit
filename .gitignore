@@ -40,3 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 data/leads.json
+
+# Auto-added by site monitor setup
+.env.local
+node_modules/
+.open-next/
