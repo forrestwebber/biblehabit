@@ -34,9 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
-        )}
+        <GoogleAnalytics gaId="G-X1P8GGT5RP" />
         <AppStoreBanner />
         {children}
         <ChatWidget />
