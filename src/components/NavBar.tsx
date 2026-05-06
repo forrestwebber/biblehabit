@@ -53,7 +53,7 @@ export default function NavBar() {
       <a href="/" className="text-2xl font-bold text-slate-900">BibleHabit</a>
       <div className="flex items-center gap-4">
         <a
-          href="https://www.amazon.com/s?k=study+bible&tag=wanderadvisor-20"
+          href="https://www.amazon.com/s?k=study+bible&tag=hookedtobooks-20"
           target="_blank"
           rel="noopener noreferrer sponsored"
           className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-500 hover:text-violet-600 transition font-medium border border-slate-200 hover:border-violet-300 rounded-full px-3 py-1.5"

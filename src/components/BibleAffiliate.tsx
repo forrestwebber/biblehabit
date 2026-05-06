@@ -43,7 +43,7 @@ export default function BibleAffiliate({
             <p className="text-sm text-slate-500">{subheading}</p>
           </div>
           <a
-            href="https://www.amazon.com/s?k=study+bible&tag=wanderadvisor-20"
+            href="https://www.amazon.com/s?k=study+bible&tag=hookedtobooks-20"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-violet-600 hover:text-violet-800 font-semibold flex items-center gap-1 whitespace-nowrap"
