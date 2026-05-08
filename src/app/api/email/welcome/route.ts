@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
               <p style="margin:0 0 12px;font-size:14px;color:#78350f;line-height:1.5;">
                 There's something special about holding Scripture in your hands. We recommend the ESV Study Bible — detailed notes on every page.
               </p>
-              <a href="https://www.amazon.com/s?k=esv+study+bible&tag=wanderadvisor-20" style="color:#92400e;font-size:14px;font-weight:600;text-decoration:underline;">
+              <a href="https://www.amazon.com/s?k=esv+study+bible&tag=hookedtobooks-20" style="color:#92400e;font-size:14px;font-weight:600;text-decoration:underline;">
                 Browse top-rated Bibles on Amazon →
               </a>
             </td></tr>

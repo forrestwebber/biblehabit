@@ -8,7 +8,7 @@ export interface BibleAffiliate {
   tag: "study" | "large-print" | "journaling" | "devotional";
 }
 
-export const AFFILIATE_TAG = "wanderadvisor-20";
+export const AFFILIATE_TAG = "hookedtobooks-20";
 
 export const BIBLE_AFFILIATES: BibleAffiliate[] = [
   {
