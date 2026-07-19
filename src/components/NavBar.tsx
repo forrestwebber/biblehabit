@@ -78,6 +78,9 @@ export default function NavBar() {
           >
             <span>📖</span> Get a Physical Bible
           </a>
+          <a href="/pricing" className="hidden sm:inline text-sm font-medium transition" style={{ color: "#5A4F3F" }}>
+            Pricing
+          </a>
           {!loading && user && (
             <a href="/today" className="hidden sm:inline text-sm font-medium transition" style={{ color: "#5A4F3F" }}>
               Today
@@ -116,6 +119,7 @@ export default function NavBar() {
                   <hr style={{ borderColor: "rgba(34,28,20,0.08)" }} />
                   <Link href="/dashboard" className="block px-4 py-2 text-sm transition" style={{ color: "#3A3226" }} onClick={() => setMenuOpen(false)}>Dashboard</Link>
                   <Link href="/today" className="block px-4 py-2 text-sm transition" style={{ color: "#3A3226" }} onClick={() => setMenuOpen(false)}>Today</Link>
+                  <Link href="/profile" className="block px-4 py-2 text-sm transition" style={{ color: "#3A3226" }} onClick={() => setMenuOpen(false)}>Plan &amp; Billing</Link>
                   <hr style={{ borderColor: "rgba(34,28,20,0.08)" }} />
                   <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-xl">Sign Out</button>
                 </div>

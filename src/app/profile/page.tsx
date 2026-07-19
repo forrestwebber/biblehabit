@@ -12,6 +12,7 @@ import {
   CloudUpload,
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
+import MembershipCard from "@/components/MembershipCard";
 import { supabase } from "@/lib/supabase";
 import {
   BIBLE_BOOKS,
@@ -240,6 +241,8 @@ export default function ProfilePage() {
       )}
 
       <div className="max-w-2xl mx-auto px-4 py-6">
+
+        <MembershipCard />
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900">Your Journey</h1>

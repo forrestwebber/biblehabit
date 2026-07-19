@@ -6,6 +6,7 @@ import {
   computePace,
   evaluatePaceStatus,
   reflowPlan,
+  projectFinishDate,
   TOTAL_CHAPTERS,
   BIBLE_INDEX,
 } from "@/lib/pacing";
@@ -39,6 +40,10 @@ export default function PacingPanel() {
   const [goal, setGoal] = useState<GoalRow | null>(null);
   const [positions, setPositions] = useState<PositionRow[]>([]);
   const [loading, setLoading] = useState(true);
+  // Server-side truth for the Plus gate: read directly from the `profiles`
+  // row (RLS-protected, only the Stripe webhook's service-role key can set
+  // it to 'plus') — never inferred from client state.
+  const [isPlus, setIsPlus] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,7 +54,7 @@ export default function PacingPanel() {
         if (!cancelled) setLoading(false);
         return;
       }
-      const [{ data: goals }, { data: pos }] = await Promise.all([
+      const [{ data: goals }, { data: pos }, { data: profile }] = await Promise.all([
         supabase
           .from("goals")
           .select("id, type, target_date, daily_components, created_at")
@@ -62,10 +67,12 @@ export default function PacingPanel() {
           .select("book, chapter, recorded_at")
           .eq("user_id", user.id)
           .order("recorded_at", { ascending: true }),
+        supabase.from("profiles").select("plan").eq("id", user.id).single(),
       ]);
       if (cancelled) return;
       setGoal((goals && goals[0]) || null);
       setPositions(pos || []);
+      setIsPlus(profile?.plan === "plus");
       setLoading(false);
     })();
     return () => {
@@ -100,6 +107,8 @@ export default function PacingPanel() {
       ? reflowPlan(currentChapterIndex, new Date(goal.target_date))
       : null;
 
+  const projectedFinish = projectFinishDate(currentChapterIndex, pace.chaptersPerDay);
+
   const booksReadCount = Math.floor(currentChapterIndex / (TOTAL_CHAPTERS / 66));
 
   return (
@@ -125,7 +134,28 @@ export default function PacingPanel() {
             )}
           </div>
           {reflow && (
-            <div style={{ marginTop: 8, fontSize: 14, color: SOFT_INK }}>{reflow.message}</div>
+            isPlus ? (
+              <div style={{ marginTop: 8, fontSize: 14, color: SOFT_INK }}>{reflow.message}</div>
+            ) : (
+              <a
+                href="/pricing"
+                style={{
+                  display: "block",
+                  marginTop: 10,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#8A6A1E",
+                  textDecoration: "none",
+                }}
+              >
+                Plus unlocks a fresh, personalized pace to pick back up — no catching up required →
+              </a>
+            )
+          )}
+          {isPlus && (
+            <div style={{ marginTop: 8, fontSize: 13, color: SOFT_INK }}>
+              Projected finish at your current pace: <strong style={{ color: INK }}>{projectedFinish.toDateString()}</strong>
+            </div>
           )}
         </div>
       )}

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import PacingPanel from "@/components/PacingPanel";
+import UpgradeCTA from "@/components/UpgradeCTA";
 import BibleAffiliate from "@/components/BibleAffiliate";
 import SignUpGate from "@/components/SignUpGate";
 import CompletionCelebration from "@/components/CompletionCelebration";
@@ -705,6 +706,8 @@ export default function TodayPage() {
       )}
 
       <div className="max-w-2xl mx-auto px-4 py-6">
+
+        <UpgradeCTA />
 
         <PacingPanel />
 

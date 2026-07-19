@@ -19,6 +19,10 @@ function isValidEmail(email: string) {
 function LoginContent() {
   const searchParams = useSearchParams();
   const initialMode = searchParams.get("mode") === "signin" ? "signin" : "signup";
+  // Where to send the user after a successful sign-in/signup — defaults to
+  // /dashboard, but callers like /pricing pass their own return path (e.g.
+  // /pricing?intent=monthly) so a checkout click can resume after auth.
+  const nextPath = searchParams.get("next") || "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -124,7 +128,7 @@ function LoginContent() {
     } else {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "keycloak",
-        options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
+        options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}` },
       });
       if (error) {
         setIsError(true);
@@ -166,14 +170,14 @@ function LoginContent() {
             setIsError(true);
             setMessage(signInError.message);
           } else {
-            window.location.href = "/dashboard";
+            window.location.href = nextPath;
           }
         } else {
           setIsError(true);
           setMessage(error.message);
         }
       } else if (data.session) {
-        window.location.href = "/dashboard";
+        window.location.href = nextPath;
         return;
       } else {
         // Autoconfirm on — sign in immediately to get a session
@@ -182,7 +186,7 @@ function LoginContent() {
           setIsError(false);
           setMessage("Account created! Check your email to confirm, then sign in.");
         } else {
-          window.location.href = "/dashboard";
+          window.location.href = nextPath;
         }
       }
     } else {
@@ -191,7 +195,7 @@ function LoginContent() {
         setIsError(true);
         setMessage(error.message);
       } else {
-        window.location.href = "/dashboard";
+        window.location.href = nextPath;
       }
     }
     setLoading(false);
