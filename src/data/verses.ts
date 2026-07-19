@@ -1381,3 +1381,42 @@ export function getTodaysVerse(): DailyVerse {
   const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
   return dailyVerses[dayOfYear % dailyVerses.length];
 }
+
+/**
+ * Turn a reference like "1 Corinthians 14:40" or "Proverbs 3:5-6" into a
+ * URL-safe slug like "1-corinthians-14-40" / "proverbs-3-5-6", used for the
+ * shareable /verse/[slug] route.
+ */
+export function slugifyReference(reference: string): string {
+  return reference
+    .toLowerCase()
+    .replace(/:/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+}
+
+/**
+ * Lazily-built lookup of slug -> verse. Some references repeat in the
+ * rotation (same verse surfaced more than once across the year); the first
+ * occurrence wins since the content is identical either way.
+ */
+let verseSlugMap: Map<string, DailyVerse> | null = null;
+
+function getVerseSlugMap(): Map<string, DailyVerse> {
+  if (!verseSlugMap) {
+    verseSlugMap = new Map();
+    for (const v of dailyVerses) {
+      const slug = slugifyReference(v.reference);
+      if (!verseSlugMap.has(slug)) verseSlugMap.set(slug, v);
+    }
+  }
+  return verseSlugMap;
+}
+
+export function getVerseBySlug(slug: string): DailyVerse | undefined {
+  return getVerseSlugMap().get(slug);
+}
+
+export function getAllVerseSlugs(): string[] {
+  return Array.from(getVerseSlugMap().keys());
+}

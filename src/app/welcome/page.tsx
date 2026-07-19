@@ -113,7 +113,10 @@ export default function WelcomePage() {
   // Step 1 answers
   const [book, setBook] = useState("Jeremiah");
   const [chapter, setChapter] = useState(22);
-  const [startedApprox, setStartedApprox] = useState<"recent" | "months" | "long">("months");
+  // "When did you start?" — month/year select, or "I don't know". Nothing preselected.
+  const [startMonth, setStartMonth] = useState<number | "">("");
+  const [startYear, setStartYear] = useState<number | "">("");
+  const [dontKnowStart, setDontKnowStart] = useState(false);
 
   // Step 3
   const [selectedGoal, setSelectedGoal] = useState<GoalSuggestion | null>(null);
@@ -128,18 +131,41 @@ export default function WelcomePage() {
     }
   }, [book, chapter]);
 
-  // Derive an approximate history point from "how long have you been reading"
-  // to seed the pacing engine, per the no-shame, meet-them-where-they-are spec.
-  const approxDaysAgo = startedApprox === "recent" ? 14 : startedApprox === "months" ? 180 : 540;
+  const now = useMemo(() => new Date(), []);
+  const currentYear = now.getFullYear();
+  const currentMonthIndex = now.getMonth(); // 0-11
+  const YEAR_OPTIONS = useMemo(
+    () => Array.from({ length: currentYear - 2018 + 1 }, (_, i) => 2018 + i).reverse(),
+    [currentYear]
+  );
+  const MONTH_NAMES = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+
+  // Real start date derived from month+year, or the "I don't know" neutral
+  // default. "I don't know" reuses the same ~180-days-ago estimate the old
+  // "A few months" bucket fed into the pacing engine, so pacing math (which
+  // needs two dated history points) stays well-behaved for unknown starts.
+  const startDate = useMemo(() => {
+    if (startMonth !== "" && startYear !== "") {
+      return new Date(startYear, startMonth, 1);
+    }
+    if (dontKnowStart) {
+      const d = new Date();
+      d.setDate(d.getDate() - 180);
+      return d;
+    }
+    return null;
+  }, [startMonth, startYear, dontKnowStart]);
 
   const pace = useMemo(() => {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - approxDaysAgo);
+    const from = startDate ?? new Date(new Date().setDate(new Date().getDate() - 180));
     return computePace([
-      { date: startDate.toISOString(), chapterIndex: 0 },
+      { date: from.toISOString(), chapterIndex: 0 },
       { date: new Date().toISOString(), chapterIndex: currentChapterIndex },
     ]);
-  }, [approxDaysAgo, currentChapterIndex]);
+  }, [startDate, currentChapterIndex]);
 
   const suggestions = useMemo(
     () => suggestGoals(currentChapterIndex, pace.chaptersPerDay, new Date()),
@@ -198,6 +224,7 @@ export default function WelcomePage() {
         step={1}
         question="Where are you in your reading right now?"
         onContinue={() => setStep(2)}
+        continueDisabled={!dontKnowStart && (startMonth === "" || startYear === "")}
       >
         <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
           <select
@@ -243,29 +270,85 @@ export default function WelcomePage() {
           </select>
         </div>
         <div style={{ fontSize: 14, color: SOFT_INK, marginBottom: 10 }}>
-          About how long have you been reading?
+          When did you start?
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {[
-            { id: "recent" as const, label: "Just started — a couple weeks" },
-            { id: "months" as const, label: "A few months" },
-            { id: "long" as const, label: "A year or more" },
-          ].map((opt) => (
-            <div
-              key={opt.id}
-              onClick={() => setStartedApprox(opt.id)}
-              style={{
-                background: CARD,
-                borderRadius: 12,
-                padding: "16px 18px",
-                fontSize: 15,
-                cursor: "pointer",
-                border: startedApprox === opt.id ? `2px solid ${GOLD}` : "2px solid transparent",
-              }}
-            >
-              {opt.label}
-            </div>
-          ))}
+        <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+          <select
+            value={startMonth}
+            onChange={(e) => {
+              const val = e.target.value === "" ? "" : Number(e.target.value);
+              setStartMonth(val);
+              setDontKnowStart(false);
+            }}
+            style={{
+              flex: 1,
+              background: CARD,
+              border: "none",
+              borderRadius: 12,
+              padding: "14px 16px",
+              fontSize: 15,
+              color: INK,
+            }}
+          >
+            <option value="" disabled hidden>
+              Month
+            </option>
+            {MONTH_NAMES.map((name, i) => (
+              <option
+                key={name}
+                value={i}
+                disabled={startYear === currentYear && i > currentMonthIndex}
+              >
+                {name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={startYear}
+            onChange={(e) => {
+              const val = e.target.value === "" ? "" : Number(e.target.value);
+              setStartYear(val);
+              setDontKnowStart(false);
+              if (val === currentYear && startMonth !== "" && startMonth > currentMonthIndex) {
+                setStartMonth("");
+              }
+            }}
+            style={{
+              flex: 1,
+              background: CARD,
+              border: "none",
+              borderRadius: 12,
+              padding: "14px 16px",
+              fontSize: 15,
+              color: INK,
+            }}
+          >
+            <option value="" disabled hidden>
+              Year
+            </option>
+            {YEAR_OPTIONS.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div
+          onClick={() => {
+            setDontKnowStart(true);
+            setStartMonth("");
+            setStartYear("");
+          }}
+          style={{
+            background: CARD,
+            borderRadius: 12,
+            padding: "16px 18px",
+            fontSize: 15,
+            cursor: "pointer",
+            border: dontKnowStart ? `2px solid ${GOLD}` : "2px solid transparent",
+          }}
+        >
+          I don&apos;t know
         </div>
       </StepFrame>
     );

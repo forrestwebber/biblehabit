@@ -1,7 +1,12 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { getStripe, PLUS_MONTHLY_PRICE_ID, PLUS_ANNUAL_PRICE_ID } from "@/lib/stripe";
+import {
+  getStripe,
+  PLUS_MONTHLY_PRICE_ID,
+  PLUS_ANNUAL_PRICE_ID,
+  PLUS_ANNUAL_COUPON_ID,
+} from "@/lib/stripe";
 import { verifyUserFromRequest } from "@/lib/supabase/verify-user";
 
 /**
@@ -39,6 +44,12 @@ export async function POST(req: NextRequest) {
       customerId = existing.data[0].id;
     }
 
+    // Annual gets the "Launch discount" coupon auto-applied ($24.99 list ->
+    // $19/yr, forever so renewals stay $19). Stripe forbids sending both
+    // `discounts` and `allow_promotion_codes`, so annual drops the promo-code
+    // field; monthly keeps it.
+    const applyLaunchDiscount = isAnnual && PLUS_ANNUAL_COUPON_ID;
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
@@ -46,7 +57,9 @@ export async function POST(req: NextRequest) {
       client_reference_id: user.id,
       success_url: `${baseUrl}/today?upgraded=1`,
       cancel_url: `${baseUrl}/pricing?canceled=1`,
-      allow_promotion_codes: true,
+      ...(applyLaunchDiscount
+        ? { discounts: [{ coupon: PLUS_ANNUAL_COUPON_ID }] }
+        : { allow_promotion_codes: true }),
       metadata: {
         site: "biblehabit.co",
         supabase_user_id: user.id,

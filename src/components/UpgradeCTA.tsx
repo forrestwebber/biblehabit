@@ -55,7 +55,7 @@ export default function UpgradeCTA() {
         <p className="text-sm font-semibold" style={{ color: INK }}>See exactly where you&apos;ll land</p>
         <p className="text-sm mt-0.5" style={{ color: "#5C5142" }}>
           BibleHabit Plus adds pacing projections, personalized reflow when life gets busy, and
-          multiple reading goals at once — from $4.99/mo.
+          multiple reading goals at once — from $2.99/mo, or $19/yr with the launch discount.
         </p>
         <a
           href="/pricing"

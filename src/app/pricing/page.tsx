@@ -158,7 +158,7 @@ function PricingContent() {
             <h2 className="text-xl font-semibold mb-1" style={{ fontFamily: SERIF }}>Plus Monthly</h2>
             <p className="text-sm mb-6" style={{ color: "#C6BBA4" }}>Pacing intelligence, cancel anytime</p>
             <p className="mb-6">
-              <span className="text-4xl font-bold" style={{ fontFamily: SERIF }}>$4.99</span>
+              <span className="text-4xl font-bold" style={{ fontFamily: SERIF }}>$2.99</span>
               <span className="text-sm" style={{ color: "#C6BBA4" }}> / month</span>
             </p>
             <ul className="space-y-3 mb-8">
@@ -187,13 +187,27 @@ function PricingContent() {
               className="inline-block text-xs font-bold uppercase px-3 py-1 rounded-full mb-4"
               style={{ background: TILE, color: "#8A6A1E", letterSpacing: "0.04em" }}
             >
-              Save 35%
+              Save 47%
             </div>
             <h2 className="text-xl font-semibold mb-1" style={{ fontFamily: SERIF }}>Plus Annual</h2>
             <p className="text-sm mb-6" style={{ color: META }}>Best value for the long haul</p>
-            <p className="mb-6">
-              <span className="text-4xl font-bold" style={{ fontFamily: SERIF }}>$39</span>
+            <p className="mb-2">
+              <span
+                className="text-lg font-semibold mr-2"
+                style={{ fontFamily: SERIF, color: META, textDecoration: "line-through" }}
+              >
+                $24.99
+              </span>
+              <span className="text-4xl font-bold" style={{ fontFamily: SERIF }}>$19</span>
               <span className="text-sm" style={{ color: META }}> / year</span>
+            </p>
+            <p className="mb-6">
+              <span
+                className="inline-block text-[11px] font-bold uppercase px-2.5 py-1 rounded-full"
+                style={{ background: GOLD, color: INK, letterSpacing: "0.04em" }}
+              >
+                Launch discount
+              </span>
             </p>
             <ul className="space-y-3 mb-8">
               {PLUS_FEATURES.map((f) => (

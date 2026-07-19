@@ -3,7 +3,8 @@ import { useState, useRef, useEffect } from 'react';
 import { BookOpen, Heart, Share2, Star, ArrowRight, Calendar, TrendingUp, Smartphone, Compass, CheckCircle } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import BibleAffiliate from '@/components/BibleAffiliate';
-import { getTodaysVerse } from '@/data/verses';
+import { getTodaysVerse, slugifyReference } from '@/data/verses';
+import { BIBLE_BOOKS } from '@/data/bible';
 
 const INK = "#221C14";
 const SOFT_INK = "#5A4F3F";
@@ -26,8 +27,9 @@ const todaysVerse = {
 };
 
 function ShareButton({ verse, ref: verseRef }: { verse: string; ref: string }) {
-  const shareText = `"${verse}" — ${verseRef}\n\nRead more at biblehabit.co`;
-  const shareUrl = `https://biblehabit.co`;
+  // Share the per-verse page (with its own OG card), never the bare homepage.
+  const shareUrl = `https://biblehabit.co/verse/${slugifyReference(verseRef)}`;
+  const shareText = `"${verse}" — ${verseRef}`;
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -43,15 +45,17 @@ function ShareButton({ verse, ref: verseRef }: { verse: string; ref: string }) {
   const handleShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ text: shareText, url: shareUrl });
+        await navigator.share({ title: verseRef, text: shareText, url: shareUrl });
         return;
       } catch {}
     }
     setOpen((v) => !v);
   };
 
+  const shareTextWithUrl = `${shareText}\n\n${shareUrl}`;
+
   const handleCopy = () => {
-    navigator.clipboard?.writeText(shareText);
+    navigator.clipboard?.writeText(shareTextWithUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -72,9 +76,9 @@ function ShareButton({ verse, ref: verseRef }: { verse: string; ref: string }) {
           className="absolute top-full left-0 mt-2 rounded-xl p-3 flex flex-wrap gap-2 z-10 min-w-max"
           style={{ background: CARD, border: "1px solid rgba(34,28,20,0.08)", boxShadow: "0 16px 40px -24px rgba(34,28,20,0.4)" }}
         >
-          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-sm rounded-lg transition whitespace-nowrap" style={{ background: TILE, color: INK }}>Twitter/X</a>
+          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTextWithUrl)}`} target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-sm rounded-lg transition whitespace-nowrap" style={{ background: TILE, color: INK }}>Twitter/X</a>
           <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-sm rounded-lg transition whitespace-nowrap" style={{ background: TILE, color: INK }}>Facebook</a>
-          <a href={`sms:?body=${encodeURIComponent(shareText)}`} className="px-3 py-2 text-sm rounded-lg transition whitespace-nowrap" style={{ background: TILE, color: INK }}>iMessage</a>
+          <a href={`sms:?body=${encodeURIComponent(shareTextWithUrl)}`} className="px-3 py-2 text-sm rounded-lg transition whitespace-nowrap" style={{ background: TILE, color: INK }}>iMessage</a>
           <button onClick={handleCopy} className="px-3 py-2 text-sm rounded-lg transition whitespace-nowrap cursor-pointer" style={{ background: TILE, color: INK }}>
             {copied ? "Copied!" : "Copy"}
           </button>
@@ -158,24 +162,20 @@ export default function HomePage() {
                     className="flex-1 px-4 py-3 rounded-xl focus:outline-none focus:ring-2"
                     style={{ background: TILE, border: "1px solid rgba(34,28,20,0.1)", color: INK }}
                   >
-                    <option>Genesis</option><option>Exodus</option><option>Leviticus</option><option>Numbers</option><option>Deuteronomy</option>
-                    <option>Joshua</option><option>Judges</option><option>Ruth</option><option>1 Samuel</option><option>2 Samuel</option>
-                    <option>1 Kings</option><option selected>2 Kings</option><option>1 Chronicles</option><option>2 Chronicles</option>
-                    <option>Ezra</option><option>Nehemiah</option><option>Esther</option><option>Job</option><option>Psalms</option><option>Proverbs</option>
-                    <option>Ecclesiastes</option><option>Song of Solomon</option><option>Isaiah</option><option>Jeremiah</option><option>Lamentations</option>
-                    <option>Ezekiel</option><option>Daniel</option><option>Hosea</option><option>Joel</option><option>Amos</option><option>Obadiah</option>
-                    <option>Jonah</option><option>Micah</option><option>Nahum</option><option>Habakkuk</option><option>Zephaniah</option><option>Haggai</option>
-                    <option>Zechariah</option><option>Malachi</option><option>Matthew</option><option>Mark</option><option>Luke</option><option>John</option>
-                    <option>Acts</option><option>Romans</option><option>1 Corinthians</option><option>2 Corinthians</option><option>Galatians</option>
-                    <option>Ephesians</option><option>Philippians</option><option>Colossians</option><option>1 Thessalonians</option><option>2 Thessalonians</option>
-                    <option>1 Timothy</option><option>2 Timothy</option><option>Titus</option><option>Philemon</option><option>Hebrews</option><option>James</option>
-                    <option>1 Peter</option><option>2 Peter</option><option>1 John</option><option>2 John</option><option>3 John</option><option>Jude</option><option>Revelation</option>
+                    {BIBLE_BOOKS.map((b) => (
+                      <option key={b.name} selected={b.name === "2 Kings"}>{b.name}</option>
+                    ))}
                   </select>
                   <select
                     className="w-28 px-4 py-3 rounded-xl"
                     style={{ background: TILE, border: "1px solid rgba(34,28,20,0.1)", color: INK }}
                   >
-                    <option>Ch. 1</option><option>Ch. 2</option><option>Ch. 3</option><option selected>Ch. 5</option><option>Ch. 10</option><option>Ch. 15</option><option>Ch. 20</option><option>Ch. 25</option>
+                    {Array.from(
+                      { length: BIBLE_BOOKS.find((b) => b.name === "2 Kings")?.chapters ?? 1 },
+                      (_, i) => i + 1
+                    ).map((c) => (
+                      <option key={c} selected={c === 5}>Ch. {c}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -262,13 +262,20 @@ export default function HomePage() {
                       className="flex-1 px-4 py-3 rounded-xl focus:outline-none focus:ring-2"
                       style={{ background: TILE, border: "1px solid rgba(34,28,20,0.1)", color: INK }}
                     >
-                      <option>Genesis</option><option>Exodus</option><option>Leviticus</option><option>2 Chronicles</option><option>Psalms</option><option>Isaiah</option><option>Matthew</option><option>Romans</option><option>Revelation</option>
+                      {BIBLE_BOOKS.map((b) => (
+                        <option key={b.name} selected={b.name === "Genesis"}>{b.name}</option>
+                      ))}
                     </select>
                     <select
                       className="w-24 px-4 py-3 rounded-xl"
                       style={{ background: TILE, border: "1px solid rgba(34,28,20,0.1)", color: INK }}
                     >
-                      <option>Ch. 1</option><option>Ch. 5</option><option>Ch. 10</option><option>Ch. 15</option>
+                      {Array.from(
+                        { length: BIBLE_BOOKS.find((b) => b.name === "Genesis")?.chapters ?? 1 },
+                        (_, i) => i + 1
+                      ).map((c) => (
+                        <option key={c} selected={c === 1}>Ch. {c}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -456,7 +463,7 @@ export default function HomePage() {
               { icon: <Heart className="h-7 w-7" style={{ color: GOLD }} />, title: "Gentle Reflow", desc: "Miss a day? We quietly resize the road ahead. No guilt, no broken streaks." },
               { icon: <Compass className="h-7 w-7" style={{ color: GOLD }} />, title: "Cross-References", desc: "Discover related verses and historical commentary as you read." },
               { icon: <TrendingUp className="h-7 w-7" style={{ color: GOLD }} />, title: "Progress Milestones", desc: "See where you'll be by any date. Celebrate finishing each book." },
-              { icon: <Smartphone className="h-7 w-7" style={{ color: GOLD }} />, title: "iOS App Coming Soon", desc: "Push notifications for your daily reading. $4.99 lifetime — no subscriptions." },
+              { icon: <Smartphone className="h-7 w-7" style={{ color: GOLD }} />, title: "iOS App Coming Soon", desc: "Push notifications for your daily reading. Included with your account." },
             ].map((f) => (
               <div key={f.title} className="p-6 rounded-2xl transition" style={{ background: CARD, border: "1px solid rgba(34,28,20,0.06)", boxShadow: "0 12px 30px -20px rgba(34,28,20,0.3)" }}>
                 <div className="mb-4">{f.icon}</div>
@@ -500,7 +507,7 @@ export default function HomePage() {
         >
           <Star className="h-5 w-5" /> Create Your Free Account
         </a>
-        <p className="text-xs mt-4" style={{ color: META }}>iOS app coming soon &mdash; $4.99 lifetime access</p>
+        <p className="text-xs mt-4" style={{ color: META }}>iOS app coming soon &mdash; included with your account</p>
       </section>
 
       {/* Footer */}
