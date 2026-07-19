@@ -517,11 +517,11 @@ export default function TodayPage() {
   // ─── Loading / no plan states ─────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-[#F7F2E8]">
         <NavBar />
         <div className="flex flex-col items-center justify-center py-32 gap-3">
-          <div className="w-8 h-8 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-slate-400">Loading…</p>
+          <div className="w-8 h-8 border-2 border-[#C9962E] border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-[#8A7F6E]">Loading…</p>
         </div>
       </div>
     );
@@ -529,18 +529,18 @@ export default function TodayPage() {
 
   if (!plan) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-[#F7F2E8]">
         <NavBar />
         <div className="max-w-lg mx-auto px-4 py-16">
           <div className="text-center mb-10">
-            <BookOpen className="h-14 w-14 text-violet-300 mx-auto mb-5" />
-            <h1 className="text-2xl font-bold text-slate-900 mb-3">No Reading Plan Yet</h1>
-            <p className="text-slate-500 mb-6 text-sm">
+            <BookOpen className="h-14 w-14 text-[#D9B36B] mx-auto mb-5" />
+            <h1 className="text-2xl font-bold text-[#221C14] mb-3">No Reading Plan Yet</h1>
+            <p className="text-[#5C5142] mb-6 text-sm">
               Create a reading plan to track your daily Bible reading.
             </p>
             <a
               href="/plans"
-              className="inline-flex items-center gap-2 bg-violet-700 text-white px-6 py-3 rounded-lg hover:bg-violet-800 transition font-semibold"
+              className="inline-flex items-center gap-2 bg-[#221C14] text-white px-6 py-3 rounded-lg hover:bg-black transition font-semibold"
             >
               Create Your Plan <ArrowRight className="h-4 w-4" />
             </a>
@@ -549,22 +549,22 @@ export default function TodayPage() {
           {/* Show devotionals even without a main plan */}
           {subPlans.length > 0 && (
             <div className="space-y-3">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              <p className="text-xs font-semibold text-[#8A7F6E] uppercase tracking-wider mb-2">
                 Daily Devotionals
               </p>
               {subPlans.map((sp) => {
                 const todayChapter = getSubPlanChapterToday(sp);
                 const isDone = subPlanDone.has(sp.id);
                 return (
-                  <div key={sp.id} className={`bg-white rounded-xl border p-4 flex items-center justify-between ${isDone ? "border-green-200 opacity-75" : "border-violet-100"}`}>
+                  <div key={sp.id} className={`bg-white rounded-xl border p-4 flex items-center justify-between ${isDone ? "border-green-200 opacity-75" : "border-[rgba(34,28,20,0.08)]"}`}>
                     <div>
-                      <p className="text-xs text-violet-500 font-semibold uppercase tracking-wide">{sp.label}</p>
-                      <p className="text-base font-bold text-slate-900">{sp.book} {todayChapter}</p>
+                      <p className="text-xs text-[#8A6A1E] font-semibold uppercase tracking-wide">{sp.label}</p>
+                      <p className="text-base font-bold text-[#221C14]">{sp.book} {todayChapter}</p>
                     </div>
                     {isDone ? (
                       <span className="flex items-center gap-1 text-green-600 text-sm font-semibold"><CheckCircle className="h-4 w-4" /> Done</span>
                     ) : (
-                      <button onClick={() => handleSubPlanDone(sp.id)} className="bg-violet-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-violet-800 active:scale-95 transition-all">Done</button>
+                      <button onClick={() => handleSubPlanDone(sp.id)} className="bg-[#221C14] text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black active:scale-95 transition-all">Done</button>
                     )}
                   </div>
                 );
@@ -574,17 +574,17 @@ export default function TodayPage() {
 
           {/* Devotional picker for users with no plan */}
           {subPlans.length === 0 && !showDevotionalPicker && (
-            <div className="bg-white border border-slate-200 rounded-xl px-5 py-4 text-center">
-              <p className="text-sm font-semibold text-slate-700 mb-1">📖 Start with a devotional</p>
-              <p className="text-xs text-slate-500 mb-3">Add a short daily reading while you set up your plan.</p>
-              <button onClick={() => setShowDevotionalPicker(true)} className="text-xs text-violet-600 font-semibold hover:text-violet-800 transition">Choose a devotional →</button>
+            <div className="bg-white border border-[rgba(34,28,20,0.14)] rounded-xl px-5 py-4 text-center">
+              <p className="text-sm font-semibold text-[#3A3226] mb-1">📖 Start with a devotional</p>
+              <p className="text-xs text-[#5C5142] mb-3">Add a short daily reading while you set up your plan.</p>
+              <button onClick={() => setShowDevotionalPicker(true)} className="text-xs text-[#8A6A1E] font-semibold hover:text-[#6B4E14] transition">Choose a devotional →</button>
             </div>
           )}
           {showDevotionalPicker && (
-            <div className="bg-violet-50 border border-violet-200 rounded-xl px-5 py-4">
+            <div className="bg-[#FBF4E4] border border-[rgba(34,28,20,0.14)] rounded-xl px-5 py-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-semibold text-slate-800">Pick a devotional</p>
-                <button onClick={() => setShowDevotionalPicker(false)} className="text-slate-400 hover:text-slate-600 text-lg leading-none">×</button>
+                <p className="text-sm font-semibold text-[#221C14]">Pick a devotional</p>
+                <button onClick={() => setShowDevotionalPicker(false)} className="text-[#8A7F6E] hover:text-[#5A4F3F] text-lg leading-none">×</button>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {DEVOTIONAL_PRESETS.map((preset) => (
@@ -594,9 +594,9 @@ export default function TodayPage() {
                     addSubPlan({ label: preset.label, book: preset.book, totalChapters: preset.totalChapters, chaptersPerDay: preset.chaptersPerDay, startDate: iso });
                     refreshSubPlans();
                     setShowDevotionalPicker(false);
-                  }} className="flex items-center gap-2 bg-white border border-violet-100 rounded-xl px-3 py-2 text-left hover:border-violet-400 active:scale-95 transition-all">
+                  }} className="flex items-center gap-2 bg-white border border-[rgba(34,28,20,0.08)] rounded-xl px-3 py-2 text-left hover:border-[#C9962E] active:scale-95 transition-all">
                     <span className="text-xl">{preset.emoji}</span>
-                    <div><p className="text-xs font-bold text-slate-900 leading-tight">{preset.label}</p><p className="text-[10px] text-slate-400">{preset.book}</p></div>
+                    <div><p className="text-xs font-bold text-[#221C14] leading-tight">{preset.label}</p><p className="text-[10px] text-[#8A7F6E]">{preset.book}</p></div>
                   </button>
                 ))}
               </div>
@@ -609,17 +609,17 @@ export default function TodayPage() {
 
   if (!todayInfo || todayInfo.chapters.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-[#F7F2E8]">
         <NavBar />
         <div className="text-center py-32 px-6 max-w-lg mx-auto">
           <CheckCircle className="h-16 w-16 text-green-400 mx-auto mb-6" />
-          <h1 className="text-2xl font-bold text-slate-900 mb-4">You&apos;ve Finished!</h1>
-          <p className="text-slate-500 mb-8">
+          <h1 className="text-2xl font-bold text-[#221C14] mb-4">You&apos;ve Finished!</h1>
+          <p className="text-[#5C5142] mb-8">
             Congratulations! You&apos;ve completed your reading plan.
           </p>
           <a
             href="/profile"
-            className="inline-flex items-center gap-2 bg-violet-700 text-white px-6 py-3 rounded-lg hover:bg-violet-800 transition font-semibold"
+            className="inline-flex items-center gap-2 bg-[#221C14] text-white px-6 py-3 rounded-lg hover:bg-black transition font-semibold"
           >
             View Your Progress <ArrowRight className="h-4 w-4" />
           </a>
@@ -654,7 +654,7 @@ export default function TodayPage() {
             title={t.name}
             className="px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95"
             style={translation === t.id
-              ? { background: "#7c3aed", color: "#ffffff" }
+              ? { background: "#221C14", color: "#F7F2E8" }
               : { background: readingSurface, color: readingMuted }
             }
           >
@@ -686,7 +686,7 @@ export default function TodayPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F7F2E8]">
       <NavBar />
 
       {showSignUpGate && (
@@ -713,17 +713,17 @@ export default function TodayPage() {
           <div className="mb-6 space-y-4">
 
             {/* Celebration card */}
-            <div className="bg-gradient-to-br from-violet-700 to-violet-900 rounded-2xl p-6 text-white shadow-lg">
+            <div className="bg-gradient-to-br from-[#2E2517] to-[#1A150F] rounded-2xl p-6 text-white shadow-lg">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <Sparkles className="h-5 w-5 text-yellow-300" />
-                    <span className="text-sm font-semibold text-violet-200">
+                    <Sparkles className="h-5 w-5 text-[#E7B84E]" />
+                    <span className="text-sm font-semibold text-[#C6BBA4]">
                       {justCompleted ? "Just completed!" : "Already done today"}
                     </span>
                   </div>
                   <h2 className="text-xl font-bold">{headerLabel}</h2>
-                  <p className="text-violet-200 text-sm mt-1">
+                  <p className="text-[#C6BBA4] text-sm mt-1">
                     Day {todayInfo.dayNumber} of {todayInfo.totalDays}
                   </p>
                 </div>
@@ -732,26 +732,26 @@ export default function TodayPage() {
                     <Flame className="h-5 w-5 text-orange-300" />
                     <span className="text-2xl font-bold">{streak}</span>
                   </div>
-                  <p className="text-xs text-violet-200 mt-0.5">day streak</p>
+                  <p className="text-xs text-[#C6BBA4] mt-0.5">day streak</p>
                 </div>
               </div>
               <div className="bg-white/10 rounded-xl px-4 py-2.5 mb-4">
-                <p className="text-sm font-medium text-violet-100">{streakMessage(streak)}</p>
+                <p className="text-sm font-medium text-[#EFE7D5]">{streakMessage(streak)}</p>
               </div>
               <div className="mb-1">
-                <div className="flex justify-between text-xs text-violet-200 mb-1.5">
+                <div className="flex justify-between text-xs text-[#C6BBA4] mb-1.5">
                   <span>{totalRead} {totalRead === 1 ? "chapter" : "chapters"} read</span>
                   <span>{actualProgressPercent}% of plan complete</span>
                 </div>
                 <div className="w-full bg-white/20 rounded-full h-2">
                   <div
-                    className="bg-yellow-300 h-2 rounded-full transition-all duration-700"
+                    className="bg-[#E7B84E] h-2 rounded-full transition-all duration-700"
                     style={{ width: `${actualProgressPercent}%` }}
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs text-violet-200 mt-2">
-                <Sparkles className="h-3 w-3 text-yellow-300" />
+              <div className="flex items-center gap-2 text-xs text-[#C6BBA4] mt-2">
+                <Sparkles className="h-3 w-3 text-[#E7B84E]" />
                 <span>+{todayInfo.chapters.length * 10} XP earned today</span>
               </div>
               <button
@@ -791,7 +791,7 @@ export default function TodayPage() {
                   {lastCh.book === "Malachi" && (
                     <a
                       href="/plans"
-                      className="inline-flex items-center gap-2 bg-violet-600 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-violet-700 transition"
+                      className="inline-flex items-center gap-2 bg-[#C9962E] text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-[#221C14] transition"
                     >
                       Start the New Testament <ArrowRight className="h-4 w-4" />
                     </a>
@@ -799,7 +799,7 @@ export default function TodayPage() {
                   {lastCh.book === "Revelation" && (
                     <a
                       href="/plans"
-                      className="inline-flex items-center gap-2 bg-violet-600 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-violet-700 transition"
+                      className="inline-flex items-center gap-2 bg-[#C9962E] text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-[#221C14] transition"
                     >
                       Start again from Genesis <ArrowRight className="h-4 w-4" />
                     </a>
@@ -838,18 +838,18 @@ export default function TodayPage() {
             {tomorrowPreview && (
               <button
                 onClick={() => { setExtraOffset(1); setExtraView(0); }}
-                className="w-full bg-white rounded-2xl border border-violet-100 p-5 flex items-center justify-between shadow-sm hover:border-violet-300 hover:shadow-md transition-all active:scale-[0.99] text-left"
+                className="w-full bg-white rounded-2xl border border-[rgba(34,28,20,0.08)] p-5 flex items-center justify-between shadow-sm hover:border-[#C9962E] hover:shadow-md transition-all active:scale-[0.99] text-left"
               >
                 <div>
-                  <p className="text-xs font-semibold text-violet-400 uppercase tracking-wide mb-1">
+                  <p className="text-xs font-semibold text-[#C9962E] uppercase tracking-wide mb-1">
                     Up Next — Read Ahead?
                   </p>
-                  <p className="text-base font-bold text-slate-900">{tomorrowPreview.label}</p>
-                  <p className="text-sm text-violet-500 font-medium mt-1 flex items-center gap-1">
+                  <p className="text-base font-bold text-[#221C14]">{tomorrowPreview.label}</p>
+                  <p className="text-sm text-[#8A6A1E] font-medium mt-1 flex items-center gap-1">
                     Read now <ChevronRight className="h-3.5 w-3.5" />
                   </p>
                 </div>
-                <BookOpen className="h-8 w-8 text-violet-300 flex-shrink-0" />
+                <BookOpen className="h-8 w-8 text-[#D9B36B] flex-shrink-0" />
               </button>
             )}
 
@@ -858,13 +858,13 @@ export default function TodayPage() {
               <div className="space-y-2">
                 <button
                   onClick={() => { setExtraOffset(1); setExtraView(0); }}
-                  className="w-full flex items-center justify-center gap-2 py-4 bg-violet-700 hover:bg-violet-800 text-white rounded-xl font-bold text-base active:scale-95 transition-all shadow-lg shadow-violet-200"
+                  className="w-full flex items-center justify-center gap-2 py-4 bg-[#221C14] hover:bg-black text-white rounded-xl font-bold text-base active:scale-95 transition-all shadow-lg shadow-[rgba(201,150,46,0.3)]"
                 >
                   Keep Going <ChevronRight className="h-5 w-5" />
                 </button>
                 <button
                   onClick={() => { setExtraOffset(-1); setExtraView(0); }}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 text-slate-500 rounded-xl font-medium text-sm active:scale-95 transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-[rgba(34,28,20,0.14)] text-[#5C5142] rounded-xl font-medium text-sm active:scale-95 transition-all"
                 >
                   <ChevronLeft className="h-4 w-4" /> Re-read previous
                 </button>
@@ -873,23 +873,23 @@ export default function TodayPage() {
               /* Extra reading panel */
               <div className="rounded-2xl shadow-sm overflow-hidden" style={{ background: readingBg, border: `1px solid ${readingBorder}`, transition: "background 0.3s, border-color 0.3s" }}>
                 {/* Nav header */}
-                <div className="bg-slate-800 text-white px-5 py-3 flex items-center justify-between">
+                <div className="bg-[#2E2517] text-white px-5 py-3 flex items-center justify-between">
                   <button
                     onClick={() => { setExtraOffset((o) => o - 1); setExtraView(0); setSelectedVerses(new Set()); setHighlightSaved(false); }}
                     disabled={extraOffset <= -30}
-                    className="flex items-center gap-1 text-xs text-slate-300 hover:text-white disabled:opacity-30 transition"
+                    className="flex items-center gap-1 text-xs text-[#C6BBA4] hover:text-white disabled:opacity-30 transition"
                   >
                     <ChevronLeft className="h-3.5 w-3.5" />
                     {extraOffset === 1 ? "Today" : extraOffset === -1 ? "Further back" : "Back"}
                   </button>
                   <div className="text-center">
-                    <p className="text-xs text-slate-400">{extraInfo?.dayType}</p>
+                    <p className="text-xs text-[#8A7F6E]">{extraInfo?.dayType}</p>
                     <p className="text-sm font-bold">{extraInfo?.label}</p>
                   </div>
                   <button
                     onClick={() => { setExtraOffset((o) => o + 1); setExtraView(0); setSelectedVerses(new Set()); setHighlightSaved(false); }}
                     disabled={extraOffset >= 30}
-                    className="flex items-center gap-1 text-xs text-slate-300 hover:text-white disabled:opacity-30 transition"
+                    className="flex items-center gap-1 text-xs text-[#C6BBA4] hover:text-white disabled:opacity-30 transition"
                   >
                     {extraOffset === -1 ? "Today" : "Ahead"}
                     <ChevronRight className="h-3.5 w-3.5" />
@@ -897,7 +897,7 @@ export default function TodayPage() {
                 </div>
                 <button
                   onClick={() => { setExtraOffset(0); setExtraView(0); setSelectedVerses(new Set()); setHighlightSaved(false); }}
-                  className="w-full text-center text-xs text-violet-500 py-2 border-b border-slate-100 hover:text-violet-700 transition"
+                  className="w-full text-center text-xs text-[#8A6A1E] py-2 border-b border-[rgba(34,28,20,0.08)] hover:text-[#8A6A1E] transition"
                 >
                   ← Back to today&apos;s summary
                 </button>
@@ -907,15 +907,15 @@ export default function TodayPage() {
                 {extraInfo && (
                   <>
                     {extraInfo.chapters.length > 1 && (
-                      <div className="flex overflow-x-auto border-b border-slate-100 px-4 gap-1 mt-2">
+                      <div className="flex overflow-x-auto border-b border-[rgba(34,28,20,0.08)] px-4 gap-1 mt-2">
                         {extraInfo.chapters.map((ch, i) => (
                           <button
                             key={i}
                             onClick={() => setExtraView(i)}
                             className={`px-3 py-2 text-sm font-medium whitespace-nowrap border-b-2 ${
                               i === extraView
-                                ? "border-violet-600 text-violet-700"
-                                : "border-transparent text-slate-400"
+                                ? "border-[#C9962E] text-[#8A6A1E]"
+                                : "border-transparent text-[#8A7F6E]"
                             }`}
                           >
                             {ch.book} {ch.chapter}
@@ -959,7 +959,7 @@ export default function TodayPage() {
                                     className="px-2 py-1.5 rounded-lg cursor-pointer transition-all select-none"
                                     style={isSelected ? { background: "#fef08a", borderLeft: "4px solid #facc15", color: "#1e293b" } : {}}
                                   >
-                                    <sup className="mr-1.5 text-xs font-bold" style={{ color: isSelected ? "#ca8a04" : "#8b5cf6" }}>
+                                    <sup className="mr-1.5 text-xs font-bold" style={{ color: isSelected ? "#ca8a04" : "#C9962E" }}>
                                       {v.verse}
                                     </sup>
                                     {v.text}
@@ -968,10 +968,10 @@ export default function TodayPage() {
                               })}
                             </div>
                             {!todayDone && (
-                              <div className="pt-4 border-t border-slate-100 mt-4">
+                              <div className="pt-4 border-t border-[rgba(34,28,20,0.08)] mt-4">
                                 <button
                                   onClick={handleMarkDone}
-                                  className="w-full flex items-center justify-center gap-2 bg-violet-700 text-white py-3 rounded-xl hover:bg-violet-800 active:scale-95 transition-all font-semibold text-sm"
+                                  className="w-full flex items-center justify-center gap-2 bg-[#221C14] text-white py-3 rounded-xl hover:bg-black active:scale-95 transition-all font-semibold text-sm"
                                 >
                                   <CheckCircle className="h-4 w-4" /> Mark Today Complete
                                 </button>
@@ -983,7 +983,7 @@ export default function TodayPage() {
                             {Array.from({ length: 6 }).map((_, i) => (
                               <div
                                 key={i}
-                                className="h-4 bg-slate-100 rounded animate-pulse"
+                                className="h-4 bg-[#EFE7D5] rounded animate-pulse"
                                 style={{ width: `${65 + (i * 8) % 30}%` }}
                               />
                             ))}
@@ -1000,13 +1000,13 @@ export default function TodayPage() {
             <div className="flex gap-3">
               <a
                 href="/profile"
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-violet-700 text-white rounded-xl hover:bg-violet-800 transition font-semibold text-sm"
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#221C14] text-white rounded-xl hover:bg-black transition font-semibold text-sm"
               >
                 <TrendingUp className="h-4 w-4" /> View Progress
               </a>
               <a
                 href="/plans"
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-violet-100 text-slate-600 rounded-xl hover:bg-violet-50 transition font-medium text-sm"
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-[rgba(34,28,20,0.08)] text-[#5A4F3F] rounded-xl hover:bg-[#FBF4E4] transition font-medium text-sm"
               >
                 Adjust Plan
               </a>
@@ -1016,25 +1016,25 @@ export default function TodayPage() {
           /* ─── READING CARD (not done today) ─────────────────────── */
           <div className="rounded-2xl shadow-sm overflow-hidden mb-6" style={{ background: readingBg, border: `1px solid ${readingBorder}`, transition: "background 0.3s, border-color 0.3s" }}>
             {/* Header */}
-            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#221C14] text-white px-6 py-4 flex items-center justify-between">
               <div>
-                <p className="text-xs text-violet-300 uppercase tracking-wide">
+                <p className="text-xs text-[#D9B36B] uppercase tracking-wide">
                   Day {todayInfo.dayNumber} of {todayInfo.totalDays}
                 </p>
                 <h1 className="text-lg font-bold">{headerLabel}</h1>
               </div>
               <div className="text-right">
-                <p className="text-xs text-slate-400">Your streak</p>
-                <p className="text-2xl font-bold text-violet-400 flex items-center gap-1">
+                <p className="text-xs text-[#8A7F6E]">Your streak</p>
+                <p className="text-2xl font-bold text-[#C9962E] flex items-center gap-1">
                   <Flame className="h-5 w-5" /> {streak}
                 </p>
               </div>
             </div>
 
             {/* Progress bar */}
-            <div className="w-full bg-slate-100 h-2">
+            <div className="w-full bg-[#EFE7D5] h-2">
               <div
-                className="bg-violet-600 h-2 rounded-r-full transition-all duration-500"
+                className="bg-[#C9962E] h-2 rounded-r-full transition-all duration-500"
                 style={{ width: `${actualProgressPercent}%` }}
               />
             </div>
@@ -1048,7 +1048,7 @@ export default function TodayPage() {
                     onClick={() => setCurrentChapterView(i)}
                     className="px-3 py-2 text-sm font-medium whitespace-nowrap transition border-b-2"
                     style={i === currentChapterView
-                      ? { borderColor: "#7c3aed", color: "#7c3aed" }
+                      ? { borderColor: "#C9962E", color: "#8A6A1E" }
                       : { borderColor: "transparent", color: readingMuted }
                     }
                   >
@@ -1114,7 +1114,7 @@ export default function TodayPage() {
                         className="px-2 py-1.5 rounded-lg cursor-pointer transition-all select-none"
                         style={isSelected ? { background: "#fef08a", borderLeft: "4px solid #facc15", color: "#1e293b" } : {}}
                       >
-                        <sup className="mr-1.5 text-xs font-bold" style={{ color: isSelected ? "#ca8a04" : "#8b5cf6" }}>
+                        <sup className="mr-1.5 text-xs font-bold" style={{ color: isSelected ? "#ca8a04" : "#C9962E" }}>
                           {v.verse}
                         </sup>
                         {v.text}
@@ -1127,11 +1127,11 @@ export default function TodayPage() {
                   {Array.from({ length: 8 }).map((_, i) => (
                     <div
                       key={i}
-                      className="h-4 bg-slate-100 rounded animate-pulse"
+                      className="h-4 bg-[#EFE7D5] rounded animate-pulse"
                       style={{ width: `${70 + (i * 7) % 30}%` }}
                     />
                   ))}
-                  <p className="text-sm text-slate-400 mt-4">Loading chapter text…</p>
+                  <p className="text-sm text-[#8A7F6E] mt-4">Loading chapter text…</p>
                 </div>
               )}
             </div>
@@ -1142,11 +1142,11 @@ export default function TodayPage() {
                 <button
                   onClick={() => setCurrentChapterView(Math.max(0, currentChapterView - 1))}
                   disabled={currentChapterView === 0}
-                  className="flex items-center gap-1 text-sm text-slate-500 hover:text-violet-600 disabled:opacity-30 transition"
+                  className="flex items-center gap-1 text-sm text-[#5C5142] hover:text-[#8A6A1E] disabled:opacity-30 transition"
                 >
                   <ChevronLeft className="h-4 w-4" /> Previous
                 </button>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-[#8A7F6E]">
                   {currentChapterView + 1} of {todayInfo.chapters.length}
                 </span>
                 <button
@@ -1156,7 +1156,7 @@ export default function TodayPage() {
                     )
                   }
                   disabled={currentChapterView === todayInfo.chapters.length - 1}
-                  className="flex items-center gap-1 text-sm text-slate-500 hover:text-violet-600 disabled:opacity-30 transition"
+                  className="flex items-center gap-1 text-sm text-[#5C5142] hover:text-[#8A6A1E] disabled:opacity-30 transition"
                 >
                   Next <ChevronRight className="h-4 w-4" />
                 </button>
@@ -1185,7 +1185,7 @@ export default function TodayPage() {
                   fontFamily: "inherit",
                   transition: "background 0.3s, border-color 0.3s",
                 }}
-                onFocus={(e) => { e.target.style.borderColor = "#7c3aed"; }}
+                onFocus={(e) => { e.target.style.borderColor = "#C9962E"; }}
                 onBlur={(e) => { e.target.style.borderColor = readingBorder; }}
               />
               {noteText.trim() && (
@@ -1201,7 +1201,7 @@ export default function TodayPage() {
                   }}
                   className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition active:scale-95"
                   style={{
-                    background: noteSaved ? "#22c55e" : "#7c3aed",
+                    background: noteSaved ? "#22c55e" : "#221C14",
                     color: "#ffffff",
                   }}
                 >
@@ -1214,7 +1214,7 @@ export default function TodayPage() {
             <div className="px-6 py-4" style={{ borderTop: `1px solid ${readingBorder}` }}>
               <button
                 onClick={handleMarkDone}
-                className="w-full flex items-center justify-center gap-2 bg-violet-700 text-white py-3.5 rounded-xl hover:bg-violet-800 active:scale-95 transition-all font-semibold text-base"
+                className="w-full flex items-center justify-center gap-2 bg-[#221C14] text-white py-3.5 rounded-xl hover:bg-black active:scale-95 transition-all font-semibold text-base"
               >
                 <CheckCircle className="h-5 w-5" /> Mark Today Complete
               </button>
@@ -1225,7 +1225,7 @@ export default function TodayPage() {
         {/* ─── SUB-PLANS (Daily devotionals) ───────────────────── */}
         {subPlans.length > 0 && (
           <div className="mb-6">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+            <p className="text-xs font-semibold text-[#8A7F6E] uppercase tracking-wider mb-3">
               Daily Devotionals
             </p>
             <div className="space-y-3">
@@ -1236,14 +1236,14 @@ export default function TodayPage() {
                   <div
                     key={sp.id}
                     className={`bg-white rounded-xl border p-4 flex items-center justify-between transition ${
-                      isDone ? "border-green-200 opacity-75" : "border-violet-100"
+                      isDone ? "border-green-200 opacity-75" : "border-[rgba(34,28,20,0.08)]"
                     }`}
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-violet-500 font-semibold uppercase tracking-wide">
+                      <p className="text-xs text-[#8A6A1E] font-semibold uppercase tracking-wide">
                         {sp.label}
                       </p>
-                      <p className="text-base font-bold text-slate-900">
+                      <p className="text-base font-bold text-[#221C14]">
                         {sp.book} {todayChapter}
                       </p>
                     </div>
@@ -1255,7 +1255,7 @@ export default function TodayPage() {
                       ) : (
                         <button
                           onClick={() => handleSubPlanDone(sp.id)}
-                          className="bg-violet-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-violet-800 active:scale-95 transition-all"
+                          className="bg-[#221C14] text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-black active:scale-95 transition-all"
                         >
                           Done
                         </button>
@@ -1263,14 +1263,14 @@ export default function TodayPage() {
                       <button
                         onClick={() => handlePauseSubPlan(sp.id)}
                         title="Pause"
-                        className="text-slate-300 hover:text-slate-500 transition"
+                        className="text-[#C6BBA4] hover:text-[#5C5142] transition"
                       >
                         <Pause className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleRemoveSubPlan(sp.id)}
                         title="Remove"
-                        className="text-slate-300 hover:text-red-400 transition"
+                        className="text-[#C6BBA4] hover:text-red-400 transition"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -1281,7 +1281,7 @@ export default function TodayPage() {
             </div>
             <a
               href="/plans"
-              className="block text-center text-xs text-violet-500 mt-3 hover:text-violet-700 transition"
+              className="block text-center text-xs text-[#8A6A1E] mt-3 hover:text-[#8A6A1E] transition"
             >
               + Manage devotional readings
             </a>
@@ -1291,28 +1291,28 @@ export default function TodayPage() {
         {/* ─── STATS BAR (not done) ────────────────────────────── */}
         {!todayDone && (
           <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="bg-white rounded-xl p-4 text-center border border-violet-100">
-              <p className="text-2xl font-bold text-violet-600">{streak}</p>
-              <p className="text-xs text-slate-500 mt-1">Day Streak</p>
+            <div className="bg-white rounded-xl p-4 text-center border border-[rgba(34,28,20,0.08)]">
+              <p className="text-2xl font-bold text-[#8A6A1E]">{streak}</p>
+              <p className="text-xs text-[#5C5142] mt-1">Day Streak</p>
             </div>
-            <div className="bg-white rounded-xl p-4 text-center border border-violet-100">
-              <p className="text-2xl font-bold text-violet-600">{totalRead}</p>
-              <p className="text-xs text-slate-500 mt-1">Chapters Read</p>
+            <div className="bg-white rounded-xl p-4 text-center border border-[rgba(34,28,20,0.08)]">
+              <p className="text-2xl font-bold text-[#8A6A1E]">{totalRead}</p>
+              <p className="text-xs text-[#5C5142] mt-1">Chapters Read</p>
             </div>
-            <div className="bg-white rounded-xl p-4 text-center border border-violet-100">
-              <p className="text-2xl font-bold text-violet-600">{actualProgressPercent}%</p>
-              <p className="text-xs text-slate-500 mt-1">Complete</p>
+            <div className="bg-white rounded-xl p-4 text-center border border-[rgba(34,28,20,0.08)]">
+              <p className="text-2xl font-bold text-[#8A6A1E]">{actualProgressPercent}%</p>
+              <p className="text-xs text-[#5C5142] mt-1">Complete</p>
             </div>
           </div>
         )}
 
         {/* ─── SIGN IN NUDGE ───────────────────────────────────── */}
         {isSignedIn === false && (
-          <div className="bg-violet-50 border border-violet-100 rounded-xl px-5 py-4 flex items-center justify-between gap-3 mb-4">
-            <p className="text-sm text-violet-700">Sign in to save your streak across devices.</p>
+          <div className="bg-[#FBF4E4] border border-[rgba(34,28,20,0.08)] rounded-xl px-5 py-4 flex items-center justify-between gap-3 mb-4">
+            <p className="text-sm text-[#8A6A1E]">Sign in to save your streak across devices.</p>
             <a
               href="/login"
-              className="flex-shrink-0 bg-violet-700 text-white text-xs font-semibold px-4 py-2 rounded-full hover:bg-violet-800 transition"
+              className="flex-shrink-0 bg-[#221C14] text-white text-xs font-semibold px-4 py-2 rounded-full hover:bg-black transition"
             >
               Sign In
             </a>
@@ -1321,16 +1321,16 @@ export default function TodayPage() {
 
         {/* ─── ADD DEVOTIONAL NUDGE / INLINE PICKER ────────────── */}
         {subPlans.length === 0 && !showDevotionalPicker && (
-          <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 mb-4">
-            <p className="text-sm font-semibold text-slate-700 mb-1">
+          <div className="bg-[#F7F2E8] border border-[rgba(34,28,20,0.14)] rounded-xl px-5 py-4 mb-4">
+            <p className="text-sm font-semibold text-[#3A3226] mb-1">
               📖 Add daily devotionals
             </p>
-            <p className="text-xs text-slate-500 mb-3">
+            <p className="text-xs text-[#5C5142] mb-3">
               Stack a short daily reading alongside your main plan — Psalms, Proverbs, John, and more.
             </p>
             <button
               onClick={() => setShowDevotionalPicker(true)}
-              className="text-xs text-violet-600 font-semibold hover:text-violet-800 transition"
+              className="text-xs text-[#8A6A1E] font-semibold hover:text-[#6B4E14] transition"
             >
               Choose a devotional →
             </button>
@@ -1339,10 +1339,10 @@ export default function TodayPage() {
 
         {/* ─── INLINE DEVOTIONAL PICKER ────────────────────────── */}
         {showDevotionalPicker && (
-          <div className="bg-violet-50 border border-violet-200 rounded-xl px-5 py-4 mb-4">
+          <div className="bg-[#FBF4E4] border border-[rgba(34,28,20,0.14)] rounded-xl px-5 py-4 mb-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold text-slate-800">Pick a devotional</p>
-              <button onClick={() => setShowDevotionalPicker(false)} className="text-slate-400 hover:text-slate-600 text-lg leading-none">×</button>
+              <p className="text-sm font-semibold text-[#221C14]">Pick a devotional</p>
+              <button onClick={() => setShowDevotionalPicker(false)} className="text-[#8A7F6E] hover:text-[#5A4F3F] text-lg leading-none">×</button>
             </div>
             <div className="grid grid-cols-2 gap-2">
               {DEVOTIONAL_PRESETS.map((preset) => (
@@ -1355,12 +1355,12 @@ export default function TodayPage() {
                     refreshSubPlans();
                     setShowDevotionalPicker(false);
                   }}
-                  className="flex items-center gap-2 bg-white border border-violet-100 rounded-xl px-3 py-2 text-left hover:border-violet-400 active:scale-95 transition-all"
+                  className="flex items-center gap-2 bg-white border border-[rgba(34,28,20,0.08)] rounded-xl px-3 py-2 text-left hover:border-[#C9962E] active:scale-95 transition-all"
                 >
                   <span className="text-xl">{preset.emoji}</span>
                   <div>
-                    <p className="text-xs font-bold text-slate-900 leading-tight">{preset.label}</p>
-                    <p className="text-[10px] text-slate-400">{preset.book}</p>
+                    <p className="text-xs font-bold text-[#221C14] leading-tight">{preset.label}</p>
+                    <p className="text-[10px] text-[#8A7F6E]">{preset.book}</p>
                   </div>
                 </button>
               ))}
@@ -1383,7 +1383,7 @@ export default function TodayPage() {
         if (!activeCh || !activeData) return null;
         return (
           <div className="fixed bottom-20 left-0 right-0 z-40 flex justify-center px-4">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 max-w-sm w-full animate-slide-up">
+            <div className="bg-[#221C14] rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 max-w-sm w-full animate-slide-up">
               <span className="text-white text-sm font-semibold flex-1">
                 {selectedVerses.size} verse{selectedVerses.size > 1 ? "s" : ""} selected
               </span>
@@ -1398,7 +1398,7 @@ export default function TodayPage() {
                   }).filter(Boolean).join("\n");
                   navigator.clipboard.writeText(text).catch(() => {});
                 }}
-                className="bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95"
+                className="bg-[#3A3226] hover:bg-[#4A4030] text-white text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95"
               >
                 Copy
               </button>
@@ -1418,7 +1418,7 @@ export default function TodayPage() {
                     navigator.clipboard.writeText(shareText).catch(() => {});
                   }
                 }}
-                className="bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95"
+                className="bg-[#C9962E] hover:bg-[#B5841F] text-white text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95"
               >
                 Share
               </button>
@@ -1440,19 +1440,19 @@ export default function TodayPage() {
                 className={`text-xs font-semibold px-3 py-2 rounded-xl transition active:scale-95 ${
                   highlightSaved
                     ? "bg-green-500 text-white"
-                    : "bg-yellow-400 hover:bg-yellow-300 text-slate-900"
+                    : "bg-yellow-400 hover:bg-[#E7B84E] text-[#221C14]"
                 }`}
               >
                 {highlightSaved ? "Saved ✓" : "Save"}
               </button>
               {highlightSaved && (
-                <a href="/profile" className="text-xs text-violet-400 underline whitespace-nowrap">View in Profile →</a>
+                <a href="/profile" className="text-xs text-[#C9962E] underline whitespace-nowrap">View in Profile →</a>
               )}
 
               {/* Dismiss */}
               <button
                 onClick={() => { setSelectedVerses(new Set()); setHighlightSaved(false); }}
-                className="text-slate-400 hover:text-white transition p-1"
+                className="text-[#8A7F6E] hover:text-white transition p-1"
               >
                 <X className="h-4 w-4" />
               </button>

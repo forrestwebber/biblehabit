@@ -97,6 +97,36 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ── "Quiet morning light" marketing-site design system ─────────── */
+@keyframes bh-dawn {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 40%; }
+  100% { background-position: 0% 0%; }
+}
+@keyframes bh-fill {
+  from { width: 0%; }
+}
+@keyframes bh-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bh-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.bh-hero-bg {
+  background: linear-gradient(115deg, #F7F2E8 0%, #F5EBD8 34%, #F6E4C4 60%, #F3EAD9 100%);
+  background-size: 220% 220%;
+  animation: bh-dawn 22s ease-in-out infinite;
+}
+.bh-rise { animation: bh-rise 0.9s ease both; }
+.bh-rise-delay { animation: bh-rise 1.05s ease 0.12s both; }
+.bh-float { animation: bh-float 6s ease-in-out infinite; }
+.bh-fill { animation: bh-fill 1.6s cubic-bezier(.22,1,.36,1) 0.4s both; }
+@media (prefers-reduced-motion: reduce) {
+  .bh-hero-bg, .bh-rise, .bh-rise-delay, .bh-float, .bh-fill { animation: none !important; }
+}
+
 .animate-gradient { animation: gradient-shift 8s ease infinite; background-size: 200% 200%; }
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }

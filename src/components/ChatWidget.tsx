@@ -113,7 +113,7 @@ export default function ChatWidget() {
           {/* Header */}
           <div
             style={{
-              background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+              background: 'linear-gradient(135deg, #3A3226, #221C14)',
               padding: '14px 16px',
               display: 'flex',
               alignItems: 'center',
@@ -190,7 +190,7 @@ export default function ChatWidget() {
                     maxWidth: '80%',
                     padding: '10px 14px',
                     borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                    background: msg.role === 'user' ? '#7c3aed' : '#fff',
+                    background: msg.role === 'user' ? '#221C14' : '#fff',
                     color: msg.role === 'user' ? '#fff' : '#1f2937',
                     fontSize: '14px',
                     lineHeight: '1.5',
@@ -240,13 +240,13 @@ export default function ChatWidget() {
             {showFeedback && !feedbackSent && (
               <div
                 style={{
-                  background: '#f3f0ff',
-                  border: '1px solid #ddd6fe',
+                  background: '#FBF4E4',
+                  border: '1px solid rgba(201,150,46,0.3)',
                   borderRadius: '12px',
                   padding: '14px',
                 }}
               >
-                <p style={{ fontSize: '13px', color: '#5b21b6', marginBottom: '10px', fontWeight: 500 }}>
+                <p style={{ fontSize: '13px', color: '#8A6A1E', marginBottom: '10px', fontWeight: 500 }}>
                   Have a minute? What would make BibleHabit better for you?
                 </p>
                 <textarea
@@ -259,12 +259,12 @@ export default function ChatWidget() {
                     fontSize: '13px',
                     padding: '8px 10px',
                     borderRadius: '8px',
-                    border: '1px solid #c4b5fd',
+                    border: '1px solid rgba(201,150,46,0.4)',
                     outline: 'none',
                     resize: 'none',
                     boxSizing: 'border-box',
                     fontFamily: 'inherit',
-                    color: '#1f2937',
+                    color: '#221C14',
                     background: '#fff',
                   }}
                 />
@@ -275,10 +275,10 @@ export default function ChatWidget() {
                       fontSize: '12px',
                       padding: '6px 12px',
                       background: 'none',
-                      border: '1px solid #c4b5fd',
+                      border: '1px solid rgba(201,150,46,0.4)',
                       borderRadius: '6px',
                       cursor: 'pointer',
-                      color: '#7c3aed',
+                      color: '#8A6A1E',
                     }}
                   >
                     Maybe later
@@ -288,11 +288,11 @@ export default function ChatWidget() {
                     style={{
                       fontSize: '12px',
                       padding: '6px 12px',
-                      background: '#7c3aed',
+                      background: '#C9962E',
                       border: 'none',
                       borderRadius: '6px',
                       cursor: 'pointer',
-                      color: '#fff',
+                      color: '#221C14',
                     }}
                   >
                     Send feedback
@@ -356,7 +356,7 @@ export default function ChatWidget() {
                 width: '38px',
                 height: '38px',
                 borderRadius: '50%',
-                background: isLoading || !input.trim() ? '#e5e7eb' : '#7c3aed',
+                background: isLoading || !input.trim() ? '#e5e7eb' : '#221C14',
                 border: 'none',
                 cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
                 display: 'flex',
@@ -388,22 +388,22 @@ export default function ChatWidget() {
           width: '52px',
           height: '52px',
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+          background: 'linear-gradient(135deg, #3A3226, #221C14)',
           border: 'none',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 4px 16px rgba(124, 58, 237, 0.4)',
+          boxShadow: '0 4px 16px rgba(34, 28, 20, 0.35)',
           transition: 'transform 0.15s, box-shadow 0.15s',
         }}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)';
-          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(124, 58, 237, 0.5)';
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(34, 28, 20, 0.45)';
         }}
         onMouseLeave={(e) => {
           (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
-          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(124, 58, 237, 0.4)';
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(34, 28, 20, 0.35)';
         }}
       >
         {isOpen ? (

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "BibleHabit — Read the Bible. Build the habit.";
+export const alt = "BibleHabit — Meet your Bible reading where it is.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -15,75 +15,65 @@ export default async function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(145deg, #0c1222 0%, #1a1a3e 60%, #0f1a2e 100%)",
+          background: "linear-gradient(115deg, #F7F2E8 0%, #F5EBD8 34%, #F6E4C4 60%, #F3EAD9 100%)",
           fontFamily: "Georgia, serif",
           position: "relative",
           overflow: "hidden",
         }}
       >
-        {/* Subtle radial glow behind center content */}
+        {/* Soft dawn glow top-right */}
         <div
           style={{
             position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 700,
-            height: 700,
+            top: -160,
+            right: -100,
+            width: 620,
+            height: 620,
             borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(212,168,67,0.06) 0%, transparent 70%)",
+            background: "radial-gradient(circle, #FBEFC8 0%, rgba(251,239,200,0) 68%)",
             display: "flex",
           }}
         />
 
-        {/* Thin gold cross */}
-        <div
-          style={{
-            position: "absolute",
-            top: 80,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 2,
-            height: 100,
-            background: "rgba(212,168,67,0.25)",
-            display: "flex",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: 115,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 50,
-            height: 2,
-            background: "rgba(212,168,67,0.25)",
-            display: "flex",
-          }}
-        />
+        {/* Logo lockup */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 36 }}>
+          <div
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: "50%",
+              background: "radial-gradient(circle at 50% 68%, #F2D793 0%, #C9962E 58%, #A97C1E 100%)",
+              display: "flex",
+            }}
+          />
+          <div style={{ fontSize: 40, color: "#221C14", fontWeight: 700, letterSpacing: 0.5, display: "flex" }}>
+            BibleHabit
+          </div>
+        </div>
 
         {/* Main title */}
         <div
           style={{
-            fontSize: 72,
-            color: "#d4a843",
+            fontSize: 58,
+            color: "#221C14",
             fontWeight: 700,
-            letterSpacing: 4,
-            marginTop: 60,
+            textAlign: "center",
+            lineHeight: 1.15,
+            maxWidth: 920,
             display: "flex",
           }}
         >
-          BibleHabit
+          Meet your Bible reading where it is.
         </div>
 
         {/* Decorative divider */}
         <div
           style={{
-            width: 120,
-            height: 1,
-            background: "linear-gradient(90deg, transparent, rgba(212,168,67,0.5), transparent)",
-            marginTop: 28,
-            marginBottom: 28,
+            width: 140,
+            height: 2,
+            background: "linear-gradient(90deg, transparent, #C9962E, transparent)",
+            marginTop: 32,
+            marginBottom: 32,
             display: "flex",
           }}
         />
@@ -91,56 +81,26 @@ export default async function Image() {
         {/* Subtitle */}
         <div
           style={{
-            fontSize: 32,
-            color: "rgba(235,230,220,0.85)",
+            fontSize: 28,
+            color: "#5C5142",
             fontWeight: 400,
             fontStyle: "italic",
-            letterSpacing: 1,
             display: "flex",
           }}
         >
-          Read the Bible. Build the habit.
-        </div>
-
-        {/* Decorative quotation marks */}
-        <div
-          style={{
-            position: "absolute",
-            left: 100,
-            top: 200,
-            fontSize: 160,
-            color: "rgba(212,168,67,0.08)",
-            fontFamily: "Georgia, serif",
-            lineHeight: 1,
-            display: "flex",
-          }}
-        >
-          {"\u201C"}
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            right: 100,
-            bottom: 140,
-            fontSize: 160,
-            color: "rgba(212,168,67,0.08)",
-            fontFamily: "Georgia, serif",
-            lineHeight: 1,
-            display: "flex",
-          }}
-        >
-          {"\u201D"}
+          Pacing that adapts to your real life. No streaks to break.
         </div>
 
         {/* Bottom URL */}
         <div
           style={{
             position: "absolute",
-            bottom: 40,
-            fontSize: 18,
-            color: "rgba(212,168,67,0.45)",
+            bottom: 44,
+            fontSize: 20,
+            color: "#8A6A1E",
             letterSpacing: 3,
             textTransform: "lowercase",
+            fontFamily: "Georgia, serif",
             display: "flex",
           }}
         >
@@ -154,8 +114,8 @@ export default async function Image() {
             bottom: 0,
             left: 0,
             width: "100%",
-            height: 3,
-            background: "linear-gradient(90deg, transparent 10%, rgba(212,168,67,0.3) 50%, transparent 90%)",
+            height: 6,
+            background: "linear-gradient(90deg, transparent 8%, #C9962E 50%, transparent 92%)",
             display: "flex",
           }}
         />

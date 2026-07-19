@@ -19,16 +19,16 @@ function CallbackContent() {
     }
   }, [searchParams]);
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3">
-      <div className="w-8 h-8 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
-      <p className="text-sm text-slate-400">Signing you in…</p>
+    <div className="min-h-screen flex flex-col items-center justify-center gap-3" style={{ background: "#F7F2E8" }}>
+      <div className="w-8 h-8 rounded-full animate-spin" style={{ border: "2px solid #C9962E", borderTopColor: "transparent" }} />
+      <p className="text-sm" style={{ color: "#8A7F6E" }}>Signing you in…</p>
     </div>
   );
 }
 
 export default function AuthCallbackPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="text-slate-400">Loading…</div></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" style={{ background: "#F7F2E8" }}><div style={{ color: "#8A7F6E" }}>Loading…</div></div>}>
       <CallbackContent />
     </Suspense>
   );

@@ -205,38 +205,50 @@ function LoginContent() {
     emailInvalid;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "#F7F2E8" }}>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <a href="/" className="text-3xl font-bold text-slate-900">BibleHabit</a>
-          <p className="text-slate-500 mt-2">
+          <a href="/" className="inline-flex items-center gap-2.5">
+            <span
+              className="inline-block w-7 h-7 rounded-full"
+              style={{
+                background: "radial-gradient(circle at 50% 68%, #F2D793 0%, #C9962E 58%, #A97C1E 100%)",
+                boxShadow: "0 0 0 4px rgba(201,150,46,0.14)",
+              }}
+            />
+            <span className="text-2xl font-semibold" style={{ fontFamily: "'Lora', serif", color: "#221C14", letterSpacing: "-0.01em" }}>BibleHabit</span>
+          </a>
+          <p className="mt-2" style={{ color: "#5C5142" }}>
             {mode === "signup" ? "Start your daily reading journey — free forever" : "Welcome back"}
           </p>
         </div>
 
         {/* Mode toggle */}
-        <div className="flex bg-slate-100 rounded-xl p-1 mb-6">
+        <div className="flex rounded-xl p-1 mb-6" style={{ background: "#F2E9D6" }}>
           <button
             onClick={() => setMode("signup")}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${mode === "signup" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+            className="flex-1 py-2 rounded-lg text-sm font-semibold transition"
+            style={mode === "signup" ? { background: "#FFFDF8", color: "#221C14", boxShadow: "0 2px 8px rgba(34,28,20,0.08)" } : { color: "#8A7F6E" }}
           >
             Create Account
           </button>
           <button
             onClick={() => setMode("signin")}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${mode === "signin" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+            className="flex-1 py-2 rounded-lg text-sm font-semibold transition"
+            style={mode === "signin" ? { background: "#FFFDF8", color: "#221C14", boxShadow: "0 2px 8px rgba(34,28,20,0.08)" } : { color: "#8A7F6E" }}
           >
             Sign In
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-violet-100 p-8">
+        <div className="rounded-2xl p-8" style={{ background: "#FFFDF8", border: "1px solid rgba(34,28,20,0.08)", boxShadow: "0 16px 40px -24px rgba(34,28,20,0.3)" }}>
           <div className="space-y-3">
             <button
               type="button"
               disabled
               title="Google sign-in is coming soon"
-              className="w-full flex items-center justify-center gap-3 bg-slate-100 text-slate-400 py-3 px-4 rounded-lg font-medium cursor-not-allowed border border-slate-200"
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg font-medium cursor-not-allowed"
+              style={{ background: "#F2E9D6", color: "#B0A48C", border: "1px solid rgba(34,28,20,0.08)" }}
             >
               <svg className="h-5 w-5 opacity-50" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -248,8 +260,8 @@ function LoginContent() {
             </button>
 
             <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
-              <div className="relative flex justify-center text-xs"><span className="bg-white px-4 text-slate-400">or with email</span></div>
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t" style={{ borderColor: "rgba(34,28,20,0.1)" }}></div></div>
+              <div className="relative flex justify-center text-xs"><span className="px-4" style={{ background: "#FFFDF8", color: "#8A7F6E" }}>or with email</span></div>
             </div>
 
             {/* Email field with inline validation */}
@@ -261,7 +273,8 @@ function LoginContent() {
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => setEmailTouched(true)}
                 onKeyDown={(e) => e.key === "Enter" && handleEmail()}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 ${emailInvalid ? "border-red-400" : "border-slate-200"}`}
+                className="w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C9962E]"
+                style={{ border: `1px solid ${emailInvalid ? "#f87171" : "rgba(34,28,20,0.14)"}`, color: "#221C14", background: "#FFFDF8" }}
               />
               {emailInvalid && (
                 <p className="text-xs text-red-500 mt-1 ml-1">Enter a valid email address</p>
@@ -276,12 +289,14 @@ function LoginContent() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleEmail()}
-                className="w-full px-4 py-3 pr-12 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800"
+                className="w-full px-4 py-3 pr-12 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C9962E]"
+                style={{ border: "1px solid rgba(34,28,20,0.14)", color: "#221C14", background: "#FFFDF8" }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                className="absolute right-3 top-1/2 -translate-y-1/2 transition"
+                style={{ color: "#8A7F6E" }}
                 tabIndex={-1}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
@@ -306,7 +321,8 @@ function LoginContent() {
                 <button
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-sm text-violet-600 hover:text-violet-800"
+                  className="text-sm transition"
+                  style={{ color: "#8A6A1E" }}
                 >
                   Forgot password?
                 </button>
@@ -315,7 +331,7 @@ function LoginContent() {
 
             {/* Password strength requirements (signup only) */}
             {mode === "signup" && password.length > 0 && (
-              <div className="bg-slate-50 rounded-lg p-3 space-y-1.5">
+              <div className="rounded-lg p-3 space-y-1.5" style={{ background: "#F2E9D6" }}>
                 {[
                   { met: strength.length, label: "At least 8 characters" },
                   { met: strength.upper, label: "One uppercase letter" },
@@ -323,10 +339,10 @@ function LoginContent() {
                   { met: strength.numberOrSymbol, label: "One number or symbol" },
                 ].map(({ met, label }) => (
                   <div key={label} className="flex items-center gap-2 text-xs">
-                    <span className={met ? "text-green-500" : "text-slate-400"}>
+                    <span style={{ color: met ? "#7A8B6F" : "#B0A48C" }}>
                       {met ? "✓" : "·"}
                     </span>
-                    <span className={met ? "text-green-600" : "text-slate-400"}>{label}</span>
+                    <span style={{ color: met ? "#5A7A4E" : "#8A7F6E" }}>{label}</span>
                   </div>
                 ))}
               </div>
@@ -335,7 +351,8 @@ function LoginContent() {
             <button
               onClick={handleEmail}
               disabled={submitDisabled}
-              className="w-full bg-violet-700 text-white py-3 px-4 rounded-lg hover:bg-violet-800 transition font-semibold disabled:opacity-50"
+              className="w-full py-3 px-4 rounded-lg transition font-semibold disabled:opacity-50"
+              style={{ background: "#221C14", color: "#F7F2E8" }}
             >
               {loading ? "..." : mode === "signup" ? "Create Free Account →" : "Sign In →"}
             </button>
@@ -348,21 +365,21 @@ function LoginContent() {
                   <span>{message}</span>
                 </div>
               ) : (
-                <p className="text-sm text-center text-green-600 bg-green-50 p-3 rounded-lg">{message}</p>
+                <p className="text-sm text-center p-3 rounded-lg" style={{ color: "#5A7A4E", background: "#F0F4EC" }}>{message}</p>
               )
             )}
           </div>
 
           {mode === "signup" && (
-            <p className="text-xs text-slate-400 text-center mt-4">Free forever · No credit card required</p>
+            <p className="text-xs text-center mt-4" style={{ color: "#8A7F6E" }}>Free forever · No credit card required</p>
           )}
         </div>
 
-        <p className="text-center text-sm text-slate-400 mt-6">
+        <p className="text-center text-sm mt-6" style={{ color: "#8A7F6E" }}>
           {mode === "signup" ? (
-            <>Already have an account?{" "}<button onClick={() => setMode("signin")} className="text-violet-600 hover:text-violet-800 font-medium">Sign in</button></>
+            <>Already have an account?{" "}<button onClick={() => setMode("signin")} className="font-medium transition" style={{ color: "#8A6A1E" }}>Sign in</button></>
           ) : (
-            <>New to BibleHabit?{" "}<button onClick={() => setMode("signup")} className="text-violet-600 hover:text-violet-800 font-medium">Create a free account</button></>
+            <>New to BibleHabit?{" "}<button onClick={() => setMode("signup")} className="font-medium transition" style={{ color: "#8A6A1E" }}>Create a free account</button></>
           )}
         </p>
       </div>
@@ -372,7 +389,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="text-slate-400">Loading...</div></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" style={{ background: "#F7F2E8" }}><div style={{ color: "#8A7F6E" }}>Loading...</div></div>}>
       <LoginContent />
     </Suspense>
   );
