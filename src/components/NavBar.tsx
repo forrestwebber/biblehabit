@@ -51,7 +51,7 @@ export default function NavBar() {
   return (
     <nav
       className="sticky top-0 z-50 backdrop-blur-md"
-      style={{ background: "rgba(247,242,232,0.82)", borderBottom: "1px solid rgba(34,28,20,0.06)" }}
+      style={{ background: "rgba(247,242,232,0.82)", borderBottom: "1px solid rgba(34,28,20,0.06)", paddingTop: "env(safe-area-inset-top, 0px)" }}
     >
       <div className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
         <a href="/" className="flex items-center gap-2.5">
