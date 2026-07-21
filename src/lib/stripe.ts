@@ -17,8 +17,8 @@ export function getStripe(): Stripe {
 export const PLUS_MONTHLY_PRICE_ID = (process.env.STRIPE_PLUS_MONTHLY_PRICE_ID || "").trim();
 export const PLUS_ANNUAL_PRICE_ID = (process.env.STRIPE_PLUS_ANNUAL_PRICE_ID || "").trim();
 
-// "Launch discount" coupon ($5.99 off, duration=forever so renewals stay
-// discounted) auto-applied to annual checkout: $24.99/yr list -> $19/yr.
+// "Launch discount" coupon ($5.00 off, duration=forever so renewals stay
+// discounted) auto-applied to annual checkout: $24.99/yr list -> $19.99/yr.
 export const PLUS_ANNUAL_COUPON_ID = (process.env.STRIPE_PLUS_ANNUAL_COUPON_ID || "").trim();
 
 export const PLUS_PRICE_IDS = [PLUS_MONTHLY_PRICE_ID, PLUS_ANNUAL_PRICE_ID].filter(Boolean);

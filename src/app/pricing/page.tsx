@@ -198,7 +198,7 @@ function PricingContent() {
               >
                 $24.99
               </span>
-              <span className="text-4xl font-bold" style={{ fontFamily: SERIF }}>$19</span>
+              <span className="text-4xl font-bold" style={{ fontFamily: SERIF }}>$19.99</span>
               <span className="text-sm" style={{ color: META }}> / year</span>
             </p>
             <p className="mb-6">
