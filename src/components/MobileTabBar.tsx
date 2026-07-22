@@ -46,7 +46,16 @@ export default function MobileTabBar() {
   const [isNative, setIsNative] = useState(false)
 
   useEffect(() => {
-    setIsNative(Capacitor.isNativePlatform())
+    const native = Capacitor.isNativePlatform()
+    setIsNative(native)
+    // Reserve flow space so page content (CTAs) never hides behind the fixed
+    // bar. Bar height (~61px) + the device safe-area inset it also pads for.
+    if (native) {
+      document.body.style.paddingBottom = "calc(72px + env(safe-area-inset-bottom, 0px))"
+      return () => {
+        document.body.style.paddingBottom = ""
+      }
+    }
   }, [])
 
   // Only show in Capacitor native app — use state so SSR never renders it
