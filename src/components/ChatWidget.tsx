@@ -95,7 +95,7 @@ export default function ChatWidget() {
         <div
           style={{
             position: 'fixed',
-            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
+            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px + var(--bh-tabbar-h, 0px))',
             right: '20px',
             width: '380px',
             maxWidth: 'calc(100vw - 32px)',
@@ -382,7 +382,7 @@ export default function ChatWidget() {
         aria-label="Open chat assistant"
         style={{
           position: 'fixed',
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px + var(--bh-tabbar-h, 0px))',
           right: '20px',
           zIndex: 40,
           width: '52px',
