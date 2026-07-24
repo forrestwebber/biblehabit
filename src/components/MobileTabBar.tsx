@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { Capacitor } from "@capacitor/core"
@@ -41,19 +41,63 @@ const TABS = [
   },
 ]
 
+// Gap reserved between the last scrollable element and the top of the tab bar.
+const CTA_CLEARANCE = 24
+
 export default function MobileTabBar() {
   const pathname = usePathname()
-  const [isNative, setIsNative] = useState(false)
+  const [show, setShow] = useState(false)
+  const navRef = useRef<HTMLElement>(null)
 
+  // Decide visibility on the client only, so SSR markup never includes the bar
+  // (avoids hydration mismatch). Shown in the Capacitor native app, and in a
+  // browser when `?tabbar=preview` is present (for QA / screenshots).
   useEffect(() => {
-    setIsNative(Capacitor.isNativePlatform())
+    const preview =
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("tabbar") === "preview"
+    setShow(Capacitor.isNativePlatform() || preview)
   }, [])
 
-  // Only show in Capacitor native app — use state so SSR never renders it
-  if (!isNative) return null
+  // Reserve real flow space equal to the *measured* bar height (which already
+  // includes the device safe-area inset via the .bh-tabbar CSS rule) plus a
+  // clearance gap, so page CTAs are never hidden behind the fixed bar. Using a
+  // measured pixel value — instead of a hard-coded guess — self-adjusts to font
+  // scaling and the home-indicator inset on every device. Also exposes the bar
+  // height as a CSS var so floating UI (chat FAB, verse toolbar) can sit above
+  // the bar too.
+  useEffect(() => {
+    if (!show) return
+    const root = document.documentElement
+
+    const applyInsets = () => {
+      const h = navRef.current?.offsetHeight ?? 64
+      document.body.style.paddingBottom = `${h + CTA_CLEARANCE}px`
+      root.style.setProperty("--bh-tabbar-h", `${h}px`)
+    }
+
+    // Measure now, again on the next frame (lets env() safe-area resolve in the
+    // native webview), and on any resize / orientation change.
+    applyInsets()
+    const raf = requestAnimationFrame(applyInsets)
+    window.addEventListener("resize", applyInsets)
+    window.addEventListener("orientationchange", applyInsets)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener("resize", applyInsets)
+      window.removeEventListener("orientationchange", applyInsets)
+      document.body.style.paddingBottom = ""
+      root.style.removeProperty("--bh-tabbar-h")
+    }
+  }, [show])
+
+  if (!show) return null
 
   return (
     <nav
+      ref={navRef}
+      className="bh-tabbar"
       style={{
         position: "fixed",
         bottom: 0,
@@ -64,7 +108,6 @@ export default function MobileTabBar() {
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         borderTop: "1px solid rgba(124, 58, 237, 0.2)",
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
         display: "flex",
       }}
     >
@@ -83,6 +126,7 @@ export default function MobileTabBar() {
               paddingTop: "10px",
               paddingBottom: "10px",
               gap: "4px",
+              minHeight: "48px",
               color: active ? "#a78bfa" : "#64748b",
               textDecoration: "none",
               transition: "color 0.15s",

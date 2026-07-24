@@ -25,6 +25,14 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Native-app bottom tab bar. Padding is declared in the stylesheet (not inline)
+   so the iOS home-indicator safe-area inset resolves reliably in WKWebView. The
+   component measures this element's height and reserves matching body padding so
+   page CTAs are never covered. */
+.bh-tabbar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 body {
   background: #09090f;
   color: #e2e8f0;

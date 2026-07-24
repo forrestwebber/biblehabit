@@ -1385,7 +1385,7 @@ export default function TodayPage() {
         const activeData = chapterTexts.get(activeKey);
         if (!activeCh || !activeData) return null;
         return (
-          <div className="fixed bottom-20 left-0 right-0 z-40 flex justify-center px-4">
+          <div className="fixed left-0 right-0 z-40 flex justify-center px-4" style={{ bottom: "calc(var(--bh-tabbar-h, 0px) + 80px)" }}>
             <div className="bg-[#221C14] rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 max-w-sm w-full animate-slide-up">
               <span className="text-white text-sm font-semibold flex-1">
                 {selectedVerses.size} verse{selectedVerses.size > 1 ? "s" : ""} selected
