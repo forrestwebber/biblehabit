@@ -489,7 +489,7 @@ export default function HomePage() {
           <div className="grid grid-cols-3 gap-6">
             <div><p className="text-4xl font-bold" style={{ fontFamily: SERIF, color: LINK }}>1,189</p><p className="mt-1 text-sm" style={{ color: META }}>Chapters in the Bible</p></div>
             <div><p className="text-4xl font-bold" style={{ fontFamily: SERIF, color: LINK }}>~15 min</p><p className="mt-1 text-sm" style={{ color: META }}>Average daily reading</p></div>
-            <div><p className="text-4xl font-bold" style={{ fontFamily: SERIF, color: LINK }}>$0</p><p className="mt-1 text-sm" style={{ color: META }}>Cost. Forever.</p></div>
+            <div><p className="text-4xl font-bold" style={{ fontFamily: SERIF, color: LINK }}>$0</p><p className="mt-1 text-sm" style={{ color: META }}>To read every chapter.</p></div>
           </div>
         </div>
       </section>
@@ -497,7 +497,8 @@ export default function HomePage() {
       {/* CTA */}
       <section className="py-20 px-6 text-center" style={{ background: PARCHMENT }}>
         <h2 className="text-3xl font-semibold mb-4" style={{ fontFamily: SERIF, color: INK, letterSpacing: "-0.01em" }}>Start Your Bible Habit Today</h2>
-        <p className="mb-8 max-w-xl mx-auto" style={{ color: BODY }}>Free forever. No credit card. No catch. Just Scripture, one day at a time.</p>
+        <p className="mb-4 max-w-xl mx-auto" style={{ color: BODY }}>Free forever. No credit card. Just Scripture, one day at a time.</p>
+        <p className="mb-8 text-sm max-w-xl mx-auto" style={{ color: META }}>Every reading plan, every chapter and every streak stays free. <a href="/pricing" style={{ color: LINK, textDecoration: "underline" }}>Plus</a> is optional &mdash; $2.99/mo for pacing projections and multiple goals.</p>
         <a
           href="/welcome"
           className="inline-flex items-center gap-2 px-8 py-3 rounded-2xl transition font-semibold text-lg"

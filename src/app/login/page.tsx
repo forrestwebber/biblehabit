@@ -375,7 +375,7 @@ function LoginContent() {
           </div>
 
           {mode === "signup" && (
-            <p className="text-xs text-center mt-4" style={{ color: "#8A7F6E" }}>Free forever · No credit card required</p>
+            <p className="text-xs text-center mt-4" style={{ color: "#8A7F6E" }}>Free to start · No credit card required</p>
           )}
         </div>
 
