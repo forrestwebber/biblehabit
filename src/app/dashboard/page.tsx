@@ -1,10 +1,5 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
-import {
-  Flame, BookOpen, ArrowRight, CheckCircle, TrendingUp,
-  TrendingDown, Calendar, Sparkles, ChevronRight, AlertTriangle,
-  Zap, Clock, Target,
-} from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import NavBar from "@/components/NavBar";
 import { supabase } from "@/lib/supabase";
 import {
@@ -12,91 +7,83 @@ import {
   TOTAL_CHAPTERS,
   getGlobalChapterIndex,
   getBookAndChapter,
-  chaptersRemaining,
   getChaptersInPlan,
   getPlanEndGlobal,
   getTodaysReading,
-  getMilestones,
 } from "@/lib/bible-data";
 import {
   getPlan, savePlan, getCurrentStreak, getTotalChaptersRead,
   isDayComplete, formatDate, syncProgress, getProgressAnalysis,
+  getWeeklyChapterCounts,
   type SavedPlan, type ProgressAnalysis,
 } from "@/lib/reading-store";
-import { getXP, getLevelInfo, type LevelInfo } from "@/lib/xp-store";
+import {
+  getSubPlans, getSubPlanChapterToday, markSubPlanDone, isSubPlanDoneToday,
+  getSubPlanStreak, addSubPlan, type SubPlan,
+} from "@/lib/sub-plans";
+import { getReminderTime, setReminderTime, setReminderEnabled, REMINDER_TIMES } from "@/lib/prefs";
 
-type User = { id: string; email?: string; name?: string; avatarUrl?: string };
+type User = { id: string; email?: string; name?: string };
 
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-}
-
-function getStreakMessage(streak: number): string {
-  if (streak >= 365) return "A full year of daily scripture. Life-changing.";
-  if (streak >= 100) return "100 days! You're in rare company";
-  if (streak >= 50) return "50 days of consistency — incredible";
-  if (streak >= 30) return "A full month! You're devoted.";
-  if (streak >= 21) return "21 days — science says this is a habit now";
-  if (streak >= 14) return "Two weeks strong";
-  if (streak >= 7) return "One full week! This is becoming a habit";
-  if (streak >= 3) return "3 days — you're building something real";
-  if (streak >= 1) return "Day one — the journey begins!";
-  return "Start your streak today";
-}
+const MINUTES_PER_CHAPTER = 4;
 
 function formatFinishDate(d: Date): string {
-  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
 }
 
-function monthsDiff(a: Date, b: Date): number {
-  return Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24 * 30));
+function todayDateStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-// ─── Onboarding ──────────────────────────────────────────────────
+const SunriseIcon = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2v8" /><path d="m4.93 10.93 1.41 1.41" /><path d="M2 18h2" /><path d="M20 18h2" />
+    <path d="m19.07 10.93-1.41 1.41" /><path d="M22 22H2" /><path d="m8 6 4-4 4 4" />
+    <path d="M16 18a4 4 0 0 0-8 0" />
+  </svg>
+);
 
-const QUICK_PICKS = [
-  { label: "Entire Bible", desc: "Genesis to Revelation (66 books)", startBook: "Genesis", endBook: "Revelation" },
-  { label: "New Testament", desc: "Matthew to Revelation", startBook: "Matthew", endBook: "Revelation" },
-  { label: "Pick Up Mid-Book", desc: "Finish a book you've already started", startBook: "", endBook: "" },
-  { label: "Custom Range", desc: "Choose your own start and end books", startBook: "", endBook: "" },
+const CheckIcon = ({ size = 14 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+);
+
+// ─── Onboarding data ─────────────────────────────────────────────
+
+type ReadingStage = "fresh" | "partway" | "while";
+type PlanChoice = "year" | "nt90" | "psalm";
+
+const STAGE_CARDS: { id: ReadingStage; title: string; desc: string }[] = [
+  { id: "fresh", title: "Starting fresh", desc: "Genesis 1, or wherever you'd like to begin." },
+  { id: "partway", title: "Already partway through", desc: "Tell us the last chapter you finished." },
+  { id: "while", title: "Been reading a while", desc: "We'll pick up mid-stream, right where you are." },
 ];
 
-const BIBLE_GROUPS = [
-  { name: "Torah", books: ["Genesis","Exodus","Leviticus","Numbers","Deuteronomy"] },
-  { name: "History", books: ["Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther"] },
-  { name: "Poetry", books: ["Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon"] },
-  { name: "Major Prophets", books: ["Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel"] },
-  { name: "Minor Prophets", books: ["Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi"] },
-  { name: "Gospels & Acts", books: ["Matthew","Mark","Luke","John","Acts"] },
-  { name: "Paul's Letters", books: ["Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon"] },
-  { name: "Letters & Prophecy", books: ["Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"] },
+const PLAN_CARDS: { id: PlanChoice; title: string; desc: string }[] = [
+  { id: "year", title: "Whole Bible in a year", desc: "Three to four chapters · about 14 minutes a day" },
+  { id: "nt90", title: "New Testament in 90 days", desc: "About three chapters · about 9 minutes a day" },
+  { id: "psalm", title: "A Psalm, a Proverb, and a bit of the New Testament", desc: "Three short readings · about 9 minutes a day" },
 ];
 
 function BookPicker({ selected, onSelect }: { selected: string; onSelect: (book: string) => void }) {
   return (
-    <div className="space-y-3">
-      {BIBLE_GROUPS.map((group) => (
-        <div key={group.name}>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">{group.name}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {group.books.map((book) => (
-              <button
-                key={book}
-                onClick={() => onSelect(book)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                  selected === book
-                    ? "bg-violet-600 text-white shadow-sm"
-                    : "bg-slate-100 text-slate-600 hover:bg-violet-100 hover:text-violet-700"
-                }`}
-              >
-                {book}
-              </button>
-            ))}
-          </div>
-        </div>
+    <div className="flex flex-wrap gap-1.5">
+      {BIBLE_BOOKS.map((b) => (
+        <button
+          key={b.name}
+          onClick={() => onSelect(b.name)}
+          style={{
+            padding: "6px 10px",
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 500,
+            background: selected === b.name ? "var(--gold-500)" : "var(--surface-sunk)",
+            color: selected === b.name ? "var(--text-on-accent)" : "var(--text-secondary)",
+            transition: "background 200ms, color 200ms",
+          }}
+        >
+          {b.name}
+        </button>
       ))}
     </div>
   );
@@ -106,65 +93,66 @@ function ChapterPicker({ book, selected, onSelect }: { book: string; selected: n
   const bookData = BIBLE_BOOKS.find((b) => b.name === book);
   const total = bookData?.chapters ?? 1;
   return (
-    <div>
-      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Starting chapter in {book}</p>
-      <div className="flex flex-wrap gap-1.5">
-        {Array.from({ length: total }, (_, i) => i + 1).map((ch) => (
-          <button
-            key={ch}
-            onClick={() => onSelect(ch)}
-            className={`w-9 h-9 rounded-lg text-xs font-semibold transition-all ${
-              selected === ch
-                ? "bg-violet-600 text-white shadow-sm"
-                : "bg-slate-100 text-slate-600 hover:bg-violet-100 hover:text-violet-700"
-            }`}
-          >
-            {ch}
-          </button>
-        ))}
-      </div>
+    <div className="flex flex-wrap gap-1.5">
+      {Array.from({ length: total }, (_, i) => i + 1).map((ch) => (
+        <button
+          key={ch}
+          onClick={() => onSelect(ch)}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            fontSize: 12,
+            fontWeight: 600,
+            background: selected === ch ? "var(--gold-500)" : "var(--surface-sunk)",
+            color: selected === ch ? "var(--text-on-accent)" : "var(--text-secondary)",
+          }}
+        >
+          {ch}
+        </button>
+      ))}
     </div>
   );
 }
 
-const PACE_OPTIONS = [
-  { minutes: 1, chaptersPerDay: 1, label: "1 min/day", sub: "~1 chapter/day · just start the habit" },
-  { minutes: 5, chaptersPerDay: 2, label: "5 min/day", sub: "~2 chapters/day" },
-  { minutes: 15, chaptersPerDay: 3, label: "15 min/day", sub: "~3 chapters/day" },
-  { minutes: 30, chaptersPerDay: 5, label: "30 min/day", sub: "~5 chapters/day" },
-];
+// ─── Page ────────────────────────────────────────────────────────
 
-function todayDateStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-// ─── Dashboard Page ───────────────────────────────────────────────
-
-export default function DashboardPage() {
+export default function PlanPage() {
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [plan, setPlan] = useState<SavedPlan | null>(null);
-  const [onboardingStep, setOnboardingStep] = useState(-1); // -1 = has plan/done, 0-2 = onboarding
+  const [onboarding, setOnboarding] = useState(false);
+  const [obStep, setObStep] = useState(0);
 
   // Stats
   const [streak, setStreak] = useState(0);
   const [totalRead, setTotalRead] = useState(0);
-  const [todayDone, setTodayDone] = useState(false);
   const [analysis, setAnalysis] = useState<ProgressAnalysis | null>(null);
-  const [levelInfo, setLevelInfo] = useState<LevelInfo | null>(null);
+  const [planMode, setPlanMode] = useState<"goal" | "habit">("goal");
+  const [recalculated, setRecalculated] = useState(false);
+
+  // Habit checklist
+  const [subPlans, setSubPlans] = useState<SubPlan[]>([]);
+  const [subPlanDone, setSubPlanDone] = useState<Set<string>>(new Set());
+  const [mainDoneToday, setMainDoneToday] = useState(false);
 
   // Onboarding state
-  const [obQuickPick, setObQuickPick] = useState(0);
-  const [obStartBook, setObStartBook] = useState("Genesis");
-  const [obStartChapter, setObStartChapter] = useState(1);
-  const [obEndBook, setObEndBook] = useState("Revelation");
-  const [obMinutesPerDay, setObMinutesPerDay] = useState(1);
-  const [obChaptersPerDay, setObChaptersPerDay] = useState(1);
-  const [obStartDate, setObStartDate] = useState(todayDateStr());
+  const [obStage, setObStage] = useState<ReadingStage>("while");
+  const [obBook, setObBook] = useState("Genesis");
+  const [obChapter, setObChapter] = useState(1);
+  const [obPlan, setObPlan] = useState<PlanChoice>("year");
+  const [obTime, setObTime] = useState("7:00");
+
+  const refreshSubPlans = useCallback(() => {
+    const plans = getSubPlans().filter((p) => !p.paused);
+    setSubPlans(plans);
+    const doneSet = new Set<string>();
+    for (const p of plans) if (isSubPlanDoneToday(p.id)) doneSet.add(p.id);
+    setSubPlanDone(doneSet);
+  }, []);
 
   useEffect(() => {
+    setObTime(getReminderTime());
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) {
         window.location.href = "/login";
@@ -175,47 +163,56 @@ export default function DashboardPage() {
         id: u.id,
         email: u.email ?? undefined,
         name: u.user_metadata?.full_name ?? u.user_metadata?.name ?? undefined,
-        avatarUrl: u.user_metadata?.avatar_url ?? undefined,
       });
 
-      // Load from localStorage immediately — don't block on sync
       const savedPlan = getPlan();
       if (!savedPlan) {
-        setOnboardingStep(0);
+        setOnboarding(true);
       } else {
         setPlan(savedPlan);
         setStreak(getCurrentStreak());
         setTotalRead(getTotalChaptersRead());
-        setTodayDone(isDayComplete(formatDate(new Date())));
         setAnalysis(getProgressAnalysis(savedPlan));
-        setOnboardingStep(-1);
+        setMainDoneToday(isDayComplete(formatDate(new Date())));
       }
-      setLevelInfo(getLevelInfo(getXP()));
+      refreshSubPlans();
       setLoading(false);
 
-      // Sync in background — refresh stats when done
-      setSyncing(true);
       await syncProgress();
-      setSyncing(false);
       const refreshedPlan = getPlan();
       if (refreshedPlan) {
         setPlan(refreshedPlan);
+        setOnboarding(false);
         setStreak(getCurrentStreak());
         setTotalRead(getTotalChaptersRead());
-        setTodayDone(isDayComplete(formatDate(new Date())));
         setAnalysis(getProgressAnalysis(refreshedPlan));
+        setMainDoneToday(isDayComplete(formatDate(new Date())));
       }
     });
-  }, []);
+  }, [refreshSubPlans]);
 
-  function refreshStats(p: SavedPlan) {
-    setStreak(getCurrentStreak());
-    setTotalRead(getTotalChaptersRead());
-    setTodayDone(isDayComplete(formatDate(new Date())));
-    setAnalysis(getProgressAnalysis(p));
-  }
+  // ─── Derived plan facts ──────────────────────────────────────
+  const totalPlanChapters = plan
+    ? getChaptersInPlan(plan.startBook, plan.startChapter, plan.endBook)
+    : 0;
 
-  // Computed: today's reading from plan
+  const actualPct = totalPlanChapters > 0 ? Math.min(100, (totalRead / totalPlanChapters) * 100) : 0;
+  const expectedPct = analysis && totalPlanChapters > 0
+    ? Math.min(100, (analysis.expectedChapters / totalPlanChapters) * 100)
+    : 0;
+
+  const weeklyCounts = useMemo(() => (plan ? getWeeklyChapterCounts(7) : []), [plan, totalRead]);
+
+  const paceMinutes = plan ? Math.max(1, Math.round(plan.chaptersPerDay * MINUTES_PER_CHAPTER)) : 0;
+
+  const planLabel = plan
+    ? (!plan.endBook || plan.endBook === "Revelation")
+      ? (plan.startBook === "Genesis" ? "the whole Bible" : `${plan.startBook} to Revelation`)
+      : plan.startBook === plan.endBook
+        ? plan.startBook
+        : `${plan.startBook} to ${plan.endBook}`
+    : "";
+
   const todayReading = useMemo(() => {
     if (!plan) return null;
     return getTodaysReading(
@@ -226,23 +223,6 @@ export default function DashboardPage() {
     );
   }, [plan]);
 
-  // Computed: tomorrow's reading
-  const tomorrowReading = useMemo(() => {
-    if (!plan || !todayReading) return null;
-    const planEnd = getPlanEndGlobal(plan.endBook);
-    const startIdx = getGlobalChapterIndex(plan.startBook, plan.startChapter);
-    const dayNum = todayReading.dayNumber; // 1-based today
-    const tomorrowGlobal = startIdx + dayNum * plan.chaptersPerDay;
-    if (tomorrowGlobal > planEnd) return null;
-    const bc = getBookAndChapter(tomorrowGlobal);
-    const bcEnd = getBookAndChapter(Math.min(tomorrowGlobal + plan.chaptersPerDay - 1, planEnd));
-    if (bc.book === bcEnd.book) {
-      return bc.chapter === bcEnd.chapter ? `${bc.book} ${bc.chapter}` : `${bc.book} ${bc.chapter}–${bcEnd.chapter}`;
-    }
-    return `${bc.book} ${bc.chapter} – ${bcEnd.book} ${bcEnd.chapter}`;
-  }, [plan, todayReading]);
-
-  // Computed: today's label
   const todayLabel = useMemo(() => {
     if (!todayReading) return "";
     const { book, startChapter, endChapter, endBook } = todayReading;
@@ -251,85 +231,82 @@ export default function DashboardPage() {
     return `${book} ${startChapter}–${endChapter}`;
   }, [todayReading]);
 
-  // Computed: overall progress %
-  const progressPct = useMemo(() => {
-    if (!plan) return 0;
-    const total = getChaptersInPlan(plan.startBook, plan.startChapter, plan.endBook);
-    return total > 0 ? Math.min(100, Math.round((totalRead / total) * 100)) : 0;
-  }, [plan, totalRead]);
-
-  // Computed: current book
-  const currentBookName = useMemo(() => {
-    if (!plan || totalRead === 0) return plan?.startBook ?? "";
+  // ─── Recalculate pace: re-anchor the plan at the actual position ──
+  function handleRecalculate() {
+    if (!plan) return;
     const startIdx = getGlobalChapterIndex(plan.startBook, plan.startChapter);
-    const { book } = getBookAndChapter(Math.min(startIdx + totalRead, TOTAL_CHAPTERS - 1));
-    return book;
-  }, [plan, totalRead]);
-
-  // Computed: milestones
-  const milestones = useMemo(() => {
-    if (!plan) return [];
-    return getMilestones(plan.startBook, plan.startChapter, plan.chaptersPerDay, new Date(plan.startDate + "T00:00:00")).slice(0, 3);
-  }, [plan]);
-
-  // Onboarding: finish date preview
-  const obFinishDate = useMemo(() => {
-    const total = (() => {
-      const si = BIBLE_BOOKS.findIndex((b) => b.name === obStartBook);
-      const ei = BIBLE_BOOKS.findIndex((b) => b.name === obEndBook);
-      if (si === -1 || ei === -1 || ei < si) return 0;
-      let t = 0;
-      for (let i = si; i <= ei; i++) t += BIBLE_BOOKS[i].chapters;
-      // Subtract chapters already passed in the starting book
-      return t - (obStartChapter - 1);
-    })();
-    if (total === 0 || obChaptersPerDay === 0) return null;
-    const days = Math.ceil(total / obChaptersPerDay);
-    const d = new Date(obStartDate + "T00:00:00");
-    d.setDate(d.getDate() + days);
-    return { d, days };
-  }, [obStartBook, obStartChapter, obEndBook, obChaptersPerDay, obStartDate]);
-
-  function handleQuickPick(idx: number) {
-    setObQuickPick(idx);
-    const qp = QUICK_PICKS[idx];
-    if (qp.startBook) { setObStartBook(qp.startBook); setObEndBook(qp.endBook); }
-    // Mid-book: endBook = startBook (just finish this one book)
-    if (idx === 2) setObEndBook(obStartBook);
-    setObStartChapter(1);
-  }
-
-  function handlePaceSelect(cpd: number, minutes: number) {
-    setObChaptersPerDay(cpd);
-    setObMinutesPerDay(minutes);
-  }
-
-  function handleStartPlan() {
+    const nextUnread = Math.min(startIdx + getTotalChaptersRead(), TOTAL_CHAPTERS - 1);
+    const bc = getBookAndChapter(nextUnread);
     const newPlan: SavedPlan = {
-      startBook: obStartBook,
-      startChapter: obStartChapter,
-      chaptersPerDay: obChaptersPerDay,
-      startDate: obStartDate,
+      ...plan,
+      startBook: bc.book,
+      startChapter: bc.chapter,
+      startDate: todayDateStr(),
+    };
+    savePlan(newPlan);
+    setPlan(newPlan);
+    setAnalysis(getProgressAnalysis(newPlan));
+    setRecalculated(true);
+  }
+
+  // ─── Onboarding: start the chosen plan ───────────────────────
+  function handleStartPlan() {
+    const startsFresh = obStage === "fresh";
+    let startBook = startsFresh ? "Genesis" : obBook;
+    let startChapter = startsFresh ? 1 : obChapter;
+    let chaptersPerDay = 3;
+    let endBook: string | undefined = undefined;
+
+    const ntStart = getGlobalChapterIndex("Matthew", 1);
+    const chosenIdx = getGlobalChapterIndex(startBook, startChapter);
+
+    if (obPlan === "nt90" || obPlan === "psalm") {
+      // New Testament plans: keep the user's place if it's in the NT, else Matthew 1
+      if (chosenIdx < ntStart) {
+        startBook = "Matthew";
+        startChapter = 1;
+      }
+      chaptersPerDay = obPlan === "nt90" ? 3 : 1;
+      endBook = undefined; // reads to Revelation
+    }
+
+    const newPlan: SavedPlan = {
+      startBook,
+      startChapter,
+      chaptersPerDay,
+      startDate: todayDateStr(),
       createdAt: new Date().toISOString(),
-      endBook: obEndBook !== "Revelation" ? obEndBook : undefined,
+      endBook,
     };
     savePlan(newPlan);
 
-    // Fire welcome email (fire-and-forget)
+    // The daily-three habit adds a Psalm and a Proverb alongside
+    if (obPlan === "psalm") {
+      const existing = getSubPlans();
+      if (!existing.some((p) => p.book === "Psalms")) {
+        addSubPlan({ label: "Daily Psalm", book: "Psalms", totalChapters: 150, chaptersPerDay: 1, startDate: todayDateStr() });
+      }
+      if (!existing.some((p) => p.book === "Proverbs")) {
+        addSubPlan({ label: "Daily Proverb", book: "Proverbs", totalChapters: 31, chaptersPerDay: 1, startDate: todayDateStr() });
+      }
+    }
+
+    setReminderTime(obTime);
+    setReminderEnabled(true);
+
+    // Welcome email (fire-and-forget)
     if (user?.email) {
-      const finishLabel = obFinishDate
-        ? obFinishDate.d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
-        : undefined;
+      const analysisNow = getProgressAnalysis(newPlan);
       fetch("/api/email/welcome", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: user.email,
           name: user.name,
-          startBook: obStartBook,
-          startChapter: obStartChapter,
-          chaptersPerDay: obChaptersPerDay,
-          finishDate: finishLabel,
+          startBook,
+          startChapter,
+          chaptersPerDay,
+          finishDate: analysisNow.scheduledFinishDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
         }),
       }).catch(() => {});
     }
@@ -337,487 +314,457 @@ export default function DashboardPage() {
     setPlan(newPlan);
     setStreak(getCurrentStreak());
     setTotalRead(getTotalChaptersRead());
-    setTodayDone(isDayComplete(formatDate(new Date())));
     setAnalysis(getProgressAnalysis(newPlan));
-    setOnboardingStep(-1);
+    setMainDoneToday(isDayComplete(formatDate(new Date())));
+    refreshSubPlans();
+    setPlanMode(obPlan === "psalm" ? "habit" : "goal");
+    setOnboarding(false);
+    window.location.href = "/today";
   }
 
   // ─── Loading ─────────────────────────────────────────────────
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3">
-        <div className="w-8 h-8 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-slate-400">{syncing ? "Syncing your progress…" : "Loading…"}</p>
+      <div className="bh-app flex flex-col items-center justify-center gap-3" style={{ minHeight: "100vh" }}>
+        <div className="w-8 h-8 rounded-full animate-spin" style={{ border: "2px solid var(--gold-500)", borderTopColor: "transparent" }} />
+        <p style={{ fontSize: 14, color: "var(--text-muted)" }}>Loading…</p>
       </div>
     );
   }
 
-  // ─── Onboarding Step 0 — Welcome ─────────────────────────────
+  // ─── Onboarding wizard ───────────────────────────────────────
+  if (onboarding) {
+    const tomorrowLabel = (() => {
+      const startsFresh = obStage === "fresh";
+      const b = startsFresh ? "Genesis" : obBook;
+      const c = startsFresh ? 1 : obChapter;
+      if (obPlan === "nt90" || obPlan === "psalm") {
+        const ntStart = getGlobalChapterIndex("Matthew", 1);
+        if (getGlobalChapterIndex(b, c) < ntStart) return "Matthew 1";
+      }
+      return `${b} ${c}`;
+    })();
 
-  if (onboardingStep === 0) {
+    const canContinue = obStep === 0 ? true : obStep === 1 ? !!obPlan : !!obTime;
+
     return (
-      <div className="min-h-screen bg-slate-50">
-        <NavBar />
-        <div className="max-w-2xl mx-auto px-4 py-16">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-violet-100 mb-6">
-              <BookOpen className="w-8 h-8 text-violet-600" />
-            </div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-3">Welcome to BibleHabit</h1>
-            <p className="text-lg text-slate-500">Read scripture every day. Build a habit that lasts.</p>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 mb-8 space-y-5">
-            {[
-              { icon: <BookOpen className="w-5 h-5 text-violet-500" />, title: "As little as 1 minute a day", desc: "Pick your pace — 1 chapter/day takes just a few minutes. No pressure." },
-              { icon: <Flame className="w-5 h-5 text-orange-500" />, title: "Track your streak", desc: "Every day you read counts. Watch your consistency grow over time." },
-              { icon: <Calendar className="w-5 h-5 text-blue-500" />, title: "See your finish date", desc: "Know exactly when you'll finish. Stay motivated with a real goal." },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">{icon}</div>
-                <div>
-                  <div className="font-semibold text-slate-800">{title}</div>
-                  <div className="text-sm text-slate-500 mt-0.5">{desc}</div>
-                </div>
-              </div>
+      <div className="bh-app flex flex-col" style={{ minHeight: "100vh" }}>
+        <div className="flex-1 mx-auto w-full max-w-md" style={{ padding: "40px 24px 8px" }}>
+          {/* Progress rail */}
+          <div className="flex gap-2" style={{ marginBottom: 28 }}>
+            {[0, 1, 2].map((i) => (
+              <div key={i} style={{ height: 3, flex: 1, borderRadius: 999, background: i <= obStep ? "var(--gold-500)" : "var(--surface-sunk)", transition: "background 280ms" }} />
             ))}
           </div>
 
-          <button
-            onClick={() => setOnboardingStep(1)}
-            className="w-full bg-violet-700 hover:bg-violet-800 text-white font-semibold py-4 px-6 rounded-xl text-lg transition flex items-center justify-center gap-2"
-          >
-            Get Started <ArrowRight className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Onboarding Step 1 — Choose range ────────────────────────
-
-  if (onboardingStep === 1) {
-    return (
-      <div className="min-h-screen bg-slate-50">
-        <NavBar />
-        <div className="max-w-2xl mx-auto px-4 py-12">
-          <div className="mb-8">
-            <div className="flex items-center gap-2 text-sm text-violet-600 font-medium mb-3">
-              <span className="w-6 h-6 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold">1</span>
-              Step 1 of 2
-            </div>
-            <h2 className="text-3xl font-bold text-slate-900">What do you want to read?</h2>
-            <p className="text-slate-500 mt-1">Choose a range or pick your own.</p>
-          </div>
-
-          <div className="space-y-3 mb-6">
-            {QUICK_PICKS.map((qp, idx) => (
-              <button
-                key={qp.label}
-                onClick={() => handleQuickPick(idx)}
-                className={`w-full text-left p-4 rounded-xl border-2 transition ${obQuickPick === idx ? "border-violet-600 bg-violet-50" : "border-slate-200 bg-white hover:border-violet-300"}`}
-              >
-                <div className="font-semibold text-slate-900">{qp.label}</div>
-                <div className="text-sm text-slate-500 mt-0.5">{qp.desc}</div>
-              </button>
-            ))}
-          </div>
-
-          {/* Pick Up Mid-Book — book + chapter picker */}
-          {obQuickPick === 2 && (
-            <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6 space-y-5">
-              <div>
-                <p className="text-sm font-semibold text-slate-700 mb-3">Which book are you in?</p>
-                <BookPicker selected={obStartBook} onSelect={(b) => { setObStartBook(b); setObEndBook(b); setObStartChapter(1); }} />
+          {obStep === 0 && (
+            <div className="bh-fade">
+              <h1 className="bh-serif" style={{ fontSize: 30, fontWeight: 500, lineHeight: 1.2 }}>Where are you in your reading?</h1>
+              <p style={{ fontSize: 14, color: "var(--text-secondary)", marginTop: 8, marginBottom: 24 }}>
+                No wrong answer — this only decides where we open tomorrow.
+              </p>
+              <div className="space-y-3">
+                {STAGE_CARDS.map((c) => {
+                  const selected = obStage === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => setObStage(c.id)}
+                      className="w-full text-left flex items-start justify-between gap-3"
+                      style={{
+                        border: `1.5px solid ${selected ? "var(--gold-500)" : "var(--line-hairline)"}`,
+                        background: selected ? "var(--gold-100)" : "var(--surface-card)",
+                        borderRadius: 14,
+                        padding: 16,
+                        transition: "border-color 200ms, background 200ms",
+                      }}
+                    >
+                      <div>
+                        <h3 className="bh-serif" style={{ fontSize: 19, fontWeight: 500 }}>{c.title}</h3>
+                        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>{c.desc}</p>
+                      </div>
+                      <span
+                        className="flex items-center justify-center flex-shrink-0"
+                        style={{
+                          width: 22, height: 22, borderRadius: 999, marginTop: 2,
+                          border: selected ? "none" : "1.5px solid var(--line-strong)",
+                          background: selected ? "var(--gold-500)" : "transparent",
+                          color: "var(--text-on-accent)",
+                        }}
+                      >
+                        {selected && <CheckIcon size={12} />}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-              <div className="border-t border-slate-100 pt-4">
-                <ChapterPicker book={obStartBook} selected={obStartChapter} onSelect={setObStartChapter} />
-              </div>
-              <p className="text-xs text-slate-400">Finishes {obStartBook} from chapter {obStartChapter}. After completing, start a new plan for the next book.</p>
-            </div>
-          )}
 
-          {/* Custom Range — start + end book pickers */}
-          {obQuickPick === 3 && (
-            <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6 space-y-5">
-              <div>
-                <p className="text-sm font-semibold text-slate-700 mb-3">Start book</p>
-                <BookPicker selected={obStartBook} onSelect={(b) => { setObStartBook(b); setObStartChapter(1); }} />
-              </div>
-              <div className="border-t border-slate-100 pt-4">
-                <p className="text-sm font-semibold text-slate-700 mb-3">End book</p>
-                <BookPicker selected={obEndBook} onSelect={setObEndBook} />
-              </div>
-            </div>
-          )}
-
-          <button
-            onClick={() => setOnboardingStep(2)}
-            className="w-full bg-violet-700 hover:bg-violet-800 text-white font-semibold py-4 rounded-xl transition flex items-center justify-center gap-2"
-          >
-            Next <ArrowRight className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Onboarding Step 2 — Pace ─────────────────────────────────
-
-  if (onboardingStep === 2) {
-    return (
-      <div className="min-h-screen bg-slate-50">
-        <NavBar />
-        <div className="max-w-2xl mx-auto px-4 py-12">
-          <div className="mb-8">
-            <div className="flex items-center gap-2 text-sm text-violet-600 font-medium mb-3">
-              <span className="w-6 h-6 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold">2</span>
-              Step 2 of 2
-            </div>
-            <h2 className="text-3xl font-bold text-slate-900">How much time can you read each day?</h2>
-            <p className="text-slate-500 mt-1">Be honest — consistency beats intensity.</p>
-          </div>
-
-          <div className="space-y-3 mb-6">
-            {PACE_OPTIONS.map((opt) => (
-              <button
-                key={opt.minutes}
-                onClick={() => handlePaceSelect(opt.chaptersPerDay, opt.minutes)}
-                className={`w-full text-left p-5 rounded-xl border-2 transition ${obMinutesPerDay === opt.minutes ? "border-violet-600 bg-violet-50" : "border-slate-200 bg-white hover:border-violet-300"}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-semibold text-slate-900 text-lg">{opt.label}</div>
-                    <div className="text-sm text-slate-500">{opt.sub}</div>
+              {obStage !== "fresh" && (
+                <div className="bh-card" style={{ padding: 16, marginTop: 16 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>The last chapter you finished</p>
+                  <BookPicker selected={obBook} onSelect={(b) => { setObBook(b); setObChapter(1); }} />
+                  <div style={{ borderTop: "1px solid var(--line-hairline)", marginTop: 12, paddingTop: 12 }}>
+                    <ChapterPicker book={obBook} selected={obChapter} onSelect={setObChapter} />
                   </div>
-                  {obMinutesPerDay === opt.minutes && (
-                    <CheckCircle className="w-6 h-6 text-violet-600" />
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Start date */}
-          <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6">
-            <label className="text-sm font-medium text-slate-700 block mb-2">Start date</label>
-            <input
-              type="date"
-              value={obStartDate}
-              onChange={(e) => setObStartDate(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-500"
-            />
-          </div>
-
-          {/* Finish date preview */}
-          {obFinishDate && (
-            <div className="bg-violet-50 border border-violet-100 rounded-xl p-5 mb-6">
-              <div className="flex items-center gap-2 text-violet-700">
-                <Target className="w-5 h-5" />
-                <span className="font-semibold">You'll finish on {formatFinishDate(obFinishDate.d)}</span>
-              </div>
-              <p className="text-sm text-violet-600 mt-1">That's {obFinishDate.days} days from your start date.</p>
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => setOnboardingStep(1)}
-              className="px-6 py-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition"
-            >
-              Back
-            </button>
-            <button
-              onClick={handleStartPlan}
-              className="flex-1 bg-violet-700 hover:bg-violet-800 text-white font-semibold py-4 rounded-xl transition flex items-center justify-center gap-2"
-            >
-              Start My Plan <Sparkles className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Dashboard (has plan) ─────────────────────────────────────
-
-  const firstName = user?.name?.split(" ")[0] ?? (user?.email?.split("@")[0] ?? "");
-  const totalPlanChapters = plan
-    ? getChaptersInPlan(plan.startBook, plan.startChapter, plan.endBook)
-    : 0;
-
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <NavBar />
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-
-        {/* Greeting */}
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            {getGreeting()}{firstName ? `, ${firstName}` : ""}.
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">{syncing ? "Syncing your progress…" : "Here's where you stand today."}</p>
-        </div>
-
-        {/* Today's Reading Card */}
-        <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-lg">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">Today's Reading</div>
-              <div className="text-2xl font-bold text-white leading-tight">{todayLabel || "—"}</div>
-              {todayReading && (
-                <div className="text-sm text-slate-400 mt-1">
-                  Day {todayReading.dayNumber} of {todayReading.totalDays}
                 </div>
               )}
             </div>
-            {/* Streak badge */}
-            <div className="flex-shrink-0 flex flex-col items-center bg-slate-800 rounded-xl px-4 py-3">
-              <Flame className="w-5 h-5 text-orange-400" />
-              <span className="text-xl font-bold text-white mt-0.5">{streak}</span>
-              <span className="text-xs text-slate-400">day streak</span>
-            </div>
-          </div>
+          )}
 
-          <div className="mt-5">
-            {todayDone ? (
+          {obStep === 1 && (
+            <div className="bh-fade">
+              <h1 className="bh-serif" style={{ fontSize: 30, fontWeight: 500, lineHeight: 1.2 }}>Three that would suit you</h1>
+              <p style={{ fontSize: 14, color: "var(--text-secondary)", marginTop: 8, marginBottom: 24 }}>
+                Picked for someone already reading most mornings. You can change it any time.
+              </p>
               <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 text-sm font-semibold px-3 py-1.5 rounded-full">
-                  <CheckCircle className="w-4 h-4" /> Complete for today
-                </div>
-                {tomorrowReading && (
-                  <a
-                    href="/today"
-                    className="flex items-center justify-between bg-slate-800 hover:bg-slate-700 rounded-xl px-4 py-3 transition group"
-                  >
-                    <div>
-                      <p className="text-xs text-slate-400 mb-0.5">Read ahead — tomorrow</p>
-                      <p className="text-sm font-semibold text-white">{tomorrowReading}</p>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-violet-400 group-hover:translate-x-1 transition-transform" />
-                  </a>
-                )}
+                {PLAN_CARDS.map((c) => {
+                  const selected = obPlan === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => setObPlan(c.id)}
+                      className="w-full text-left flex items-start justify-between gap-3"
+                      style={{
+                        border: `1.5px solid ${selected ? "var(--gold-500)" : "var(--line-hairline)"}`,
+                        background: selected ? "var(--gold-100)" : "var(--surface-card)",
+                        borderRadius: 14,
+                        padding: 16,
+                        transition: "border-color 200ms, background 200ms",
+                      }}
+                    >
+                      <div>
+                        <h3 className="bh-serif" style={{ fontSize: 19, fontWeight: 500, lineHeight: 1.3 }}>{c.title}</h3>
+                        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>{c.desc}</p>
+                      </div>
+                      <span
+                        className="flex items-center justify-center flex-shrink-0"
+                        style={{
+                          width: 22, height: 22, borderRadius: 999, marginTop: 2,
+                          border: selected ? "none" : "1.5px solid var(--line-strong)",
+                          background: selected ? "var(--gold-500)" : "transparent",
+                          color: "var(--text-on-accent)",
+                        }}
+                      >
+                        {selected && <CheckIcon size={12} />}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-            ) : (
-              <a
-                href="/today"
-                className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-5 py-2.5 rounded-xl transition"
-              >
-                Start Reading <ArrowRight className="w-4 h-4" />
-              </a>
-            )}
-          </div>
+            </div>
+          )}
+
+          {obStep === 2 && (
+            <div className="bh-fade">
+              <h1 className="bh-serif" style={{ fontSize: 30, fontWeight: 500, lineHeight: 1.2 }}>When shall we leave it out?</h1>
+              <p style={{ fontSize: 14, color: "var(--text-secondary)", marginTop: 8, marginBottom: 24 }}>
+                One quiet note, at your hour.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {REMINDER_TIMES.map((t) => {
+                  const selected = obTime === t;
+                  return (
+                    <button
+                      key={t}
+                      onClick={() => setObTime(t)}
+                      style={{
+                        height: 44,
+                        padding: "0 18px",
+                        borderRadius: 999,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        border: `1.5px solid ${selected ? "var(--gold-500)" : "var(--line-strong)"}`,
+                        background: selected ? "var(--gold-100)" : "var(--surface-card)",
+                        color: selected ? "var(--gold-700)" : "var(--text-secondary)",
+                        transition: "border-color 200ms, background 200ms, color 200ms",
+                      }}
+                    >
+                      {t}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ background: "var(--sage-100)", borderRadius: 14, padding: 16, marginTop: 20 }}>
+                <p style={{ fontSize: 14, fontWeight: 500, color: "var(--sage-700)" }}>
+                  {`“${tomorrowLabel} is ready when you are”`}
+                </p>
+                <p style={{ fontSize: 13, color: "var(--sage-700)", opacity: 0.8, marginTop: 4 }}>
+                  Once, at {obTime}. Never a catch-up, never a countdown.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Streak urgency — Duolingo-style "Don't lose your streak!" */}
-        {streak > 0 && !todayDone && (
-          <div className="bg-orange-500 rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-orange-200">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl animate-flame-pulse inline-block">🔥</span>
-              <div>
-                <p className="text-white font-bold text-sm">Don&apos;t lose your {streak}-day streak!</p>
-                <p className="text-orange-100 text-xs">Read today to keep it alive.</p>
+        {/* Footer */}
+        <div className="mx-auto w-full max-w-md" style={{ padding: "14px 24px calc(env(safe-area-inset-bottom, 0px) + 20px)" }}>
+          <button
+            onClick={() => (obStep < 2 ? setObStep(obStep + 1) : handleStartPlan())}
+            disabled={!canContinue}
+            className="bh-btn bh-btn-primary"
+          >
+            {obStep < 2 ? "Continue" : "Start reading"}
+          </button>
+          <button
+            onClick={() => (obStep > 0 ? setObStep(obStep - 1) : (window.location.href = "/today"))}
+            className="bh-btn bh-btn-quiet"
+            style={{ marginTop: 4 }}
+          >
+            {obStep > 0 ? "Back" : "Not now"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Plan view ────────────────────────────────────────────────
+  const finishDate = analysis ? formatFinishDate(analysis.projectedFinishDate) : "—";
+  const habitRows = (() => {
+    const rows: { id: string; label: string; minutes: number; done: boolean; streak: number; isMain: boolean }[] = [];
+    for (const sp of subPlans) {
+      rows.push({
+        id: sp.id,
+        label: `${sp.book} ${getSubPlanChapterToday(sp)}`,
+        minutes: Math.max(1, Math.round(sp.chaptersPerDay * 3)),
+        done: subPlanDone.has(sp.id),
+        streak: getSubPlanStreak(sp.id),
+        isMain: false,
+      });
+    }
+    if (todayLabel) {
+      rows.push({
+        id: "__main__",
+        label: todayLabel,
+        minutes: paceMinutes,
+        done: mainDoneToday,
+        streak,
+        isMain: true,
+      });
+    }
+    return rows;
+  })();
+  const habitDoneCount = habitRows.filter((r) => r.done).length;
+
+  const pacingCopy = (() => {
+    if (!analysis) return "";
+    if (analysis.daysBehind > 0)
+      return recalculated
+        ? "The remaining chapters are spread evenly from today. Nothing was lost."
+        : `A few days behind — recalculating spreads the difference gently over the weeks ahead.`;
+    if (analysis.daysAhead >= 2)
+      return "A little ahead of the plan — the finish date is quietly drifting closer.";
+    return "Right on pace. Nothing needs adjusting today.";
+  })();
+
+  return (
+    <div className="bh-app">
+      <NavBar />
+      <div className="max-w-2xl mx-auto" style={{ padding: "20px 20px 28px" }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 16 }}>
+          <p className="bh-eyebrow" style={{ color: "var(--text-accent)", marginBottom: 4 }}>
+            {planMode === "goal" ? "Your plan" : "Your daily readings"}
+          </p>
+          <h1 className="bh-serif" style={{ fontSize: 30, fontWeight: 500, lineHeight: 1.2 }}>
+            {planMode === "goal" ? <>Finish {planLabel} by {finishDate}</> : <>Today&apos;s readings, side by side</>}
+          </h1>
+        </div>
+
+        {/* Segmented control */}
+        <div className="flex" style={{ background: "var(--surface-sunk)", borderRadius: 999, padding: 3, marginBottom: 20 }}>
+          {([["goal", "Destination"], ["habit", "Daily habit"]] as const).map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => setPlanMode(id)}
+              style={{
+                flex: 1,
+                height: 40,
+                borderRadius: 999,
+                fontSize: 14,
+                fontWeight: 600,
+                background: planMode === id ? "var(--surface-card)" : "transparent",
+                color: planMode === id ? "var(--text-body)" : "var(--text-muted)",
+                boxShadow: planMode === id ? "var(--shadow-rest)" : "none",
+                transition: "background 280ms, color 280ms",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {planMode === "goal" ? (
+          <div className="space-y-4">
+            {/* Arc */}
+            <div className="bh-card-hero flex flex-col items-center" style={{ padding: "28px 20px 20px" }}>
+              <div
+                className="relative flex items-center justify-center"
+                style={{
+                  width: 200,
+                  height: 200,
+                  borderRadius: 999,
+                  background: `conic-gradient(var(--gold-500) 0% ${actualPct}%, var(--gold-200) ${actualPct}% ${Math.max(actualPct, expectedPct)}%, var(--cream-200) ${Math.max(actualPct, expectedPct)}% 100%)`,
+                  transition: "background 420ms var(--ease-bh)",
+                }}
+              >
+                <div className="flex flex-col items-center justify-center" style={{ width: 174, height: 174, borderRadius: 999, background: "var(--cream-50)" }}>
+                  <span className="bh-serif" style={{ fontSize: 40, fontWeight: 500, lineHeight: 1.15 }}>{totalRead}</span>
+                  <span style={{ fontSize: 13, color: "var(--text-muted)" }}>of {totalPlanChapters} chapters</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-4" style={{ marginTop: 16 }}>
+                <span className="flex items-center gap-1.5" style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+                  <span style={{ width: 9, height: 9, borderRadius: 999, background: "var(--gold-500)" }} /> Where you are
+                </span>
+                <span className="flex items-center gap-1.5" style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+                  <span style={{ width: 9, height: 9, borderRadius: 999, background: "var(--gold-200)" }} /> Where the plan expected
+                </span>
               </div>
             </div>
-            <a
-              href="/today"
-              className="bg-white text-orange-600 font-bold text-sm px-4 py-2 rounded-xl hover:bg-orange-50 transition active:scale-95 flex-shrink-0"
-            >
-              Read Now
+
+            {/* Pacing card */}
+            <div style={{ background: "var(--sage-100)", borderRadius: 14, padding: 20 }}>
+              <p className="bh-eyebrow" style={{ color: "var(--sage-700)", marginBottom: 8 }}>The pacing engine</p>
+              <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--sage-700)" }}>{pacingCopy}</p>
+              <h2 className="bh-serif" style={{ fontSize: 24, fontWeight: 500, marginTop: 10, color: "var(--text-body)" }}>
+                {recalculated ? "New pace" : "Your pace"}: {paceMinutes} min a day
+              </h2>
+              <p style={{ fontSize: 13, color: "var(--sage-700)", marginTop: 2 }}>
+                about {plan!.chaptersPerDay} chapter{plan!.chaptersPerDay > 1 ? "s" : ""}
+              </p>
+            </div>
+
+            {/* Pace history */}
+            <div className="bh-card" style={{ padding: 20 }}>
+              <div className="flex items-baseline justify-between" style={{ marginBottom: 14 }}>
+                <p style={{ fontSize: 14, fontWeight: 600 }}>How fast you actually read</p>
+                <p style={{ fontSize: 12, color: "var(--text-muted)" }}>last 7 weeks</p>
+              </div>
+              {weeklyCounts.some((c) => c > 0) ? (
+                <div className="flex items-end gap-2" style={{ height: 72 }}>
+                  {weeklyCounts.map((c, i) => {
+                    const max = Math.max(...weeklyCounts, 1);
+                    const isCurrent = i === weeklyCounts.length - 1;
+                    return (
+                      <div
+                        key={i}
+                        className="flex-1"
+                        style={{
+                          height: c === 0 ? 6 : Math.max(6, (c / max) * 72),
+                          borderRadius: "6px 6px 0 0",
+                          background: c === 0 ? "var(--cream-200)" : isCurrent ? "var(--gold-500)" : "var(--gold-200)",
+                          transition: "height 420ms var(--ease-bh)",
+                        }}
+                        title={`${c} chapters`}
+                      />
+                    );
+                  })}
+                </div>
+              ) : (
+                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                  Your first weeks of reading will appear here.
+                </p>
+              )}
+            </div>
+
+            {/* Recalculate */}
+            <button onClick={handleRecalculate} className="bh-btn bh-btn-secondary">
+              {recalculated ? "Pace updated — recalculate again" : "Recalculate my pace"}
+            </button>
+            <p className="text-center" style={{ fontSize: 13, lineHeight: 1.5, color: "var(--text-muted)", padding: "0 12px" }}>
+              Nothing is lost when a day goes by. The date moves, or the daily load does — your choice.
+            </p>
+          </div>
+        ) : (
+          /* ─── Daily habit checklist ─────────────────────────── */
+          <div className="space-y-3">
+            {habitRows.map((row) => (
+              <div
+                key={row.id}
+                className="flex items-start gap-3"
+                style={{
+                  background: row.done ? "var(--sage-100)" : "var(--surface-card)",
+                  border: `1px solid ${row.done ? "#D3DCCC" : "var(--line-hairline)"}`,
+                  borderRadius: 14,
+                  boxShadow: "var(--shadow-rest)",
+                  padding: 16,
+                  transition: "background 280ms, border-color 280ms",
+                }}
+              >
+                <button
+                  onClick={() => {
+                    if (row.done) return;
+                    if (row.isMain) {
+                      window.location.href = "/today";
+                    } else {
+                      markSubPlanDone(row.id);
+                      refreshSubPlans();
+                    }
+                  }}
+                  aria-label={row.done ? "Read" : "Mark read"}
+                  className="flex items-center justify-center flex-shrink-0"
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: 999,
+                    marginTop: 2,
+                    border: row.done ? "none" : "1.5px solid var(--line-strong)",
+                    background: row.done ? "var(--sage-500)" : "transparent",
+                    color: "#FFFDF7",
+                    transition: "background 200ms",
+                  }}
+                >
+                  {row.done && <CheckIcon size={14} />}
+                </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <h3 className="bh-serif" style={{ fontSize: 19, fontWeight: 500 }}>{row.label}</h3>
+                    <span style={{ fontSize: 13, color: "var(--text-muted)", whiteSpace: "nowrap" }}>about {row.minutes} min</span>
+                  </div>
+                  {row.streak > 0 && (
+                    <p className="flex items-center gap-1" style={{ fontSize: 13, marginTop: 4, color: row.done ? "var(--sage-700)" : "var(--text-muted)" }}>
+                      <SunriseIcon size={14} /> {row.streak === 1 ? "Read today" : `${row.streak} mornings in a row`}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {/* Summary */}
+            <div className="bh-sunk" style={{ padding: "16px 20px" }}>
+              <p style={{ fontSize: 14, fontWeight: 600 }}>
+                {habitDoneCount} of {habitRows.length} read today
+              </p>
+              <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>
+                {habitDoneCount === habitRows.length && habitRows.length > 0
+                  ? "That's the set. The next one is already waiting for tomorrow."
+                  : "Whatever you leave simply waits — nothing carries a penalty."}
+              </p>
+            </div>
+
+            {habitRows.length < 3 && (
+              <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center" }}>
+                Add a Psalm or a Proverb from the Today screen to build your daily three.
+              </p>
+            )}
+
+            <a href="/today" className="bh-btn bh-btn-primary">
+              {habitDoneCount === habitRows.length && habitRows.length > 0 ? "Read something else" : "Open the next one"}
             </a>
           </div>
         )}
 
-        {/* Streak celebration (already done today) */}
-        {streak > 0 && todayDone && (
-          <div className="flex items-center gap-3 bg-orange-50 border border-orange-100 rounded-xl px-4 py-3">
-            <span className="text-lg animate-flame-pulse inline-block">🔥</span>
-            <p className="text-sm font-medium text-orange-700">{getStreakMessage(streak)}</p>
-          </div>
-        )}
-
-        {/* Status / Catch-up card */}
-        {analysis && (() => {
-          const { daysBehind, daysAhead, projectedFinishDate, scheduledFinishDate } = analysis;
-          if (daysBehind >= 1 && daysBehind <= 3) {
-            return (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="w-5 h-5 text-amber-600" />
-                  <span className="font-semibold text-amber-800">You're {daysBehind} day{daysBehind > 1 ? "s" : ""} behind</span>
-                </div>
-                <p className="text-sm text-amber-700 mb-4">No worries — life happens. Here's how to catch up:</p>
-                <div className="space-y-2">
-                  <a href="/today" className="flex items-center justify-between bg-white border border-amber-200 rounded-xl px-4 py-3 hover:bg-amber-50 transition">
-                    <span className="text-sm font-medium text-slate-800">Read a bit more today</span>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </a>
-                </div>
-              </div>
-            );
-          }
-          if (daysBehind > 3) {
-            return (
-              <div className="bg-slate-100 border border-slate-200 rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-5 h-5 text-slate-500" />
-                  <span className="font-semibold text-slate-800">You've missed some days</span>
-                </div>
-                <p className="text-sm text-slate-600 mb-3">Don't be hard on yourself. Every day you read is a win.</p>
-                <p className="text-sm text-slate-500">At your current pace, you'll finish on <span className="font-medium text-slate-700">{formatFinishDate(projectedFinishDate)}</span>. Consider adjusting your daily chapters to set a more realistic pace.</p>
-              </div>
-            );
-          }
-          if (daysAhead >= 3) {
-            const months = monthsDiff(projectedFinishDate, scheduledFinishDate);
-            return (
-              <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                  <span className="font-semibold text-green-800">You're {daysAhead} days ahead of schedule!</span>
-                </div>
-                <p className="text-sm text-green-700">
-                  At this pace, you'll finish on <span className="font-semibold">{formatFinishDate(projectedFinishDate)}</span>
-                  {months > 0 ? ` — ${months} month${months > 1 ? "s" : ""} early` : ""}.
-                </p>
-              </div>
-            );
-          }
-          // On track
-          return (
-            <div className="flex items-center justify-between gap-3 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                <p className="text-sm font-medium text-green-700">You&apos;re right on track — keep it up!</p>
-              </div>
-              {!todayDone && (
-                <a href="/today" className="text-xs font-bold text-green-700 bg-green-200 hover:bg-green-300 px-3 py-1.5 rounded-lg transition flex-shrink-0">
-                  Read Now
-                </a>
-              )}
-            </div>
-          );
-        })()}
-
-        {/* Progress section — circular ring + XP level */}
-        {plan && (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-5">Your Progress</h2>
-
-            {/* Ring + stats row */}
-            <div className="flex items-center gap-6 mb-5">
-              {/* Circular progress ring */}
-              <div className="relative flex-shrink-0">
-                <svg viewBox="0 0 100 100" className="w-28 h-28 -rotate-90">
-                  <circle cx="50" cy="50" r="42" fill="none" stroke="#f1f5f9" strokeWidth="10" />
-                  <circle
-                    cx="50" cy="50" r="42" fill="none"
-                    stroke="url(#progress-ring-grad)" strokeWidth="10"
-                    strokeLinecap="round"
-                    strokeDasharray={`${2 * Math.PI * 42}`}
-                    strokeDashoffset={`${2 * Math.PI * 42 * (1 - progressPct / 100)}`}
-                    style={{ transition: "stroke-dashoffset 1s ease-out" }}
-                  />
-                  <defs>
-                    <linearGradient id="progress-ring-grad" x1="1" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#7c3aed" />
-                      <stop offset="100%" stopColor="#a78bfa" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-xl font-extrabold text-slate-900">{progressPct}%</span>
-                  <span className="text-xs text-slate-400">done</span>
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className="flex-1 space-y-3">
-                <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Chapters read</p>
-                  <p className="text-lg font-bold text-slate-900">{totalRead} <span className="text-sm font-normal text-slate-400">of {totalPlanChapters} in plan</span></p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Reading now</p>
-                  <p className="text-sm font-semibold text-slate-800">{currentBookName}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Finish by</p>
-                  <p className="text-sm font-semibold text-slate-800">
-                    {analysis ? formatFinishDate(analysis.projectedFinishDate) : "—"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* XP / Level bar */}
-            {levelInfo && (
-              <div className="border-t border-slate-100 pt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{levelInfo.emoji}</span>
-                    <span className="font-bold text-slate-800">{levelInfo.title}</span>
-                    <span className="text-xs bg-violet-100 text-violet-700 font-semibold px-2 py-0.5 rounded-full">Lv.{levelInfo.level}</span>
-                  </div>
-                  <span className="text-xs text-slate-400">{levelInfo.currentXP} XP</span>
-                </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 transition-all duration-700"
-                    style={{ width: `${levelInfo.progressPct}%` }}
-                  />
-                </div>
-                {!levelInfo.isMax && (
-                  <p className="text-xs text-slate-400 mt-1">{levelInfo.nextXP - levelInfo.currentXP} XP to {levelInfo.level < 6 ? ["Student","Disciple","Scholar","Elder","Prophet"][levelInfo.level - 1] : "max"}</p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Upcoming milestones */}
-        {milestones.length > 0 && (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">Upcoming Milestones</h2>
-            <div className="space-y-3">
-              {milestones.map((m) => (
-                <div key={m.book} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
-                      <BookOpen className="w-4 h-4 text-violet-600" />
-                    </div>
-                    <span className="text-sm font-medium text-slate-800">{m.label}</span>
-                  </div>
-                  <span className="text-xs text-slate-400">{m.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Quick links */}
-        <div className="grid grid-cols-2 gap-3">
-          <a href="/today" className="bg-white border border-slate-100 rounded-xl p-4 flex items-center gap-3 hover:border-violet-200 transition shadow-sm">
-            <BookOpen className="w-5 h-5 text-violet-600" />
-            <span className="font-medium text-slate-800 text-sm">Today's Reading</span>
-          </a>
-          <a href="/profile" className="bg-white border border-slate-100 rounded-xl p-4 flex items-center gap-3 hover:border-violet-200 transition shadow-sm">
-            <BookOpen className="w-5 h-5 text-amber-500" />
-            <span className="font-medium text-slate-800 text-sm">Highlights &amp; Notes</span>
-          </a>
-        </div>
-
         {/* Change plan */}
-        <div className="text-center">
+        <div className="text-center" style={{ marginTop: 24 }}>
           <button
-            onClick={() => setOnboardingStep(1)}
-            className="text-sm text-slate-400 hover:text-violet-600 transition underline underline-offset-2"
+            onClick={() => { setOnboarding(true); setObStep(0); }}
+            style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "underline", textUnderlineOffset: 3 }}
           >
             Change reading plan
           </button>
         </div>
-
       </div>
     </div>
   );

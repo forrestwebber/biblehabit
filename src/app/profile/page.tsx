@@ -1,580 +1,284 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
-import {
-  Flame,
-  BookOpen,
-  Calendar,
-  TrendingUp,
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight,
-  RotateCcw,
-  CloudUpload,
-} from "lucide-react";
+import { useState, useEffect } from "react";
 import NavBar from "@/components/NavBar";
 import { supabase } from "@/lib/supabase";
 import {
-  BIBLE_BOOKS,
-  TOTAL_CHAPTERS,
-  getGlobalChapterIndex,
-  getBookAndChapter,
-  chaptersRemaining,
-  getMilestones,
-} from "@/lib/bible-data";
-import {
-  getPlan,
-  getCurrentStreak,
-  getTotalChaptersRead,
-  getMonthReadings,
-  getProgress,
-  formatDate,
-  syncProgress,
-} from "@/lib/reading-store";
-import { getHighlights, removeHighlight, type Highlight } from "@/lib/highlights-store";
-import { getAllNotes, type ChapterNote } from "@/lib/notes-store";
-import { getUserLevel } from "@/lib/xp-store";
+  getReminderEnabled, setReminderEnabled,
+  getReminderTime, setReminderTime, REMINDER_TIMES,
+} from "@/lib/prefs";
 
-export default function ProfilePage() {
-  const [plan, setPlanState] = useState<ReturnType<typeof getPlan>>(null);
+const TRANSLATIONS = [
+  { id: "kjv", label: "KJV", name: "King James Version", note: "public domain" },
+  { id: "niv", label: "NIV", name: "New International Version", note: "" },
+  { id: "esv", label: "ESV", name: "English Standard Version", note: "" },
+  { id: "nkjv", label: "NKJV", name: "New King James Version", note: "" },
+  { id: "nlt", label: "NLT", name: "New Living Translation", note: "" },
+  { id: "web", label: "WEB", name: "World English Bible", note: "public domain" },
+  { id: "asv", label: "ASV", name: "American Standard Version", note: "public domain" },
+  { id: "bbe", label: "BBE", name: "Bible in Basic English", note: "public domain" },
+];
+const TRANSLATION_STORAGE_KEY = "biblehabit_translation";
+
+const BellIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+  </svg>
+);
+
+const BookOpenIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+  </svg>
+);
+
+const ChevronRightIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+);
+
+type SubStatus = { active: boolean; interval?: string; renewsAt?: string } | null;
+
+export default function SettingsPage() {
+  const [user, setUser] = useState<{ email?: string; name?: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [streak, setStreak] = useState(0);
-  const [totalRead, setTotalRead] = useState(0);
-  const [calMonth, setCalMonth] = useState(new Date().getMonth() + 1);
-  const [calYear, setCalYear] = useState(new Date().getFullYear());
-  const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null);
-  const [highlights, setHighlights] = useState<Highlight[]>([]);
-  const [notes, setNotes] = useState<ChapterNote[]>([]);
-  const [levelInfo, setLevelInfo] = useState(getUserLevel());
+  const [isNative, setIsNative] = useState(false);
+
+  const [reminderOn, setReminderOn] = useState(true);
+  const [reminderTime, setReminderTimeState] = useState("7:00");
+  const [translation, setTranslation] = useState("kjv");
+  const [showTranslations, setShowTranslations] = useState(false);
+  const [sub, setSub] = useState<SubStatus>(null);
+  const [subLoading, setSubLoading] = useState(false);
 
   useEffect(() => {
-    setPlanState(getPlan());
-    setStreak(getCurrentStreak());
-    setTotalRead(getTotalChaptersRead());
-    setHighlights(getHighlights());
-    setNotes(getAllNotes());
-    setLevelInfo(getUserLevel());
-    setLoading(false);
+    setReminderOn(getReminderEnabled());
+    setReminderTimeState(getReminderTime());
+    setTranslation(localStorage.getItem(TRANSLATION_STORAGE_KEY) ?? "kjv");
+    setIsNative(
+      typeof (window as any).Capacitor !== "undefined" &&
+      !!(window as any).Capacitor.isNativePlatform?.()
+    );
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      const loggedIn = !!data.session?.user;
-      setIsSignedIn(loggedIn);
-      if (loggedIn) {
-        await syncProgress();
-        // Refresh stats after sync pulls in Supabase data
-        setPlanState(getPlan());
-        setStreak(getCurrentStreak());
-        setTotalRead(getTotalChaptersRead());
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user;
+      if (u) {
+        setUser({
+          email: u.email ?? undefined,
+          name: u.user_metadata?.full_name ?? u.user_metadata?.name ?? undefined,
+        });
+        if (u.email) {
+          setSubLoading(true);
+          fetch(`/api/subscription?email=${encodeURIComponent(u.email)}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => setSub(d))
+            .catch(() => setSub(null))
+            .finally(() => setSubLoading(false));
+        }
       }
+      setLoading(false);
     });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const loggedIn = !!session?.user;
-      setIsSignedIn(loggedIn);
-      if (loggedIn) {
-        await syncProgress();
-        setPlanState(getPlan());
-        setStreak(getCurrentStreak());
-        setTotalRead(getTotalChaptersRead());
-      }
-    });
-    return () => subscription.unsubscribe();
   }, []);
 
-  const monthReadings = useMemo(
-    () => getMonthReadings(calYear, calMonth),
-    [calYear, calMonth, totalRead] // recalc when progress changes
-  );
+  const handleToggleReminder = () => {
+    const next = !reminderOn;
+    setReminderOn(next);
+    setReminderEnabled(next);
+  };
 
-  const daysInMonth = new Date(calYear, calMonth, 0).getDate();
-  const firstDayOfWeek = new Date(calYear, calMonth - 1, 1).getDay();
+  const handleTime = (t: string) => {
+    setReminderTimeState(t);
+    setReminderTime(t);
+  };
 
-  // Progress calculations
-  const progressPercent = useMemo(() => {
-    if (!plan) return 0;
-    const total = chaptersRemaining(plan.startBook, plan.startChapter);
-    return Math.min(100, Math.round((totalRead / total) * 100));
-  }, [plan, totalRead]);
+  const handleTranslation = (id: string) => {
+    setTranslation(id);
+    localStorage.setItem(TRANSLATION_STORAGE_KEY, id);
+    setShowTranslations(false);
+  };
 
-  // Current position in Bible
-  const currentPosition = useMemo(() => {
-    if (!plan) return null;
-    const startGlobal = getGlobalChapterIndex(
-      plan.startBook,
-      plan.startChapter
-    );
-    const currentGlobal = Math.min(startGlobal + totalRead, TOTAL_CHAPTERS - 1);
-    return getBookAndChapter(currentGlobal);
-  }, [plan, totalRead]);
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
 
-  // Milestones
-  const milestones = useMemo(() => {
-    if (!plan) return [];
-    // Calculate based on remaining from current position
-    const startGlobal = getGlobalChapterIndex(
-      plan.startBook,
-      plan.startChapter
-    );
-    const currentGlobal = startGlobal + totalRead;
-    const currentBC = getBookAndChapter(
-      Math.min(currentGlobal, TOTAL_CHAPTERS - 1)
-    );
-    return getMilestones(
-      currentBC.book,
-      currentBC.chapter,
-      plan.chaptersPerDay
-    );
-  }, [plan, totalRead]);
-
-  // Days active
-  const daysActive = useMemo(() => {
-    const progress = getProgress();
-    return Object.keys(progress).filter((k) => progress[k].length > 0).length;
-  }, [totalRead]);
-
-  // Books completed
-  const booksCompleted = useMemo(() => {
-    if (!plan || totalRead === 0) return [];
-    const startGlobal = getGlobalChapterIndex(
-      plan.startBook,
-      plan.startChapter
-    );
-    const endGlobal = startGlobal + totalRead;
-
-    const completed: string[] = [];
-    let running = 0;
-    for (const book of BIBLE_BOOKS) {
-      const bookEnd = running + book.chapters;
-      if (running >= startGlobal && bookEnd <= endGlobal) {
-        completed.push(book.name);
-      }
-      running += book.chapters;
-    }
-    return completed;
-  }, [plan, totalRead]);
-
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-
-  const prevMonth = () => {
-    if (calMonth === 1) {
-      setCalMonth(12);
-      setCalYear(calYear - 1);
-    } else {
-      setCalMonth(calMonth - 1);
+  const handleManageBilling = async () => {
+    if (!user?.email) return;
+    const res = await fetch("/api/portal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: user.email }),
+    });
+    if (res.ok) {
+      const { url } = await res.json();
+      if (url) window.location.href = url;
     }
   };
 
-  const nextMonth = () => {
-    if (calMonth === 12) {
-      setCalMonth(1);
-      setCalYear(calYear + 1);
-    } else {
-      setCalMonth(calMonth + 1);
-    }
-  };
+  const currentTranslation = TRANSLATIONS.find((t) => t.id === translation) ?? TRANSLATIONS[0];
+  const initial = (user?.name ?? user?.email ?? "?").charAt(0).toUpperCase();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50">
-        <NavBar />
-        <div className="flex items-center justify-center py-32">
-          <div className="animate-pulse text-slate-400">Loading...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!plan) {
-    return (
-      <div className="min-h-screen bg-slate-50">
-        <NavBar />
-        <div className="text-center py-32 px-6 max-w-lg mx-auto">
-          <TrendingUp className="h-16 w-16 text-violet-300 mx-auto mb-6" />
-          <h1 className="text-2xl font-bold text-slate-900 mb-4">
-            No Progress Yet
-          </h1>
-          <p className="text-slate-500 mb-8">
-            Create a reading plan to start tracking your progress.
-          </p>
-          <a
-            href="/plans"
-            className="inline-flex items-center gap-2 bg-violet-700 text-white px-6 py-3 rounded-lg hover:bg-violet-800 transition font-semibold"
-          >
-            Create Your Plan <ArrowRight className="h-4 w-4" />
-          </a>
-        </div>
-      </div>
-    );
-  }
+  const rowStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" };
+  const hairline: React.CSSProperties = { borderTop: "1px solid var(--line-hairline)" };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="bh-app">
       <NavBar />
+      <div className="max-w-2xl mx-auto" style={{ padding: "20px 20px 28px" }}>
+        <h1 className="bh-serif" style={{ fontSize: 30, fontWeight: 500, marginBottom: 20 }}>Settings</h1>
 
-      {/* Sign-in nudge for logged-out users */}
-      {isSignedIn === false && (
-        <div className="bg-violet-50 border-b border-violet-100 px-4 py-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-sm text-violet-700">
-            <CloudUpload className="h-4 w-4 flex-shrink-0" />
-            <span>Progress saved locally — sign in to sync across devices.</span>
-          </div>
-          <a
-            href="/login"
-            className="flex-shrink-0 bg-violet-700 text-white hover:bg-violet-800 font-semibold text-xs px-4 py-1.5 rounded-full transition"
-          >
-            Sign In
-          </a>
-        </div>
-      )}
+        <div className="space-y-4">
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Your Journey</h1>
-          <p className="text-slate-500 mt-1">
-            Started{" "}
-            {new Date(plan.startDate + "T00:00:00").toLocaleDateString(
-              "en-US",
-              {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              }
-            )}{" "}
-            &middot; {plan.chaptersPerDay} chapters/day
-          </p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-          <div className="bg-white rounded-xl p-4 text-center border border-violet-100">
-            <Flame className="h-5 w-5 text-orange-500 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-slate-900">{streak}</p>
-            <p className="text-xs text-slate-500">Day Streak</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 text-center border border-violet-100">
-            <BookOpen className="h-5 w-5 text-violet-500 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-slate-900">{totalRead}</p>
-            <p className="text-xs text-slate-500">Chapters Read</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 text-center border border-violet-100">
-            <Calendar className="h-5 w-5 text-green-500 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-slate-900">{daysActive}</p>
-            <p className="text-xs text-slate-500">Days Active</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 text-center border border-violet-100">
-            <TrendingUp className="h-5 w-5 text-blue-500 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-slate-900">
-              {progressPercent}%
-            </p>
-            <p className="text-xs text-slate-500">Complete</p>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="bg-white rounded-xl p-6 border border-violet-100 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-slate-900">Overall Progress</h3>
-            {currentPosition && (
-              <span className="text-sm text-violet-600 font-medium">
-                Currently in {currentPosition.book} {currentPosition.chapter}
-              </span>
-            )}
-          </div>
-          <div className="w-full bg-slate-100 rounded-full h-4 mb-2">
-            <div
-              className="bg-gradient-to-r from-violet-500 to-violet-600 h-4 rounded-full transition-all duration-700"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <div className="flex justify-between text-xs text-slate-400">
-            <span>{plan.startBook}</span>
-            <span>Revelation</span>
-          </div>
-        </div>
-
-        {/* Bible Book Map */}
-        <div className="bg-white rounded-xl p-6 border border-violet-100 mb-6">
-          <h3 className="font-semibold text-slate-900 mb-4">Bible Map</h3>
-          <div className="flex flex-wrap gap-1">
-            {BIBLE_BOOKS.map((book) => {
-              const bookStart = getGlobalChapterIndex(book.name, 1);
-              const bookEnd = bookStart + book.chapters;
-              const planStart = getGlobalChapterIndex(
-                plan.startBook,
-                plan.startChapter
-              );
-              const readEnd = planStart + totalRead;
-
-              let status: "completed" | "current" | "upcoming" | "before";
-              if (bookEnd <= planStart) {
-                status = "before";
-              } else if (bookEnd <= readEnd) {
-                status = "completed";
-              } else if (bookStart < readEnd) {
-                status = "current";
-              } else {
-                status = "upcoming";
-              }
-
-              return (
-                <div
-                  key={book.name}
-                  title={`${book.name} (${book.chapters} ch)`}
-                  className={`px-2 py-1 rounded text-xs font-medium transition ${
-                    status === "completed"
-                      ? "bg-violet-600 text-white"
-                      : status === "current"
-                      ? "bg-violet-200 text-violet-800 ring-2 ring-violet-400"
-                      : status === "before"
-                      ? "bg-slate-200 text-slate-500"
-                      : "bg-slate-100 text-slate-400"
-                  }`}
-                >
-                  {book.abbreviation}
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex items-center gap-4 mt-3 text-xs text-slate-500">
-            <span className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded bg-violet-600" /> Read
-            </span>
-            <span className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded bg-violet-200 ring-1 ring-violet-400" />{" "}
-              Current
-            </span>
-            <span className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded bg-slate-100" /> Upcoming
-            </span>
-          </div>
-        </div>
-
-        {/* Calendar */}
-        <div className="bg-white rounded-xl p-6 border border-violet-100 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={prevMonth}
-              className="p-1 hover:bg-slate-100 rounded transition"
-            >
-              <ChevronLeft className="h-5 w-5 text-slate-500" />
-            </button>
-            <h3 className="font-semibold text-slate-900">
-              {monthNames[calMonth - 1]} {calYear}
-            </h3>
-            <button
-              onClick={nextMonth}
-              className="p-1 hover:bg-slate-100 rounded transition"
-            >
-              <ChevronRight className="h-5 w-5 text-slate-500" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-7 gap-1 text-center text-xs">
-            {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-              <div key={i} className="text-slate-400 font-medium py-1">
-                {d}
+          {/* Group 1 — daily note + translation */}
+          <div className="bh-card" style={{ padding: 0, overflow: "hidden" }}>
+            <div style={rowStyle}>
+              <span style={{ color: "var(--text-muted)" }}><BellIcon /></span>
+              <div className="flex-1 min-w-0">
+                <p style={{ fontSize: 15, fontWeight: 500 }}>Daily note</p>
+                <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 1 }}>
+                  {reminderOn ? `One quiet note at ${reminderTime}, never a catch-up` : "No note — the reading still waits for you"}
+                </p>
               </div>
-            ))}
-            {/* Empty cells before first day */}
-            {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-              <div key={`e-${i}`} />
-            ))}
-            {/* Day cells */}
-            {Array.from({ length: daysInMonth }, (_, i) => {
-              const day = i + 1;
-              const isRead = monthReadings.has(day);
-              const isToday =
-                calYear === new Date().getFullYear() &&
-                calMonth === new Date().getMonth() + 1 &&
-                day === new Date().getDate();
-
-              return (
-                <div
-                  key={day}
-                  className={`py-1.5 rounded-md text-xs font-medium ${
-                    isRead
-                      ? "bg-violet-600 text-white"
-                      : isToday
-                      ? "bg-violet-100 text-violet-700 ring-1 ring-violet-300"
-                      : "bg-slate-50 text-slate-400"
-                  }`}
-                >
-                  {day}
-                </div>
-              );
-            })}
-          </div>
-
-          <p className="text-xs text-slate-400 mt-3 text-center">
-            {monthReadings.size} of {daysInMonth} days completed
-          </p>
-        </div>
-
-        {/* Upcoming Milestones */}
-        {milestones.length > 0 && (
-          <div className="bg-white rounded-xl p-6 border border-violet-100 mb-6">
-            <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-violet-500" /> Upcoming
-              Milestones
-            </h3>
-            <div className="space-y-3">
-              {milestones.slice(0, 5).map((m) => (
-                <div
-                  key={m.book}
-                  className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0"
-                >
-                  <span className="text-sm text-slate-700 font-medium">
-                    {m.label}
-                  </span>
-                  <span className="text-sm text-slate-500">
-                    {m.date.toLocaleDateString("en-US", {
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Books Completed */}
-        {booksCompleted.length > 0 && (
-          <div className="bg-white rounded-xl p-6 border border-violet-100 mb-6">
-            <h3 className="font-semibold text-slate-900 mb-4">
-              Books Completed ({booksCompleted.length} of 66)
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {booksCompleted.map((b) => (
+              {/* Switch */}
+              <button
+                onClick={handleToggleReminder}
+                role="switch"
+                aria-checked={reminderOn}
+                style={{
+                  width: 50, height: 30, borderRadius: 999, flexShrink: 0,
+                  background: reminderOn ? "var(--gold-500)" : "var(--cream-400)",
+                  position: "relative",
+                  transition: "background 280ms var(--ease-bh)",
+                }}
+              >
                 <span
-                  key={b}
-                  className="px-3 py-1 bg-violet-50 text-violet-700 rounded-full text-xs font-medium"
-                >
-                  {b}
-                </span>
-              ))}
+                  style={{
+                    position: "absolute", top: 3, left: reminderOn ? 23 : 3,
+                    width: 24, height: 24, borderRadius: 999, background: "#FFFDF7",
+                    boxShadow: "0 1px 3px rgba(34,28,20,.2)",
+                    transition: "left 280ms var(--ease-bh)",
+                  }}
+                />
+              </button>
             </div>
-          </div>
-        )}
-
-        {/* XP / Level */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">{levelInfo.emoji}</span>
-              <div>
-                <p className="font-bold text-slate-900">{levelInfo.title}</p>
-                <p className="text-xs text-slate-400">Level {levelInfo.level} · {levelInfo.currentXP} Scripture Points</p>
+            {reminderOn && (
+              <div className="flex flex-wrap gap-2" style={{ padding: "0 16px 14px 46px" }}>
+                {REMINDER_TIMES.map((t) => {
+                  const selected = reminderTime === t;
+                  return (
+                    <button
+                      key={t}
+                      onClick={() => handleTime(t)}
+                      style={{
+                        height: 36, padding: "0 14px", borderRadius: 999,
+                        fontSize: 13, fontWeight: 600,
+                        border: `1.5px solid ${selected ? "var(--gold-500)" : "var(--line-strong)"}`,
+                        background: selected ? "var(--gold-100)" : "transparent",
+                        color: selected ? "var(--gold-700)" : "var(--text-secondary)",
+                        transition: "border-color 200ms, background 200ms",
+                      }}
+                    >
+                      {t}
+                    </button>
+                  );
+                })}
               </div>
-            </div>
-            {!levelInfo.isMax && (
-              <span className="text-xs text-violet-600 font-semibold bg-violet-50 px-2 py-1 rounded-lg">
-                {levelInfo.nextXP - levelInfo.currentXP} XP to next
-              </span>
+            )}
+            <button className="w-full text-left" style={{ ...rowStyle, ...hairline }} onClick={() => setShowTranslations((v) => !v)}>
+              <span style={{ color: "var(--text-muted)" }}><BookOpenIcon /></span>
+              <div className="flex-1 min-w-0">
+                <p style={{ fontSize: 15, fontWeight: 500 }}>Translation</p>
+                <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 1 }}>
+                  {currentTranslation.name}{currentTranslation.note ? ` · ${currentTranslation.note}` : ""}
+                </p>
+              </div>
+              <span style={{ color: "var(--text-muted)", transform: showTranslations ? "rotate(90deg)" : "none", transition: "transform 280ms" }}><ChevronRightIcon /></span>
+            </button>
+            {showTranslations && (
+              <div className="bh-fade" style={{ padding: "0 16px 14px 46px" }}>
+                {TRANSLATIONS.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => handleTranslation(t.id)}
+                    className="w-full text-left flex items-center justify-between"
+                    style={{ padding: "9px 0", fontSize: 14, color: t.id === translation ? "var(--gold-700)" : "var(--text-secondary)", fontWeight: t.id === translation ? 600 : 400 }}
+                  >
+                    <span>{t.name}</span>
+                    {t.id === translation && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                    )}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
-          <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 transition-all duration-700"
-              style={{ width: `${levelInfo.progressPct}%` }}
-            />
-          </div>
-        </div>
 
-        {/* Saved Highlights */}
-        {highlights.length > 0 && (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-                Saved Highlights
-              </h3>
-              <span className="text-xs text-slate-400">{highlights.length} saved</span>
+          {/* Account */}
+          {!loading && (user ? (
+            <div className="bh-card flex items-center gap-3" style={{ padding: 16 }}>
+              <div className="flex items-center justify-center flex-shrink-0" style={{ width: 46, height: 46, borderRadius: 999, background: "var(--gold-100)" }}>
+                <span className="bh-serif" style={{ fontSize: 19, fontWeight: 500, color: "var(--gold-700)" }}>{initial}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                {user.name && <p style={{ fontSize: 15, fontWeight: 500 }}>{user.name}</p>}
+                <p className="truncate" style={{ fontSize: user.name ? 13 : 15, color: user.name ? "var(--text-muted)" : "var(--text-body)" }}>{user.email}</p>
+              </div>
             </div>
-            <div className="space-y-3">
-              {highlights.slice(0, 5).map((h) => (
-                <div key={h.id} className="bg-yellow-50 border-l-4 border-yellow-400 rounded-r-xl px-4 py-3">
-                  <p className="text-xs font-semibold text-yellow-700 mb-1">
-                    {h.book} {h.chapter}:{h.verses.join(",")}
-                  </p>
-                  <p className="text-sm text-slate-700 leading-relaxed line-clamp-3">{h.text}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <p className="text-xs text-slate-400">
-                      {new Date(h.savedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </p>
-                    <button
-                      onClick={() => {
-                        removeHighlight(h.id);
-                        setHighlights(getHighlights());
-                      }}
-                      className="text-xs text-slate-300 hover:text-red-400 transition"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {highlights.length > 5 && (
-                <p className="text-xs text-center text-violet-500 pt-1">+{highlights.length - 5} more highlights</p>
+          ) : (
+            <a href="/login?mode=signin" className="bh-card flex items-center justify-between" style={{ padding: 16, textDecoration: "none", color: "inherit" }}>
+              <div>
+                <p style={{ fontSize: 15, fontWeight: 500 }}>Sign in</p>
+                <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 1 }}>Your reading follows you to every device</p>
+              </div>
+              <span style={{ color: "var(--text-muted)" }}><ChevronRightIcon /></span>
+            </a>
+          ))}
+
+          {/* Subscription */}
+          <div className="bh-card" style={{ padding: 16 }}>
+            <div className="flex items-center justify-between" style={{ marginBottom: sub?.active || !isNative ? 12 : 0 }}>
+              <div>
+                <p style={{ fontSize: 15, fontWeight: 500 }}>BibleHabit Plus</p>
+                <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 1 }}>
+                  {subLoading
+                    ? "Checking…"
+                    : sub?.active
+                      ? `${sub.interval === "year" ? "Yearly" : "Monthly"}${sub.renewsAt ? ` · renews ${sub.renewsAt}` : ""}`
+                      : "The pacing engine, and room for more than one thing you're reading"}
+                </p>
+              </div>
+              {sub?.active && (
+                <span style={{ background: "var(--sage-100)", color: "var(--sage-700)", fontSize: 12, fontWeight: 600, borderRadius: 999, padding: "4px 12px" }}>
+                  Active
+                </span>
               )}
             </div>
+            {sub?.active ? (
+              isNative ? (
+                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Manage your subscription where you purchased it.</p>
+              ) : (
+                <button onClick={handleManageBilling} className="bh-btn bh-btn-secondary" style={{ height: 44, fontSize: 14 }}>
+                  Manage subscription
+                </button>
+              )
+            ) : isNative ? (
+              <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>Coming to the App Store.</p>
+            ) : (
+              <a href="/plus" className="bh-btn bh-btn-secondary" style={{ height: 44, fontSize: 14 }}>
+                See what&apos;s in Plus
+              </a>
+            )}
           </div>
-        )}
 
-        {/* Chapter Notes */}
-        {notes.length > 0 && (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
-                My Notes
-              </h3>
-              <span className="text-xs text-slate-400">{notes.length} {notes.length === 1 ? "note" : "notes"}</span>
-            </div>
-            <div className="space-y-3">
-              {notes.slice(0, 5).map((n) => (
-                <div key={`${n.book}${n.chapter}`} className="bg-violet-50 border-l-4 border-violet-400 rounded-r-xl px-4 py-3">
-                  <p className="text-xs font-semibold text-violet-700 mb-1">
-                    {n.book} {n.chapter}
-                  </p>
-                  <p className="text-sm text-slate-700 leading-relaxed line-clamp-3">{n.text}</p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    {new Date(n.savedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  </p>
-                </div>
-              ))}
-              {notes.length > 5 && (
-                <p className="text-xs text-center text-violet-500 pt-1">+{notes.length - 5} more notes</p>
-              )}
-            </div>
-          </div>
-        )}
+          {/* Sign out */}
+          {user && (
+            <button onClick={handleSignOut} className="bh-card w-full flex items-center justify-between" style={{ padding: 16 }}>
+              <span style={{ fontSize: 15, fontWeight: 500 }}>Sign out</span>
+              <span style={{ color: "var(--text-muted)" }}><ChevronRightIcon /></span>
+            </button>
+          )}
 
-        {/* Quick Actions */}
-        <div className="flex gap-3 mb-8">
-          <a
-            href="/today"
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-violet-700 text-white rounded-lg hover:bg-violet-800 transition font-semibold"
-          >
-            <BookOpen className="h-4 w-4" /> Today&apos;s Reading
-          </a>
-          <a
-            href="/plans"
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-violet-200 text-slate-700 rounded-lg hover:bg-violet-50 transition font-medium"
-          >
-            <RotateCcw className="h-4 w-4" /> New Plan
-          </a>
+          <p className="text-center" style={{ fontSize: 13, color: "var(--text-muted)", paddingTop: 8 }}>
+            Scripture in the King James Version is public domain
+          </p>
         </div>
       </div>
     </div>

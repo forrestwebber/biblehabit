@@ -197,6 +197,29 @@ export function markDayComplete(date: string, chapterIndices: number[]): void {
   });
 }
 
+/** Undo a day's completion — removes local entries and deletes the Supabase rows. */
+export function unmarkDayComplete(date: string): void {
+  if (typeof window === "undefined") return;
+  const progress = localGetProgress();
+  const indices = progress[date] || [];
+  if (indices.length === 0) return;
+  delete progress[date];
+  localSaveProgress(progress);
+
+  // Fire-and-forget Supabase delete
+  getUser().then((user) => {
+    if (!user) return;
+    supabase
+      .from("reading_progress")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("date", date)
+      .then(({ error }) => {
+        if (error) console.error("[reading-store] Supabase delete error:", error);
+      });
+  });
+}
+
 export function isDayComplete(date: string): boolean {
   const progress = getProgress();
   return !!(progress[date] && progress[date].length > 0);
@@ -312,6 +335,47 @@ export function getMonthReadings(year: number, month: number): Set<number> {
     }
   }
   return days;
+}
+
+/** Longest run of consecutive read days in the whole log. */
+export function getLongestStreak(): number {
+  const progress = getProgress();
+  const dates = Object.keys(progress)
+    .filter((d) => progress[d].length > 0)
+    .sort();
+  if (dates.length === 0) return 0;
+  let longest = 1;
+  let run = 1;
+  for (let i = 1; i < dates.length; i++) {
+    const prev = new Date(dates[i - 1] + "T00:00:00").getTime();
+    const cur = new Date(dates[i] + "T00:00:00").getTime();
+    if (cur - prev === 86400000) {
+      run++;
+      if (run > longest) longest = run;
+    } else {
+      run = 1;
+    }
+  }
+  return longest;
+}
+
+/**
+ * Chapters actually read per week for the last `weeks` weeks (oldest first).
+ * Week boundaries end today — index weeks-1 is the current (partial) week.
+ */
+export function getWeeklyChapterCounts(weeks = 7): number[] {
+  const progress = getProgress();
+  const counts = new Array(weeks).fill(0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  for (const dateStr in progress) {
+    const d = new Date(dateStr + "T00:00:00");
+    const daysAgo = Math.floor((today.getTime() - d.getTime()) / 86400000);
+    if (daysAgo < 0) continue;
+    const weekIdx = weeks - 1 - Math.floor(daysAgo / 7);
+    if (weekIdx >= 0 && weekIdx < weeks) counts[weekIdx] += progress[dateStr].length;
+  }
+  return counts;
 }
 
 function formatDate(d: Date): string {

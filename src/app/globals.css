@@ -25,6 +25,86 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ─── BibleHabit design system tokens (cream / ink / gold) ─────── */
+:root {
+  /* Base ink */
+  --ink-900: #221C14; --ink-700: #463A2B; --ink-500: #6B5C48; --ink-400: #8A7A64; --ink-300: #AC9C84;
+  /* Parchment grounds */
+  --cream-50: #FCFAF4; --cream-100: #F7F2E8; --cream-200: #EFE7D6; --cream-300: #E3D9C4; --cream-400: #D6C9AE;
+  /* Dawn gold */
+  --gold-700: #8F6716; --gold-600: #A87C1F; --gold-500: #C9962E; --gold-400: #DDB25A; --gold-200: #F0DCAE; --gold-100: #F8EED6;
+  /* Sage support */
+  --sage-700: #4E5C45; --sage-500: #7A8B6F; --sage-300: #A9B7A0; --sage-100: #E4EADF;
+  /* Quiet clay — destructive confirmation only */
+  --clay-500: #A4553C; --clay-100: #F2E0D8;
+
+  /* Semantic */
+  --surface-page: var(--cream-100);
+  --surface-card: var(--cream-50);
+  --surface-sunk: var(--cream-200);
+  --surface-accent-soft: var(--gold-100);
+  --text-body: var(--ink-900);
+  --text-secondary: var(--ink-500);
+  --text-muted: var(--ink-400);
+  --text-on-accent: #FFFDF7;
+  --text-accent: var(--gold-700);
+  --line-hairline: var(--cream-300);
+  --line-strong: var(--cream-400);
+  --accent: var(--gold-500);
+  --accent-hover: var(--gold-600);
+  --accent-press: var(--gold-700);
+
+  --shadow-card: 0 1px 2px rgba(34,28,20,.04), 0 8px 22px rgba(34,28,20,.06);
+  --shadow-rest: 0 1px 2px rgba(34,28,20,.05);
+  --focus-halo: 0 0 0 6px rgba(201,150,46,.10);
+
+  --ease-bh: cubic-bezier(.22,.61,.36,1);
+  --serif: var(--font-lora, Lora, Georgia, serif);
+  --sans: var(--font-karla, Karla, -apple-system, "Helvetica Neue", sans-serif);
+}
+
+/* App-shell typography helpers */
+.bh-app { background: var(--surface-page); color: var(--text-body); font-family: var(--sans); min-height: 100vh; }
+.bh-serif { font-family: var(--serif); }
+.bh-eyebrow { font-family: var(--sans); font-weight: 600; font-size: 11px; line-height: 1.2; letter-spacing: 0.14em; text-transform: uppercase; }
+.bh-card { background: var(--surface-card); border: 1px solid var(--line-hairline); border-radius: 14px; box-shadow: var(--shadow-card); }
+.bh-card-hero { background: var(--surface-card); border: 1px solid var(--line-hairline); border-radius: 20px; box-shadow: var(--shadow-card); }
+.bh-sunk { background: var(--surface-sunk); border-radius: 14px; }
+
+/* Buttons — pills, 120ms press, one gold step darker */
+.bh-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; border-radius: 999px; font-family: var(--sans); font-weight: 600; font-size: 15px; line-height: 1; cursor: pointer; transition: background 200ms var(--ease-bh), color 200ms var(--ease-bh), transform 120ms var(--ease-bh), border-color 200ms var(--ease-bh); -webkit-tap-highlight-color: transparent; user-select: none; text-decoration: none; }
+.bh-btn:active { transform: scale(0.985); }
+.bh-btn-primary { background: var(--accent); color: var(--text-on-accent); height: 52px; border: none; }
+.bh-btn-primary:hover { background: var(--accent-hover); }
+.bh-btn-primary:active { background: var(--accent-press); }
+.bh-btn-primary:disabled { opacity: 0.5; cursor: default; }
+.bh-btn-secondary { background: var(--surface-card); color: var(--text-body); height: 48px; border: 1.5px solid var(--line-strong); }
+.bh-btn-secondary:hover { background: var(--surface-sunk); }
+.bh-btn-quiet { background: transparent; color: var(--text-secondary); height: 44px; border: none; }
+.bh-btn-quiet:hover { color: var(--text-body); }
+
+/* Inputs */
+.bh-input { width: 100%; height: 48px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--surface-card); color: var(--text-body); font-family: var(--sans); font-size: 16px; padding: 0 14px; outline: none; transition: border-color 200ms var(--ease-bh), box-shadow 200ms var(--ease-bh); }
+.bh-input:focus { border-color: var(--accent); box-shadow: var(--focus-halo); }
+.bh-input::placeholder { color: var(--text-muted); }
+
+/* Dawn wash — once per screen, never behind body text */
+.bh-dawn { background: radial-gradient(60% 100% at 50% 100%, rgba(221,178,90,.30), transparent 70%); }
+
+/* Chips / pills */
+.bh-chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; background: var(--surface-accent-soft); color: var(--text-accent); font-family: var(--sans); font-weight: 600; font-size: 13px; padding: 6px 12px; white-space: nowrap; }
+
+@keyframes bh-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bh-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.bh-fade { animation: bh-fade-in 280ms var(--ease-bh) both; }
+.bh-rise { animation: bh-rise 420ms var(--ease-bh) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bh-btn:active { transform: none; }
+  .bh-fade, .bh-rise { animation-duration: 0ms; }
+  * { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+}
+
 /* Native-app bottom tab bar. Padding is declared in the stylesheet (not inline)
    so the iOS home-indicator safe-area inset resolves reliably in WKWebView. The
    component measures this element's height and reserves matching body padding so

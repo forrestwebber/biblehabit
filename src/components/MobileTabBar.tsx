@@ -4,38 +4,50 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { Capacitor } from "@capacitor/core"
 
+// Lucide outline icons, drawn inline: 22px, 1.5px stroke (1.9px active), currentColor.
 const TABS = [
   {
     href: "/today",
     label: "Today",
     icon: (active: boolean) => (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-        <line x1="16" y1="2" x2="16" y2="6"/>
-        <line x1="8" y1="2" x2="8" y2="6"/>
-        <line x1="3" y1="10" x2="21" y2="10"/>
-        {active && <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" strokeWidth={3}/>}
+      // sunrise
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.9 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2v8" /><path d="m4.93 10.93 1.41 1.41" /><path d="M2 18h2" /><path d="M20 18h2" />
+        <path d="m19.07 10.93-1.41 1.41" /><path d="M22 22H2" /><path d="m8 6 4-4 4 4" />
+        <path d="M16 18a4 4 0 0 0-8 0" />
       </svg>
     ),
   },
   {
     href: "/dashboard",
+    label: "Plan",
+    icon: (active: boolean) => (
+      // book-open
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.9 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+      </svg>
+    ),
+  },
+  {
+    href: "/progress",
     label: "Progress",
     icon: (active: boolean) => (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10"/>
-        <line x1="12" y1="20" x2="12" y2="4"/>
-        <line x1="6" y1="20" x2="6" y2="14"/>
+      // list
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.9 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+        <line x1="8" x2="21" y1="6" y2="6" /><line x1="8" x2="21" y1="12" y2="12" /><line x1="8" x2="21" y1="18" y2="18" />
+        <line x1="3" x2="3.01" y1="6" y2="6" /><line x1="3" x2="3.01" y1="12" y2="12" /><line x1="3" x2="3.01" y1="18" y2="18" />
       </svg>
     ),
   },
   {
     href: "/profile",
-    label: "Profile",
+    label: "Settings",
     icon: (active: boolean) => (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
+      // settings
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 1.9 : 1.5} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+        <circle cx="12" cy="12" r="3" />
       </svg>
     ),
   },
@@ -61,11 +73,7 @@ export default function MobileTabBar() {
 
   // Reserve real flow space equal to the *measured* bar height (which already
   // includes the device safe-area inset via the .bh-tabbar CSS rule) plus a
-  // clearance gap, so page CTAs are never hidden behind the fixed bar. Using a
-  // measured pixel value — instead of a hard-coded guess — self-adjusts to font
-  // scaling and the home-indicator inset on every device. Also exposes the bar
-  // height as a CSS var so floating UI (chat FAB, verse toolbar) can sit above
-  // the bar too.
+  // clearance gap, so page CTAs are never hidden behind the fixed bar.
   useEffect(() => {
     if (!show) return
     const root = document.documentElement
@@ -76,8 +84,6 @@ export default function MobileTabBar() {
       root.style.setProperty("--bh-tabbar-h", `${h}px`)
     }
 
-    // Measure now, again on the next frame (lets env() safe-area resolve in the
-    // native webview), and on any resize / orientation change.
     applyInsets()
     const raf = requestAnimationFrame(applyInsets)
     window.addEventListener("resize", applyInsets)
@@ -94,6 +100,9 @@ export default function MobileTabBar() {
 
   if (!show) return null
 
+  // The paywall is a full-screen sheet — no tab bar.
+  if (pathname === "/plus") return null
+
   return (
     <nav
       ref={navRef}
@@ -104,10 +113,10 @@ export default function MobileTabBar() {
         left: 0,
         right: 0,
         zIndex: 50,
-        background: "rgba(15, 10, 30, 0.95)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        borderTop: "1px solid rgba(124, 58, 237, 0.2)",
+        background: "rgba(247, 242, 232, 0.86)",
+        backdropFilter: "saturate(120%) blur(14px)",
+        WebkitBackdropFilter: "saturate(120%) blur(14px)",
+        borderTop: "1px solid var(--line-hairline, #E3D9C4)",
         display: "flex",
       }}
     >
@@ -127,14 +136,15 @@ export default function MobileTabBar() {
               paddingBottom: "10px",
               gap: "4px",
               minHeight: "48px",
-              color: active ? "#a78bfa" : "#64748b",
+              color: active ? "var(--gold-700, #8F6716)" : "var(--text-muted, #8A7A64)",
               textDecoration: "none",
-              transition: "color 0.15s",
+              transition: "color 0.2s",
               WebkitTapHighlightColor: "transparent",
+              fontFamily: "var(--sans, Karla, sans-serif)",
             }}
           >
             {tab.icon(active)}
-            <span style={{ fontSize: "10px", fontWeight: active ? 700 : 500, letterSpacing: "0.02em" }}>
+            <span style={{ fontSize: "10px", fontWeight: active ? 600 : 500, letterSpacing: "0.02em" }}>
               {tab.label}
             </span>
           </Link>

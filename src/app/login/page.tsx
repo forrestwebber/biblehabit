@@ -48,10 +48,7 @@ function LoginContent() {
         const listener = await App.addListener("appUrlOpen", async (event: { url: string }) => {
           const url = event.url;
           if (url.startsWith("biblehabit://")) {
-            // Close the in-app browser
             await Browser.close();
-
-            // Extract tokens from URL hash or query params
             const hashPart = url.split("#")[1] || url.split("?")[1] || "";
             const params = new URLSearchParams(hashPart);
             const access_token = params.get("access_token");
@@ -63,11 +60,10 @@ function LoginContent() {
                 window.location.href = "/dashboard";
               } else {
                 setIsError(true);
-                setMessage("Sign-in failed. Please try again.");
+                setMessage("Sign-in didn't go through. Please try again.");
                 setLoading(false);
               }
             } else {
-              // No tokens in hash — may be a code-flow redirect; exchange code
               const code = params.get("code");
               if (code) {
                 const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -75,7 +71,7 @@ function LoginContent() {
                   window.location.href = "/dashboard";
                 } else {
                   setIsError(true);
-                  setMessage("Sign-in failed. Please try again.");
+                  setMessage("Sign-in didn't go through. Please try again.");
                   setLoading(false);
                 }
               }
@@ -98,7 +94,6 @@ function LoginContent() {
     const isNative = typeof (window as any).Capacitor !== "undefined" && (window as any).Capacitor.isNativePlatform?.();
 
     if (isNative) {
-      // Use custom URL scheme so the session lands in WKWebView, not SFSafariViewController
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "keycloak",
         options: {
@@ -116,7 +111,6 @@ function LoginContent() {
         try {
           const { Browser } = await import("@capacitor/browser");
           await Browser.open({ url: data.url, presentationStyle: "popover" });
-          // Deep link callback handled by appUrlOpen listener above
         } catch {
           window.location.href = data.url;
         }
@@ -137,7 +131,7 @@ function LoginContent() {
   const handleForgotPassword = async () => {
     if (!isValidEmail(email)) {
       setIsError(true);
-      setMessage("Enter your email address above, then click Forgot password.");
+      setMessage("Enter your email address above, then choose Forgot password.");
       return;
     }
     setLoading(true);
@@ -145,7 +139,7 @@ function LoginContent() {
       redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
     });
     setIsError(!!error);
-    setMessage(error ? error.message : "Password reset email sent! Check your inbox.");
+    setMessage(error ? error.message : "Password reset email sent. Check your inbox.");
     setLoading(false);
   };
 
@@ -159,7 +153,6 @@ function LoginContent() {
     if (mode === "signup") {
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) {
-        // "User already registered" — try signing in instead
         if (error.message?.toLowerCase().includes("already registered")) {
           const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
           if (signInError) {
@@ -176,11 +169,10 @@ function LoginContent() {
         window.location.href = "/dashboard";
         return;
       } else {
-        // Autoconfirm on — sign in immediately to get a session
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) {
           setIsError(false);
-          setMessage("Account created! Check your email to confirm, then sign in.");
+          setMessage("Account created. Check your email to confirm, then sign in.");
         } else {
           window.location.href = "/dashboard";
         }
@@ -205,99 +197,76 @@ function LoginContent() {
     emailInvalid;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <a href="/" className="text-3xl font-bold text-slate-900">BibleHabit</a>
-          <p className="text-slate-500 mt-2">
-            {mode === "signup" ? "Start your daily reading journey — free forever" : "Welcome back"}
-          </p>
-        </div>
+    <div className="bh-app relative flex flex-col" style={{ minHeight: "100vh" }}>
+      {/* Dawn wash — rises from the bottom edge, behind everything */}
+      <div className="bh-dawn pointer-events-none absolute inset-x-0 bottom-0" style={{ height: "60%" }} />
 
-        {/* Mode toggle */}
-        <div className="flex bg-slate-100 rounded-xl p-1 mb-6">
-          <button
-            onClick={() => setMode("signup")}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${mode === "signup" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-          >
-            Create Account
-          </button>
-          <button
-            onClick={() => setMode("signin")}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${mode === "signin" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-          >
-            Sign In
-          </button>
-        </div>
+      <div className="relative flex-1 flex flex-col justify-center mx-auto w-full max-w-md" style={{ padding: "54px 24px 8px" }}>
+        <div className="flex flex-col" style={{ gap: 26 }}>
+          {/* Brand moment */}
+          <div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/logo-mark.svg" alt="BibleHabit" width={52} height={52} />
+          </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-violet-100 p-8">
-          <div className="space-y-3">
-            <button
-              onClick={handleGoogle}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-3 bg-slate-900 text-white py-3 px-4 rounded-lg hover:bg-slate-800 transition font-medium disabled:opacity-50"
-            >
-              <svg className="h-5 w-5" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
-                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Continue with Google
-            </button>
+          <div>
+            <h1 className="bh-serif" style={{ fontWeight: 500, fontSize: 40, lineHeight: 1.15, color: "var(--text-body)" }}>
+              Pick up right where you are.
+            </h1>
+            <p style={{ fontSize: 14, lineHeight: 1.5, color: "var(--text-secondary)", marginTop: 12 }}>
+              You&apos;ve been reading a while. BibleHabit just keeps the place, and quietly works out the pace.
+            </p>
+          </div>
 
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
-              <div className="relative flex justify-center text-xs"><span className="bg-white px-4 text-slate-400">or with email</span></div>
-            </div>
-
-            {/* Email field with inline validation */}
+          <div className="flex flex-col" style={{ gap: 12 }}>
             <div>
+              <label style={{ display: "block", fontSize: 14, fontWeight: 500, color: "var(--text-secondary)", marginBottom: 6 }}>
+                Email
+              </label>
               <input
                 type="email"
-                placeholder="Email address"
+                className="bh-input"
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => setEmailTouched(true)}
                 onKeyDown={(e) => e.key === "Enter" && handleEmail()}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 ${emailInvalid ? "border-red-400" : "border-slate-200"}`}
+                style={emailInvalid ? { borderColor: "var(--clay-500)" } : undefined}
               />
               {emailInvalid && (
-                <p className="text-xs text-red-500 mt-1 ml-1">Enter a valid email address</p>
+                <p style={{ fontSize: 13, color: "var(--clay-500)", marginTop: 4 }}>Enter a valid email address</p>
               )}
             </div>
 
-            {/* Password field with show/hide toggle */}
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder={mode === "signup" ? "Create a password" : "Password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleEmail()}
-                className="w-full px-4 py-3 pr-12 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
-                tabIndex={-1}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  /* Eye-off icon */
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-5 0-9-4-9-7 0-1.26.54-2.44 1.44-3.39M6.34 6.34A8.955 8.955 0 0112 5c5 0 9 4 9 7 0 1.26-.54 2.44-1.44 3.39M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18" />
-                  </svg>
-                ) : (
-                  /* Eye icon */
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                )}
-              </button>
+            <div>
+              <label style={{ display: "block", fontSize: 14, fontWeight: 500, color: "var(--text-secondary)", marginBottom: 6 }}>
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="bh-input"
+                  placeholder={mode === "signup" ? "Create a password" : "Your password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleEmail()}
+                  style={{ paddingRight: 44 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  style={{ color: "var(--text-muted)" }}
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13.875 18.825A10.05 10.05 0 0 1 12 19c-5 0-9-4-9-7 0-1.26.54-2.44 1.44-3.39M6.34 6.34A8.955 8.955 0 0 1 12 5c5 0 9 4 9 7 0 1.26-.54 2.44-1.44 3.39M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" /><path d="M3 3l18 18" /></svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" /><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             {mode === "signin" && (
@@ -305,65 +274,66 @@ function LoginContent() {
                 <button
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-sm text-violet-600 hover:text-violet-800"
+                  style={{ fontSize: 13, color: "var(--text-accent)", fontWeight: 500 }}
                 >
                   Forgot password?
                 </button>
               </div>
             )}
 
-            {/* Password strength requirements (signup only) */}
-            {mode === "signup" && password.length > 0 && (
-              <div className="bg-slate-50 rounded-lg p-3 space-y-1.5">
+            {mode === "signup" && password.length > 0 && !allStrengthMet && (
+              <div className="bh-sunk" style={{ padding: "10px 14px" }}>
                 {[
                   { met: strength.length, label: "At least 8 characters" },
                   { met: strength.upper, label: "One uppercase letter" },
                   { met: strength.lower, label: "One lowercase letter" },
                   { met: strength.numberOrSymbol, label: "One number or symbol" },
                 ].map(({ met, label }) => (
-                  <div key={label} className="flex items-center gap-2 text-xs">
-                    <span className={met ? "text-green-500" : "text-slate-400"}>
-                      {met ? "✓" : "·"}
-                    </span>
-                    <span className={met ? "text-green-600" : "text-slate-400"}>{label}</span>
+                  <div key={label} className="flex items-center" style={{ gap: 8, fontSize: 13, lineHeight: 1.6, color: met ? "var(--sage-700)" : "var(--text-muted)" }}>
+                    <span>{met ? "✓" : "·"}</span>
+                    <span>{label}</span>
                   </div>
                 ))}
               </div>
             )}
 
-            <button
-              onClick={handleEmail}
-              disabled={submitDisabled}
-              className="w-full bg-violet-700 text-white py-3 px-4 rounded-lg hover:bg-violet-800 transition font-semibold disabled:opacity-50"
-            >
-              {loading ? "..." : mode === "signup" ? "Create Free Account →" : "Sign In →"}
-            </button>
+            <p style={{ fontSize: 13, lineHeight: 1.4, color: "var(--text-muted)" }}>
+              We send one note a day at the time you choose — never a catch-up.
+            </p>
 
-            {/* Error/success banner */}
             {message && (
-              isError ? (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-full">
-                  <span className="text-red-500 font-bold text-base leading-none">✕</span>
-                  <span>{message}</span>
-                </div>
-              ) : (
-                <p className="text-sm text-center text-green-600 bg-green-50 p-3 rounded-lg">{message}</p>
-              )
+              <div
+                className="bh-fade"
+                style={{
+                  fontSize: 14,
+                  lineHeight: 1.5,
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  background: isError ? "var(--clay-100)" : "var(--sage-100)",
+                  color: isError ? "var(--clay-500)" : "var(--sage-700)",
+                }}
+              >
+                {message}
+              </div>
             )}
           </div>
-
-          {mode === "signup" && (
-            <p className="text-xs text-slate-400 text-center mt-4">Free forever · No credit card required</p>
-          )}
         </div>
+      </div>
 
-        <p className="text-center text-sm text-slate-400 mt-6">
-          {mode === "signup" ? (
-            <>Already have an account?{" "}<button onClick={() => setMode("signin")} className="text-violet-600 hover:text-violet-800 font-medium">Sign in</button></>
-          ) : (
-            <>New to BibleHabit?{" "}<button onClick={() => setMode("signup")} className="text-violet-600 hover:text-violet-800 font-medium">Create a free account</button></>
-          )}
-        </p>
+      {/* Footer CTA block — clear of the home indicator */}
+      <div className="relative mx-auto w-full max-w-md" style={{ padding: "14px 24px calc(env(safe-area-inset-bottom, 0px) + 20px)" }}>
+        <button onClick={handleEmail} disabled={submitDisabled} className="bh-btn bh-btn-primary">
+          {loading ? "One moment…" : mode === "signup" ? "Get started" : "Sign in"}
+        </button>
+        <button onClick={handleGoogle} disabled={loading} className="bh-btn bh-btn-quiet" style={{ marginTop: 4 }}>
+          Continue with Google
+        </button>
+        <button
+          onClick={() => { setMode(mode === "signup" ? "signin" : "signup"); setMessage(""); }}
+          className="bh-btn bh-btn-quiet"
+        >
+          {mode === "signup" ? "Sign in" : "New here? Get started"}
+        </button>
       </div>
     </div>
   );
@@ -371,7 +341,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="text-slate-400">Loading...</div></div>}>
+    <Suspense fallback={<div className="bh-app flex items-center justify-center" style={{ minHeight: "100vh", color: "var(--text-muted)" }}>Loading…</div>}>
       <LoginContent />
     </Suspense>
   );

@@ -9,6 +9,13 @@ interface Message {
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [hidden, setHidden] = useState(false);
+
+  // In the native app shell the tab bar owns the chrome — no floating chat FAB.
+  useEffect(() => {
+    const w = window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } };
+    if (w.Capacitor?.isNativePlatform?.()) setHidden(true);
+  }, []);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -88,6 +95,8 @@ export default function ChatWidget() {
     setShowFeedback(false);
   };
 
+  if (hidden) return null;
+
   return (
     <>
       {/* Chat window */}
@@ -113,7 +122,7 @@ export default function ChatWidget() {
           {/* Header */}
           <div
             style={{
-              background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+              background: 'linear-gradient(135deg, #A87C1F, #8F6716)',
               padding: '14px 16px',
               display: 'flex',
               alignItems: 'center',
@@ -174,7 +183,7 @@ export default function ChatWidget() {
               display: 'flex',
               flexDirection: 'column',
               gap: '12px',
-              background: '#f9fafb',
+              background: '#FCFAF4',
             }}
           >
             {messages.map((msg, i) => (
@@ -190,7 +199,7 @@ export default function ChatWidget() {
                     maxWidth: '80%',
                     padding: '10px 14px',
                     borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                    background: msg.role === 'user' ? '#7c3aed' : '#fff',
+                    background: msg.role === 'user' ? '#C9962E' : '#fff',
                     color: msg.role === 'user' ? '#fff' : '#1f2937',
                     fontSize: '14px',
                     lineHeight: '1.5',
@@ -240,7 +249,7 @@ export default function ChatWidget() {
             {showFeedback && !feedbackSent && (
               <div
                 style={{
-                  background: '#f3f0ff',
+                  background: '#F8EED6',
                   border: '1px solid #ddd6fe',
                   borderRadius: '12px',
                   padding: '14px',
@@ -278,7 +287,7 @@ export default function ChatWidget() {
                       border: '1px solid #c4b5fd',
                       borderRadius: '6px',
                       cursor: 'pointer',
-                      color: '#7c3aed',
+                      color: '#C9962E',
                     }}
                   >
                     Maybe later
@@ -288,7 +297,7 @@ export default function ChatWidget() {
                     style={{
                       fontSize: '12px',
                       padding: '6px 12px',
-                      background: '#7c3aed',
+                      background: '#C9962E',
                       border: 'none',
                       borderRadius: '6px',
                       cursor: 'pointer',
@@ -346,7 +355,7 @@ export default function ChatWidget() {
                 outline: 'none',
                 fontFamily: 'inherit',
                 color: '#1f2937',
-                background: '#f9fafb',
+                background: '#FCFAF4',
               }}
             />
             <button
@@ -356,7 +365,7 @@ export default function ChatWidget() {
                 width: '38px',
                 height: '38px',
                 borderRadius: '50%',
-                background: isLoading || !input.trim() ? '#e5e7eb' : '#7c3aed',
+                background: isLoading || !input.trim() ? '#e5e7eb' : '#C9962E',
                 border: 'none',
                 cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
                 display: 'flex',
@@ -388,22 +397,22 @@ export default function ChatWidget() {
           width: '52px',
           height: '52px',
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+          background: 'linear-gradient(135deg, #A87C1F, #8F6716)',
           border: 'none',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 4px 16px rgba(124, 58, 237, 0.4)',
+          boxShadow: '0 4px 16px rgba(34,28,20,0.28)',
           transition: 'transform 0.15s, box-shadow 0.15s',
         }}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.08)';
-          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(124, 58, 237, 0.5)';
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(34,28,20,0.36)';
         }}
         onMouseLeave={(e) => {
           (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
-          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(124, 58, 237, 0.4)';
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(34,28,20,0.28)';
         }}
       >
         {isOpen ? (
