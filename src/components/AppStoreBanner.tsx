@@ -1,8 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function AppStoreBanner() {
   const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const dismissed = localStorage.getItem("ios-banner-dismissed");
@@ -12,6 +13,23 @@ export default function AppStoreBanner() {
     if (isIOS && !isCapacitor && !dismissed) setVisible(true);
   }, []);
 
+  // Publish the banner height so full-height screens (login, paywall) can
+  // subtract it and keep their footer CTAs inside the first viewport.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!visible) {
+      root.style.removeProperty("--bh-banner-h");
+      return;
+    }
+    const apply = () => root.style.setProperty("--bh-banner-h", `${ref.current?.offsetHeight ?? 0}px`);
+    apply();
+    window.addEventListener("resize", apply);
+    return () => {
+      window.removeEventListener("resize", apply);
+      root.style.removeProperty("--bh-banner-h");
+    };
+  }, [visible]);
+
   const dismiss = () => {
     localStorage.setItem("ios-banner-dismissed", "1");
     setVisible(false);
@@ -20,7 +38,7 @@ export default function AppStoreBanner() {
   if (!visible) return null;
 
   return (
-    <div className="w-full px-4 py-2.5 flex items-center justify-between gap-3 z-50" style={{ background: "var(--ink-900, #221C14)", color: "var(--cream-100, #F7F2E8)" }}>
+    <div ref={ref} className="w-full px-4 py-2.5 flex items-center justify-between gap-3 z-50" style={{ background: "var(--ink-900, #221C14)", color: "var(--cream-100, #F7F2E8)" }}>
       <div className="flex items-center gap-3 min-w-0">
         <div className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "var(--cream-50, #FCFAF4)" }}>
           <svg className="w-5 h-5" style={{ color: "var(--ink-900, #221C14)" }} fill="currentColor" viewBox="0 0 24 24">

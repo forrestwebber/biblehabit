@@ -74,8 +74,10 @@ export default function MobileTabBar() {
   // Reserve real flow space equal to the *measured* bar height (which already
   // includes the device safe-area inset via the .bh-tabbar CSS rule) plus a
   // clearance gap, so page CTAs are never hidden behind the fixed bar.
+  // Skipped on /plus, where the bar itself is not rendered — reserving padding
+  // there leaves a stray dead band at the bottom of the paywall.
   useEffect(() => {
-    if (!show) return
+    if (!show || pathname === "/plus") return
     const root = document.documentElement
 
     const applyInsets = () => {
@@ -96,7 +98,7 @@ export default function MobileTabBar() {
       document.body.style.paddingBottom = ""
       root.style.removeProperty("--bh-tabbar-h")
     }
-  }, [show])
+  }, [show, pathname])
 
   if (!show) return null
 

@@ -105,7 +105,7 @@ export default function NavBar() {
           </div>
         ) : !loading ? (
           <a href="/login" title="Sign in" className="block">
-            <div className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 bg-slate-100 hover:bg-slate-200 hover:text-slate-600 cursor-pointer transition">
+            <div className="w-9 h-9 rounded-full flex items-center justify-center cursor-pointer transition" style={{ background: "var(--cream-200, #EFE7D6)", color: "var(--ink-400, #8A7A64)" }}>
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v1.2c0 .7.5 1.2 1.2 1.2h16.8c.7 0 1.2-.5 1.2-1.2v-1.2c0-3.2-6.4-4.8-9.6-4.8z"/>
               </svg>

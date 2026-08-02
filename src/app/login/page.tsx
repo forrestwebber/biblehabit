@@ -197,7 +197,7 @@ function LoginContent() {
     emailInvalid;
 
   return (
-    <div className="bh-app relative flex flex-col" style={{ minHeight: "100vh" }}>
+    <div className="bh-app relative flex flex-col" style={{ minHeight: "calc(100vh - var(--bh-banner-h, 0px))" }}>
       {/* Dawn wash — rises from the bottom edge, behind everything */}
       <div className="bh-dawn pointer-events-none absolute inset-x-0 bottom-0" style={{ height: "60%" }} />
 

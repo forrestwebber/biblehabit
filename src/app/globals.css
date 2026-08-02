@@ -64,7 +64,9 @@ html {
 }
 
 /* App-shell typography helpers */
-.bh-app { background: var(--surface-page); color: var(--text-body); font-family: var(--sans); min-height: 100vh; }
+/* padding-top keeps content clear of the iPhone status bar / Dynamic Island in the
+   native shell (viewport-fit=cover). Resolves to 0 in regular browsers. */
+.bh-app { background: var(--surface-page); color: var(--text-body); font-family: var(--sans); min-height: 100vh; padding-top: env(safe-area-inset-top, 0px); }
 .bh-serif { font-family: var(--serif); }
 .bh-eyebrow { font-family: var(--sans); font-weight: 600; font-size: 11px; line-height: 1.2; letter-spacing: 0.14em; text-transform: uppercase; }
 .bh-card { background: var(--surface-card); border: 1px solid var(--line-hairline); border-radius: 14px; box-shadow: var(--shadow-card); }
@@ -113,16 +115,24 @@ html {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Body matches the parchment app surface so reserved insets (native tab-bar
+   padding, chat-FAB clearance) and iOS scroll rubber-banding stay cream, never black. */
 body {
-  background: #09090f;
-  color: #e2e8f0;
+  background: var(--surface-page);
+  color: var(--text-body);
+}
+
+/* When the floating chat button is on screen (web), reserve scroll-end clearance
+   so it never sits on top of the last CTA of a page. */
+body.bh-has-fab {
+  padding-bottom: 104px;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+::-webkit-scrollbar-thumb { background: rgba(34,28,20,0.14); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(34,28,20,0.24); }
 
 /* Animations */
 @keyframes gradient-shift {

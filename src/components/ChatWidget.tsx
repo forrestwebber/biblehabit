@@ -1,13 +1,19 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
+// Focused conversion screens where a floating chat button would sit on top of
+// the bottom-anchored primary CTAs (sign-in buttons, checkout button).
+const FAB_HIDDEN_ROUTES = ['/login', '/plus'];
+
 export default function ChatWidget() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
 
@@ -16,6 +22,16 @@ export default function ChatWidget() {
     const w = window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } };
     if (w.Capacitor?.isNativePlatform?.()) setHidden(true);
   }, []);
+
+  const routeHidden = FAB_HIDDEN_ROUTES.includes(pathname ?? '');
+
+  // Reserve scroll-end clearance below page content while the FAB is visible
+  // (see body.bh-has-fab in globals.css) so it never covers the last CTA.
+  useEffect(() => {
+    if (hidden || routeHidden) return;
+    document.body.classList.add('bh-has-fab');
+    return () => document.body.classList.remove('bh-has-fab');
+  }, [hidden, routeHidden]);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -95,7 +111,7 @@ export default function ChatWidget() {
     setShowFeedback(false);
   };
 
-  if (hidden) return null;
+  if (hidden || routeHidden) return null;
 
   return (
     <>

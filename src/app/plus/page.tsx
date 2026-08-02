@@ -74,7 +74,7 @@ export default function PlusPage() {
     : "Start 7 days free, then $2.99 a month";
 
   return (
-    <div className="bh-app relative flex flex-col" style={{ minHeight: "100vh" }}>
+    <div className="bh-app relative flex flex-col" style={{ minHeight: "calc(100vh - var(--bh-banner-h, 0px))" }}>
       {/* Dawn wash at the top */}
       <div className="pointer-events-none absolute inset-x-0 top-0" style={{ height: 260, background: "radial-gradient(60% 100% at 50% 0%, rgba(221,178,90,.30), transparent 70%)" }} />
 

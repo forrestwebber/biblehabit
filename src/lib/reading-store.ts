@@ -108,7 +108,9 @@ async function pushProgressToSupabase(
   userId: string,
   progress: ReadingProgress
 ): Promise<void> {
-  const rows: { user_id: string; date: string; book: string; chapter: number; completed: boolean }[] = [];
+  // NOTE: the reading_progress table has no `completed` column — including one
+  // makes PostgREST reject the whole upsert with a 400 (sync silently broken).
+  const rows: { user_id: string; date: string; book: string; chapter: number }[] = [];
   for (const dateStr in progress) {
     for (const globalIdx of progress[dateStr]) {
       const { book, chapter } = getBookAndChapter(globalIdx);
@@ -117,7 +119,6 @@ async function pushProgressToSupabase(
         date: dateStr,
         book,
         chapter,
-        completed: true,
       });
     }
   }
@@ -185,7 +186,6 @@ export function markDayComplete(date: string, chapterIndices: number[]): void {
         date,
         book,
         chapter,
-        completed: true,
       };
     });
     supabase
