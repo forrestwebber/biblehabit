@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { isNativeShell } from "@/lib/use-entitlement";
 
 export default function AppStoreBanner() {
   const [visible, setVisible] = useState(false);
@@ -9,8 +10,10 @@ export default function AppStoreBanner() {
     const dismissed = localStorage.getItem("ios-banner-dismissed");
     // Only show on iOS Safari (not desktop, not Android, not Capacitor in-app)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    const isCapacitor = typeof (window as any).Capacitor !== "undefined" && (window as any).Capacitor.isNativePlatform?.();
-    if (isIOS && !isCapacitor && !dismissed) setVisible(true);
+    // Shared check, so ?native=preview hides this banner too. It must never
+    // appear over the paywall we screenshot for App Review — an "install our
+    // beta" bar inside the app is both wrong and a review risk.
+    if (isIOS && !isNativeShell() && !dismissed) setVisible(true);
   }, []);
 
   // Publish the banner height so full-height screens (login, paywall) can

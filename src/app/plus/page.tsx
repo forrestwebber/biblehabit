@@ -76,6 +76,27 @@ export default function PlusPage() {
     ? "Start 7 days free, then $19.99 a year"
     : "Start 7 days free, then $2.99 a month";
 
+  /**
+   * NATIVE: ProUpsell is the entire offer — its own heading, plan cards, feature
+   * list and auto-renew terms. Rendering it *below* this page's hero printed
+   * "BibleHabit Pro" and a second feature list twice over, so native returns
+   * early and lets ProUpsell own the screen. This is the surface captured for
+   * the App Review screenshot (~/sol-ops-media/biblehabit-appstore/).
+   */
+  if (isNative === true) {
+    return (
+      <div className="bh-app">
+        <ProUpsell
+          variant="full"
+          isNative
+          signedIn={!!email}
+          streak={getCurrentStreak()}
+          chapters={getTotalChaptersRead()}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="bh-app relative flex flex-col" style={{ minHeight: "calc(100vh - var(--bh-banner-h, 0px))" }}>
       {/* Dawn wash at the top */}
@@ -164,22 +185,7 @@ export default function PlusPage() {
           </div>
         )}
 
-        {isNative === true && (
-          /* Native: the real IAP offer. This used to say "Plus is coming to the
-             App Store" and show no prices — stale (both subscriptions are live
-             in App Store Connect) and unusable as the App Review screenshot,
-             which has to show the plan name, duration and price. ProUpsell owns
-             that surface for every screen, so it owns this one too. */
-          <div style={{ marginTop: 20 }}>
-            <ProUpsell
-              variant="inline"
-              isNative
-              signedIn={!!email}
-              streak={getCurrentStreak()}
-              chapters={getTotalChaptersRead()}
-            />
-          </div>
-        )}
+
       </div>
 
       {/* Footer — above a hairline, clear of the home indicator */}
