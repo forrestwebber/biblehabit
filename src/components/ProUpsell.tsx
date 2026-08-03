@@ -27,8 +27,10 @@
  * here is illustrative or invented.
  */
 
-import { useState } from "react";
-import { authHeaders } from "@/lib/use-entitlement";
+import { useState, useEffect } from "react";
+import { authHeaders, clearEntitlementCache } from "@/lib/use-entitlement";
+import { supabase } from "@/lib/supabase";
+import { getStoreProducts, purchaseProduct, restoreStorePurchases, type StoreProduct } from "@/lib/storekit";
 
 /** Web (Stripe) prices. Must match the live Stripe prices in entitlement.ts. */
 const PRICES = [
@@ -98,7 +100,22 @@ export default function ProUpsell({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [noticeIsError, setNoticeIsError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Native-only: who to attribute a purchase to, and Apple's own live price/
+  // trial terms for the two IAP product ids. Apple gives no email at
+  // purchase time, so a purchase can only be attributed to an
+  // already-signed-in account (see isNative branch's sign-in fallback below).
+  const [userId, setUserId] = useState<string | null>(null);
+  const [iapProducts, setIapProducts] = useState<StoreProduct[] | null>(null);
+  const [nativeBusy, setNativeBusy] = useState<"purchase" | "restore" | null>(null);
+
+  useEffect(() => {
+    if (!isNative) return;
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null)).catch(() => setUserId(null));
+    getStoreProducts(IAP.map((p) => p.id)).then(setIapProducts);
+  }, [isNative]);
 
   const hasHistory = chapters > 0 || streak > 0;
 
@@ -121,13 +138,78 @@ export default function ProUpsell({
     }
   };
 
-  /** StoreKit purchase/restore placeholder — an honest inline notice, never a
-   *  native dialog (house rule: no confirm()/alert()/prompt(), anywhere). */
-  const storeKitStub = (what: string) =>
-    setNotice(
-      `${what} will be handled through your Apple ID — in-app purchase arrives in the next app update. ` +
-        `You can subscribe on biblehabit.co today and sign in here.`
-    );
+  /** Inline notice, never a native dialog (house rule: no confirm()/alert()/prompt(), anywhere). */
+  const notify = (text: string, isError = false) => {
+    setNotice(text);
+    setNoticeIsError(isError);
+  };
+
+  const productIdFor = (key: "month" | "year") => IAP.find((p) => p.key === key)!.id;
+
+  const handleNativeSubscribe = async () => {
+    if (nativeBusy) return;
+    if (!userId) {
+      window.location.href = "/login?mode=signin&next=/plus";
+      return;
+    }
+    setNativeBusy("purchase");
+    setNotice("");
+    const outcome = await purchaseProduct(productIdFor(choice), userId);
+    switch (outcome.status) {
+      case "success":
+        if (outcome.verified) {
+          notify("You're subscribed! Taking you in…");
+          clearEntitlementCache();
+          void handleRefresh();
+          setTimeout(() => { window.location.href = "/today"; }, 1100);
+        } else {
+          notify(
+            `Apple confirmed your purchase, but we couldn't verify it yet (${outcome.error ?? "server error"}). ` +
+              "Reopen the app in a moment, or tap Restore Purchases — it will not charge you again.",
+            true
+          );
+        }
+        break;
+      case "userCancelled":
+        break;
+      case "pending":
+        notify("Waiting on approval for this purchase (Ask to Buy). You'll be notified once it completes.");
+        break;
+      case "productUnavailable":
+        notify("These plans aren't available from the App Store right now. Please try again shortly.", true);
+        break;
+      case "verificationFailed":
+        notify(`Apple could not verify this purchase (${outcome.error ?? "unknown reason"}).`, true);
+        break;
+      case "networkError":
+        notify("No connection to the App Store. Check your connection and try again.", true);
+        break;
+      case "notNative":
+        notify("In-app purchase is only available in the app.", true);
+        break;
+      default:
+        notify(`Something went wrong (${outcome.error ?? "unknown"}). Please try again.`, true);
+    }
+    setNativeBusy(null);
+  };
+
+  const handleNativeRestore = async () => {
+    if (nativeBusy) return;
+    setNativeBusy("restore");
+    setNotice("");
+    const r = await restoreStorePurchases();
+    if (r.networkError) {
+      notify("No connection to the App Store. Check your connection and try again.", true);
+    } else if (r.verifiedCount > 0) {
+      notify("Purchases restored! Taking you in…");
+      clearEntitlementCache();
+      void handleRefresh();
+      setTimeout(() => { window.location.href = "/today"; }, 1100);
+    } else {
+      notify("No active BibleHabit Pro purchases found for this Apple ID.");
+    }
+    setNativeBusy(null);
+  };
 
   const handleRefresh = async () => {
     if (!onRefresh) return;
@@ -186,9 +268,18 @@ export default function ProUpsell({
         </p>
         {stats}
 
+        {iapProducts !== null && iapProducts.length === 0 && (
+          <div style={{ background: "var(--clay-100)", border: "1px solid rgba(164,85,60,0.35)", borderRadius: 12, padding: "12px 13px", marginTop: 16, fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)" }}>
+            Subscription options aren&apos;t available from the App Store right now. Please try again shortly.
+          </div>
+        )}
+
         <div className="space-y-3" style={{ marginTop: 20 }}>
           {IAP.map((p) => {
             const selected = choice === p.key;
+            const live = iapProducts?.find((x) => x.id === p.id);
+            const price = live?.displayPrice ?? p.price;
+            const per = live ? (live.subscriptionPeriod?.unit === "year" ? "/yr" : "/mo") : p.per;
             return (
               <button
                 key={p.id}
@@ -205,8 +296,8 @@ export default function ProUpsell({
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="bh-serif" style={{ fontSize: 19, fontWeight: 500 }}>
-                      {p.name} — {p.price}
-                      <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{p.per}</span>
+                      {p.name} — {price}
+                      <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{per}</span>
                     </p>
                     <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>{p.note}</p>
                   </div>
@@ -233,18 +324,27 @@ export default function ProUpsell({
         {featureList}
 
         {notice && (
-          <div style={{ background: "var(--gold-100)", border: "1px solid var(--gold-200)", borderRadius: 12, padding: "12px 13px", marginTop: 16, fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)" }}>
+          <div style={{
+            background: noticeIsError ? "var(--clay-100)" : "var(--gold-100)",
+            border: `1px solid ${noticeIsError ? "var(--clay-200)" : "var(--gold-200)"}`,
+            borderRadius: 12, padding: "12px 13px", marginTop: 16, fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)",
+          }}>
             {notice}
           </div>
         )}
 
-        <button onClick={() => storeKitStub("Your subscription")} className="bh-btn bh-btn-primary" style={{ marginTop: 16 }}>
-          Start free trial
+        <button
+          onClick={handleNativeSubscribe}
+          disabled={nativeBusy !== null}
+          className="bh-btn bh-btn-primary"
+          style={{ marginTop: 16 }}
+        >
+          {nativeBusy === "purchase" ? "Processing…" : !userId ? "Sign in to subscribe" : "Start free trial"}
         </button>
 
         <div className="space-y-2" style={{ marginTop: 4 }}>
-          <button onClick={() => storeKitStub("Restoring purchases")} className="bh-btn bh-btn-quiet">
-            Restore purchases
+          <button onClick={handleNativeRestore} disabled={nativeBusy !== null} className="bh-btn bh-btn-quiet">
+            {nativeBusy === "restore" ? "Restoring…" : "Restore purchases"}
           </button>
           {!signedIn ? (
             <a href="/login?mode=signin" className="bh-btn bh-btn-quiet" style={{ textDecoration: "none" }}>
@@ -262,7 +362,12 @@ export default function ProUpsell({
 
         {/* Apple requires the auto-renew terms next to the purchase control. */}
         <p style={{ fontSize: 12, lineHeight: 1.5, color: "var(--text-muted)", marginTop: 14 }}>
-          7 days free, then {choice === "year" ? "$19.99 a year" : "$2.99 a month"}. Billed through your
+          7 days free, then{" "}
+          {(() => {
+            const live = iapProducts?.find((x) => x.id === productIdFor(choice));
+            if (live) return `${live.displayPrice} a ${choice === "year" ? "year" : "month"}`;
+            return choice === "year" ? "$19.99 a year" : "$2.99 a month";
+          })()}. Billed through your
           Apple ID and renews automatically unless cancelled at least 24 hours before the period ends.
           Manage or cancel in your Apple ID settings.{" "}
           <a href="/terms" style={{ color: "inherit", textDecoration: "underline", textUnderlineOffset: 3 }}>Terms</a>

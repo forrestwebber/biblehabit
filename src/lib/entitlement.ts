@@ -212,6 +212,18 @@ async function reconcileWithStripe(email: string): Promise<SubscriptionRow | nul
   }
 }
 
+/**
+ * Drop the in-process cache for one user. Call this right after any write
+ * that changes their entitlement outside the normal Stripe-webhook path —
+ * today that means /api/iap/verify — so a request landing on the SAME warm
+ * server instance within the next 60s doesn't serve a pre-purchase verdict.
+ * (A cold instance never had the stale entry in the first place, so this is
+ * a "why not" belt-and-suspenders, not the only thing making this correct.)
+ */
+export function invalidateEntitlementCache(userId: string) {
+  cache.delete(userId);
+}
+
 /** Resolve entitlement for a verified user. Cached briefly per instance. */
 export async function getEntitlement(user: AuthedUser, opts?: { fresh?: boolean }): Promise<Entitlement> {
   const key = user.id;
