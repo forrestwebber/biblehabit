@@ -17,9 +17,12 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 
 export type EntitlementStatus = "trialing" | "active" | "expired";
+export type Tier = "free" | "pro";
 
 export interface ClientEntitlement {
   status: EntitlementStatus;
+  /** The permission. "free" = fixed year plan only; "pro" = everything. */
+  tier: Tier;
   daysLeft: number;
   isPaid: boolean;
   comped: boolean;
@@ -63,6 +66,7 @@ function anonymousEntitlement(): ClientEntitlement {
   const left = daysUntil(ends);
   return {
     status: left > 0 ? "trialing" : "expired",
+    tier: left > 0 ? "pro" : "free",
     daysLeft: left,
     isPaid: false,
     comped: false,
@@ -108,8 +112,13 @@ export function clearEntitlementCache() {
 export interface UseEntitlement {
   ent: ClientEntitlement | null;
   loading: boolean;
-  /** Trial over and nothing paid — the wall is up. */
-  locked: boolean;
+  /**
+   * Has Pro — may customize the plan, change pace, use side plans, and every
+   * paid feature we add later. This replaced `locked` on 2026-08-03: there is
+   * no wall any more, so the question is never "are they shut out?" but
+   * "do they have the paid tier?".
+   */
+  pro: boolean;
   isNative: boolean;
   refresh: () => Promise<void>;
 }
@@ -148,6 +157,9 @@ export function useEntitlement(): UseEntitlement {
 
       const resolved: ClientEntitlement = {
         status: (json.status as EntitlementStatus) ?? "expired",
+        // Default to "free", never "pro": if the server ever stops sending a
+        // tier, the safe read is the free product, not a giveaway of Pro.
+        tier: json.tier === "pro" ? "pro" : "free",
         daysLeft: json.daysLeft ?? 0,
         isPaid: !!json.isPaid,
         comped: !!json.comped,
@@ -160,10 +172,15 @@ export function useEntitlement(): UseEntitlement {
       setEnt(resolved);
       writeCache(userId, resolved);
     } catch (e) {
-      // Never wall somebody because a network hiccup ate the answer.
+      // Never wall somebody because a network hiccup ate the answer. Pro is the
+      // lenient fallback here on purpose: this is UI-only, and every write is
+      // re-gated server-side, so the worst case is a Pro control that returns
+      // 402 when tapped — far better than falsely telling a paying subscriber
+      // they are on the free tier.
       console.error("[entitlement] lookup failed, allowing this session:", e);
       setEnt({
         status: "active",
+        tier: "pro",
         daysLeft: 0,
         isPaid: false,
         comped: false,
@@ -222,7 +239,10 @@ export function useEntitlement(): UseEntitlement {
   return {
     ent,
     loading,
-    locked: !loading && ent?.status === "expired",
+    // While loading, assume Pro so paid subscribers never see a flash of
+    // upgrade prompts on every page load. Nothing is granted by being
+    // optimistic here — the server re-checks every write.
+    pro: loading || ent?.tier !== "free",
     isNative,
     refresh,
   };

@@ -1,3 +1,4 @@
+import { queuePush } from "./cloud-state";
 // XP / Level system for BibleHabit (Duolingo-style gamification)
 // Stored in localStorage, no server sync needed
 
@@ -22,7 +23,7 @@ export function getXP(): number {
 export function addXP(amount: number): number {
   const current = getXP();
   const next = current + amount;
-  if (typeof window !== "undefined") localStorage.setItem(XP_KEY, String(next));
+  if (typeof window !== "undefined") { localStorage.setItem(XP_KEY, String(next)); queuePush(XP_KEY); }
   return next;
 }
 

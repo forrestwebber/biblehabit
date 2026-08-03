@@ -28,7 +28,8 @@ import {
   type FullDayReading,
 } from "@/lib/bible-data";
 import { savePlan, getCurrentStreak, getTotalChaptersRead } from "@/lib/reading-store";
-import TrialWall from "@/components/TrialWall";
+import ProUpsell from "@/components/ProUpsell";
+import { getFreePlan } from "@/lib/predefined-plans";
 import { useEntitlement } from "@/lib/use-entitlement";
 import { supabase } from "@/lib/supabase";
 import {
@@ -143,7 +144,9 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 }
 
 export default function PlansPage() {
-  const { locked, isNative, refresh: refreshEntitlement } = useEntitlement();
+  // `pro` gates the builder. A free reader still reaches this route to start
+  // their fixed Bible in a Year plan — see the !pro branch below.
+  const { pro, isNative, refresh: refreshEntitlement } = useEntitlement();
 
   const [startBook, setStartBook] = useState("Genesis");
   const [endBook, setEndBook] = useState("Revelation");
@@ -280,19 +283,63 @@ export default function PlansPage() {
     setCalendarMonth(d);
   };
 
-  // Plan building and plan export are Plus features — the wall stands in for
-  // the whole builder once the 7-day trial has ended.
-  if (locked) {
+  /**
+   * FREE TIER (2026-08-03): the builder below — start book, end book, pace,
+   * start date, calendar, exports — is the Pro product. A free reader gets the
+   * one plan they have instead: Bible in a Year, Genesis 1, ~4 chapters a day.
+   *
+   * This screen is deliberately a START button and not a locked builder. It is
+   * reached from Today's "Start Bible in a Year", so a free reader who has no
+   * plan yet has to be able to finish onboarding here — showing them a wall
+   * would leave them with no plan and no way to get one.
+   */
+  if (!pro) {
+    const free = getFreePlan();
+    const startFreePlan = () => {
+      savePlan({
+        startBook: free.startBook,
+        startChapter: free.startChapter,
+        chaptersPerDay: free.versesPerDay,
+        startDate: formatDateISO(new Date()),
+        createdAt: new Date().toISOString(),
+      });
+      setPlanSaved(true);
+      setTimeout(() => {
+        window.location.href = "/today";
+      }, 800);
+    };
+
     return (
       <div className="bh-app">
         <NavBar />
-        <TrialWall
-          streak={getCurrentStreak()}
-          chapters={getTotalChaptersRead()}
-          isNative={isNative}
-          signedIn={!!user}
-          onRefresh={refreshEntitlement}
-        />
+        <div className="mx-auto w-full max-w-md" style={{ padding: "24px 20px 40px" }}>
+          <div className="relative overflow-hidden" style={{ borderRadius: 20, border: "1px solid var(--gold-200)", background: "linear-gradient(180deg, var(--gold-100) 0%, var(--cream-50) 62%)", padding: 24 }}>
+            <p className="bh-eyebrow" style={{ color: "var(--text-accent)", marginBottom: 8 }}>Your plan</p>
+            <h1 className="bh-serif" style={{ fontSize: 28, fontWeight: 500, lineHeight: 1.2 }}>{free.title}</h1>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--text-secondary)", marginTop: 10 }}>
+              {free.description}
+            </p>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 10 }}>
+              Starts at {free.startBook} {free.startChapter} · about {free.versesPerDay} chapters a
+              morning · free forever.
+            </p>
+            <button onClick={startFreePlan} className="bh-btn bh-btn-primary" style={{ marginTop: 18 }}>
+              {planSaved ? "Setting it up…" : "Start reading"}
+            </button>
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <ProUpsell
+              variant="inline"
+              inlineHeading="Want a different plan?"
+              streak={getCurrentStreak()}
+              chapters={getTotalChaptersRead()}
+              isNative={isNative}
+              signedIn={!!user}
+              onRefresh={refreshEntitlement}
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -317,8 +364,11 @@ export default function PlansPage() {
 
       {/* Hero */}
       <section className="text-center py-12 px-6 max-w-3xl mx-auto">
+        {/* This hero sits above the plan BUILDER, which is Pro. It used to read
+            "100% Free Forever" — true of the app, false of this screen, and the
+            reason a free reader could land on a paid builder expecting free. */}
         <span className="text-xs text-violet-600 font-semibold bg-violet-50 px-3 py-1 rounded-full">
-          100% Free Forever
+          BibleHabit Pro
         </span>
         <h1 className="text-4xl font-bold text-slate-900 mt-6 mb-4">
           Build Your Reading Plan

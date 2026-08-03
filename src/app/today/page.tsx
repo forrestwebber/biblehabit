@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { queuePush } from "@/lib/cloud-state";
 import NavBar from "@/components/NavBar";
 import BibleAffiliate from "@/components/BibleAffiliate";
 import SignUpGate from "@/components/SignUpGate";
-import TrialWall from "@/components/TrialWall";
 import TrialBanner from "@/components/TrialBanner";
 import { useEntitlement } from "@/lib/use-entitlement";
 import { supabase } from "@/lib/supabase";
@@ -131,6 +131,25 @@ function greetingWord(): string {
   return "Good evening";
 }
 
+// Role-account local parts are not names — hello@, info@ and friends produced
+// "Good evening, Hello" on the Today screen (Forrest, 2026-08-02). Fall back to
+// no name rather than greeting someone by their mailbox.
+const NON_NAME_LOCALS = new Set([
+  "hello", "hi", "info", "admin", "contact", "support", "team", "me", "mail",
+  "email", "no-reply", "noreply", "office", "help", "sales", "billing", "user",
+]);
+
+function displayFirstName(fullName?: unknown, name?: unknown, email?: string): string {
+  const explicit = (typeof fullName === "string" && fullName) || (typeof name === "string" && name) || "";
+  const first = explicit.trim().split(/\s+/)[0] ?? "";
+  if (first) return first;
+  const local = email?.split("@")[0]?.trim() ?? "";
+  // Only accept a mailbox as a name if it looks like one (letters, no digits/dots)
+  // …and only when it's short enough to be a first name, not "forrestwebber".
+  if (!local || NON_NAME_LOCALS.has(local.toLowerCase()) || !/^[a-z]{2,12}$/i.test(local)) return "";
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
+
 const SunriseIcon = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 2v8" /><path d="m4.93 10.93 1.41 1.41" /><path d="M2 18h2" /><path d="M20 18h2" />
@@ -151,7 +170,10 @@ const CheckIcon = ({ size = 18, stroke = 2 }: { size?: number; stroke?: number }
 export default function TodayPage() {
   // Entitlement decides what the habit layer does. Scripture is never gated:
   // the reading, its text, translations and verse sharing stay open forever.
-  const { ent, locked, refresh: refreshEntitlement } = useEntitlement();
+  // `pro` gates customization and extras only. The daily habit — today's
+  // reading, marking it done, the streak — is free forever, so nothing on the
+  // core path is allowed to depend on this. See lib/entitlement.ts.
+  const { ent, pro, refresh: refreshEntitlement } = useEntitlement();
 
   const [plan, setPlanState] = useState<ReturnType<typeof getPlan>>(null);
   const [loading, setLoading] = useState(true);
@@ -184,6 +206,7 @@ export default function TodayPage() {
     setFontSize(prev => {
       const next = Math.max(15, Math.min(24, prev + delta));
       localStorage.setItem("bh-font-size", String(next));
+      queuePush("bh-font-size");
       return next;
     });
   };
@@ -302,8 +325,7 @@ export default function TodayPage() {
       setIsSignedIn(loggedIn);
       if (loggedIn) {
         const u = data.session!.user;
-        const n: string = u.user_metadata?.full_name ?? u.user_metadata?.name ?? u.email?.split("@")[0] ?? "";
-        setFirstName(n.split(" ")[0] ?? "");
+        setFirstName(displayFirstName(u.user_metadata?.full_name, u.user_metadata?.name, u.email));
         await syncProgress();
         refreshStats();
       }
@@ -367,11 +389,12 @@ export default function TodayPage() {
   function handleTranslationChange(id: string) {
     setTranslation(id);
     localStorage.setItem(TRANSLATION_STORAGE_KEY, id);
+    queuePush(TRANSLATION_STORAGE_KEY);
   }
 
   const handleMarkDone = () => {
     if (!todayInfo) return;
-    if (locked) return; // gated: the wall is shown in place of this button
+    // No tier check: marking the day done IS the free product.
     hapticSuccess();
     const todayStr = formatDate(new Date());
     const indices = todayInfo.chapters.map((c) => c.globalIndex);
@@ -396,7 +419,7 @@ export default function TodayPage() {
   };
 
   const handleSubPlanDone = (planId: string) => {
-    if (locked) return; // gated
+    if (!pro) return; // side plans are a Pro feature
     hapticTap();
     markSubPlanDone(planId);
     setSubPlanDone((prev) => new Set([...prev, planId]));
@@ -444,28 +467,21 @@ export default function TodayPage() {
             <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 24 }}>
               A short set of questions, and tomorrow&apos;s reading will be waiting.
             </p>
-            {!locked && (
+            {/* Free tier goes straight into the one plan they have; Pro picks.
+                A free reader must never be sent to a chooser whose options all
+                cost money — that is a dead end dressed up as onboarding. */}
+            {pro ? (
               <a href="/dashboard" className="bh-btn bh-btn-primary" style={{ maxWidth: 320, margin: "0 auto" }}>
                 Choose a plan
+              </a>
+            ) : (
+              <a href="/plans?start=free" className="bh-btn bh-btn-primary" style={{ maxWidth: 320, margin: "0 auto" }}>
+                Start Bible in a Year
               </a>
             )}
           </div>
 
-          {/* Starting a plan is a Plus action, so the wall stands in for it. */}
-          {locked && (
-            <div style={{ marginBottom: 24 }}>
-              <TrialWall
-                variant="inline"
-                streak={streak}
-                chapters={totalRead}
-                isNative={isNative}
-                signedIn={!!isSignedIn}
-                onRefresh={refreshEntitlement}
-              />
-            </div>
-          )}
-
-          {subPlans.length > 0 && !locked && (
+          {subPlans.length > 0 && pro && (
             <div className="space-y-3">
               <p className="bh-eyebrow" style={{ color: "var(--text-accent)", marginBottom: 8 }}>Daily readings</p>
               {subPlans.map((sp) => {
@@ -565,7 +581,7 @@ export default function TodayPage() {
             </p>
             <h2 className="bh-serif" style={{ fontSize: 24, fontWeight: 500, lineHeight: 1.25 }}>{dateLabel}</h2>
           </div>
-          {streak > 0 && !locked && (
+          {streak > 0 && (
             <span className="bh-chip" style={{ marginTop: 4 }}>
               <SunriseIcon size={16} /> {streak} in a row
             </span>
@@ -575,9 +591,10 @@ export default function TodayPage() {
         <div className="space-y-4">
 
           {/* ─── Reading card ───────────────────────────────────── */}
-          {/* An expired reader never sees the streak celebration or Undo —
-              they get the chapter plus the wall. */}
-          {todayDone && !locked ? (
+          {/* Every signed-in reader sees this, free tier included: the streak
+              celebration is the habit loop, and charging for it would break the
+              one thing the free product exists to do. */}
+          {todayDone ? (
             /* Complete state — the tick simply appears. No confetti. */
             <div
               className="bh-fade relative overflow-hidden text-center"
@@ -628,22 +645,9 @@ export default function TodayPage() {
                   </p>
                 </div>
               </div>
-              {locked ? (
-                /* Trial over: the chapter still opens, the streak does not run. */
-                <TrialWall
-                  variant="inline"
-                  inlineHeading="Your 7 days are up"
-                  streak={streak}
-                  chapters={totalRead}
-                  isNative={isNative}
-                  signedIn={!!isSignedIn}
-                  onRefresh={refreshEntitlement}
-                />
-              ) : (
-                <button onClick={handleMarkDone} className="bh-btn bh-btn-secondary">
-                  Mark complete
-                </button>
-              )}
+              <button onClick={handleMarkDone} className="bh-btn bh-btn-secondary">
+                Mark complete
+              </button>
             </>
           ) : (
             /* ─── Expanded reading view ─────────────────────────── */
@@ -792,8 +796,8 @@ export default function TodayPage() {
                 </div>
               )}
 
-              {/* Chapter notes — a Plus feature, hidden once the trial ends */}
-              {!locked && (
+              {/* Chapter notes — a Pro feature */}
+              {pro && (
               <div style={{ padding: "16px 20px", borderTop: "1px solid var(--line-hairline)" }}>
                 <p className="bh-eyebrow" style={{ color: "var(--text-muted)", marginBottom: 8 }}>My notes</p>
                 <textarea
@@ -844,29 +848,17 @@ export default function TodayPage() {
               </div>
               )}
 
-              {/* Mark complete — or the wall, once the trial is over */}
+              {/* Mark complete — free forever */}
               <div style={{ padding: "16px 20px 20px", borderTop: "1px solid var(--line-hairline)" }}>
-                {locked ? (
-                  <TrialWall
-                    variant="inline"
-                    inlineHeading="Your 7 days are up"
-                    streak={streak}
-                    chapters={totalRead}
-                    isNative={isNative}
-                    signedIn={!!isSignedIn}
-                    onRefresh={refreshEntitlement}
-                  />
-                ) : (
-                  <button onClick={handleMarkDone} className="bh-btn bh-btn-primary">
-                    Mark complete
-                  </button>
-                )}
+                <button onClick={handleMarkDone} className="bh-btn bh-btn-primary">
+                  Mark complete
+                </button>
               </div>
             </div>
           )}
 
           {/* ─── Daily readings (sub-plans) — Plus ─────────────── */}
-          {subPlans.length > 0 && !readingOpen && !locked && (
+          {subPlans.length > 0 && !readingOpen && pro && (
             <div className="space-y-3">
               <p className="bh-eyebrow" style={{ color: "var(--text-accent)" }}>Also today</p>
               {subPlans.map((sp) => {
@@ -919,8 +911,8 @@ export default function TodayPage() {
             </div>
           )}
 
-          {/* ─── Reading meter — Plus ───────────────────────────── */}
-          {!readingOpen && !locked && (
+          {/* ─── Reading meter — free: it IS the year plan's progress ─── */}
+          {!readingOpen && (
             <div className="bh-card" style={{ padding: 20 }}>
               <div className="flex items-baseline justify-between" style={{ marginBottom: 10 }}>
                 <p style={{ fontSize: 14, fontWeight: 500 }}>{planLabel}</p>
@@ -947,8 +939,8 @@ export default function TodayPage() {
             </div>
           )}
 
-          {/* ─── Tomorrow — part of the pacing engine, so Plus ─── */}
-          {tomorrowPreview && !readingOpen && !locked && (
+          {/* ─── Tomorrow — free: "what to read" is the free product ─── */}
+          {tomorrowPreview && !readingOpen && (
             <div className="bh-sunk flex items-center justify-between" style={{ padding: "16px 20px" }}>
               <div>
                 <p className="bh-eyebrow" style={{ color: "var(--text-muted)", marginBottom: 4 }}>Tomorrow</p>
@@ -969,14 +961,14 @@ export default function TodayPage() {
             </div>
           )}
 
-          {/* ─── Add a daily reading — Plus ─────────────────────── */}
-          {subPlans.length === 0 && !showDevotionalPicker && !readingOpen && !locked && (
+          {/* ─── Add a daily reading — Pro ──────────────────────── */}
+          {subPlans.length === 0 && !showDevotionalPicker && !readingOpen && pro && (
             <button onClick={() => setShowDevotionalPicker(true)} className="bh-sunk w-full text-left" style={{ padding: "14px 18px" }}>
               <p style={{ fontSize: 14, fontWeight: 500 }}>Add a small daily reading</p>
               <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>A Psalm or a Proverb alongside your plan.</p>
             </button>
           )}
-          {showDevotionalPicker && !locked && (
+          {showDevotionalPicker && pro && (
             <div className="bh-card" style={{ padding: 18 }}>
               <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
                 <p style={{ fontSize: 14, fontWeight: 600 }}>Choose a daily reading</p>
@@ -1041,8 +1033,8 @@ export default function TodayPage() {
               Share
             </button>
             {/* Sharing a verse stays free — it's public-domain scripture.
-                Keeping a highlight is saved-library territory, so it's Plus. */}
-            {!locked && (
+                Keeping a highlight is saved-library territory, so it's Pro. */}
+            {pro && (
             <button
               onClick={() => {
                 if (highlightSaved) return;

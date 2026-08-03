@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import NavBar from "@/components/NavBar";
-import TrialWall from "@/components/TrialWall";
+import ProUpsell from "@/components/ProUpsell";
+import { getFreePlan } from "@/lib/predefined-plans";
 import TrialBanner from "@/components/TrialBanner";
 import { useEntitlement } from "@/lib/use-entitlement";
 import { authHeaders } from "@/lib/use-entitlement";
@@ -25,7 +26,7 @@ import {
   getSubPlans, getSubPlanChapterToday, markSubPlanDone, isSubPlanDoneToday,
   getSubPlanStreak, addSubPlan, type SubPlan,
 } from "@/lib/sub-plans";
-import { getReminderTime, setReminderTime, setReminderEnabled, REMINDER_TIMES } from "@/lib/prefs";
+import { getReminderTime, setReminderTime, setReminderEnabled, REMINDER_TIMES, formatReminderTime } from "@/lib/prefs";
 import { estimateChapterMinutes, estimateDailyMinutes } from "@/lib/reading-time";
 
 type User = { id: string; email?: string; name?: string };
@@ -54,7 +55,7 @@ const CheckIcon = ({ size = 14 }: { size?: number }) => (
 // ─── Onboarding data ─────────────────────────────────────────────
 
 type ReadingStage = "fresh" | "partway" | "while";
-type PlanChoice = "year" | "nt90" | "psalm";
+type PlanChoice = "year" | "nt90" | "psalm" | "own";
 
 const STAGE_CARDS: { id: ReadingStage; title: string; desc: string }[] = [
   { id: "fresh", title: "Starting fresh", desc: "Genesis 1, or wherever you'd like to begin." },
@@ -63,7 +64,7 @@ const STAGE_CARDS: { id: ReadingStage; title: string; desc: string }[] = [
 ];
 
 // Estimated minutes/day per card — same words-per-minute model the Today screen uses.
-const PLAN_MINUTES: Record<PlanChoice, number> = {
+const PLAN_MINUTES: Record<Exclude<PlanChoice, "own">, number> = {
   year: Math.round(4 * estimateChapterMinutes("Genesis")),
   nt90: Math.round(3 * estimateChapterMinutes("Matthew")),
   psalm: Math.round(
@@ -75,6 +76,10 @@ const PLAN_CARDS: { id: PlanChoice; title: string; desc: string }[] = [
   { id: "year", title: "Whole Bible in a year", desc: `Four chapters · about ${PLAN_MINUTES.year} minutes a day` },
   { id: "nt90", title: "New Testament in 90 days", desc: `Three chapters · about ${PLAN_MINUTES.nt90} minutes a day` },
   { id: "psalm", title: "A Psalm, a Proverb, and a bit of the New Testament", desc: `Three short readings · about ${PLAN_MINUTES.psalm} minutes a day` },
+  // The escape hatch from the three presets (Forrest, 2026-08-02). Picking this
+  // hands off to /plan/edit, where you choose the book, the exact chapter and
+  // the minutes a day yourself — including one minute.
+  { id: "own", title: "The whole Bible, at my own pace", desc: "You choose the pace and where to start" },
 ];
 
 function BookPicker({ selected, onSelect }: { selected: string; onSelect: (book: string) => void }) {
@@ -134,7 +139,7 @@ export default function PlanPage() {
   // checklist are the product. All of it is behind the 7-day trial.
   const {
     ent,
-    locked,
+    pro,
     isNative,
     refresh: refreshEntitlement,
     loading: entLoading,
@@ -256,7 +261,7 @@ export default function PlanPage() {
   // ─── Recalculate pace: re-anchor the plan at the actual position ──
   function handleRecalculate() {
     if (!plan) return;
-    if (locked) return; // gated — the wall replaces this screen anyway
+    if (!pro) return; // re-anchoring the plan is Pro customization
     const startIdx = getGlobalChapterIndex(plan.startBook, plan.startChapter);
     const nextUnread = Math.min(startIdx + getTotalChaptersRead(), TOTAL_CHAPTERS - 1);
     const bc = getBookAndChapter(nextUnread);
@@ -274,7 +279,9 @@ export default function PlanPage() {
 
   // ─── Onboarding: start the chosen plan ───────────────────────
   function handleStartPlan() {
-    if (locked) return; // gated
+    if (!pro) return; // choosing a preset is Pro; free tier starts from /plans
+    // "My own pace" is not a preset — send them to the real editor.
+    if (obPlan === "own") { window.location.href = "/plan/edit"; return; }
     const startsFresh = obStage === "fresh";
     let startBook = startsFresh ? "Genesis" : obBook;
     let startChapter = startsFresh ? 1 : obChapter;
@@ -367,18 +374,55 @@ export default function PlanPage() {
     );
   }
 
-  // ─── Trial over: the wall stands in for the whole Plan screen ──
-  if (locked) {
+  /**
+   * FREE TIER: this screen is the plan chooser and the pace re-anchoring tool —
+   * both Pro. A free reader sees their fixed plan (or a way to start it) and the
+   * upgrade offer, never an onboarding wizard whose every option costs money.
+   */
+  if (!pro) {
+    const free = getFreePlan();
     return (
       <div className="bh-app">
         <NavBar />
-        <TrialWall
-          streak={streak}
-          chapters={totalRead}
-          isNative={isNative}
-          signedIn={!!user}
-          onRefresh={refreshEntitlement}
-        />
+        <div className="mx-auto w-full max-w-md" style={{ padding: "24px 20px 40px" }}>
+          <div className="bh-card" style={{ padding: 20 }}>
+            <p className="bh-eyebrow" style={{ color: "var(--text-accent)", marginBottom: 6 }}>Your plan</p>
+            <h1 className="bh-serif" style={{ fontSize: 24, fontWeight: 500, lineHeight: 1.25 }}>
+              {free.title}
+            </h1>
+            {plan ? (
+              <>
+                <p style={{ fontSize: 14, color: "var(--text-secondary)", marginTop: 8, lineHeight: 1.55 }}>
+                  You&apos;re at {plan.startBook} {plan.startChapter}, about {plan.chaptersPerDay} chapters
+                  a morning.
+                </p>
+                <a href="/today" className="bh-btn bh-btn-primary" style={{ marginTop: 16 }}>
+                  Today&apos;s reading
+                </a>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: 14, color: "var(--text-secondary)", marginTop: 8, lineHeight: 1.55 }}>
+                  {free.description}
+                </p>
+                <a href="/plans" className="bh-btn bh-btn-primary" style={{ marginTop: 16 }}>
+                  Start reading
+                </a>
+              </>
+            )}
+          </div>
+          <div style={{ marginTop: 20 }}>
+            <ProUpsell
+              variant="inline"
+              inlineHeading="Choose any plan you like"
+              streak={streak}
+              chapters={totalRead}
+              isNative={isNative}
+              signedIn={!!user}
+              onRefresh={refreshEntitlement}
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -464,7 +508,7 @@ export default function PlanPage() {
 
           {obStep === 1 && (
             <div className="bh-fade">
-              <h1 className="bh-serif" style={{ fontSize: 30, fontWeight: 500, lineHeight: 1.2 }}>Three that would suit you</h1>
+              <h1 className="bh-serif" style={{ fontSize: 30, fontWeight: 500, lineHeight: 1.2 }}>Where would you like to start?</h1>
               <p style={{ fontSize: 14, color: "var(--text-secondary)", marginTop: 8, marginBottom: 24 }}>
                 {obStage === "fresh"
                   ? "Light on purpose — showing up daily matters more than page count. You can change it any time."
@@ -533,7 +577,7 @@ export default function PlanPage() {
                         transition: "border-color 200ms, background 200ms, color 200ms",
                       }}
                     >
-                      {t}
+                      {formatReminderTime(t)}
                     </button>
                   );
                 })}
@@ -823,13 +867,18 @@ export default function PlanPage() {
           </div>
         )}
 
-        {/* Change plan */}
-        <div className="text-center" style={{ marginTop: 24 }}>
+        {/* Adjust / change plan. "Adjust" edits position + pace in place (the
+            paper-Bible case: "I'm actually on Genesis 45"); "Change" restarts
+            the preset picker from scratch. */}
+        <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}>
+          <a href="/plan/edit" className="bh-btn bh-btn-secondary" style={{ maxWidth: 320 }}>
+            Adjust my pace or position
+          </a>
           <button
             onClick={() => { setOnboarding(true); setObStep(0); }}
             style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "underline", textUnderlineOffset: 3 }}
           >
-            Change reading plan
+            Start a different plan
           </button>
         </div>
       </div>

@@ -1,18 +1,31 @@
 /**
  * BibleHabit entitlement — the single server-side source of truth.
  *
- * THE RULES (shipped 2026-08-02):
- *   • Every account gets 7 days of full access from signup
- *     (profiles.trial_started_at / trial_ends_at, defaulted at row creation).
- *   • A paid or comped subscription (public.subscriptions, written by the
- *     Stripe webhook) grants access indefinitely.
- *   • Otherwise the account is `expired`: scripture stays readable, the
- *     habit product does not.
+ * THE RULES (rewritten 2026-08-03 — free tier replaces the hard trial wall):
+ *   • FREE, forever, for every signed-in account: the fixed
+ *     read-the-Bible-in-a-year plan. Log in daily, see today's reading, mark it
+ *     done, keep a streak. No customization, and deliberately no extras — the
+ *     free tier is a complete, finished product, not a crippled demo.
+ *   • PRO: everything else. Choosing or building a plan, changing pace,
+ *     side/devotional plans, progress analytics, and every feature we add later
+ *     (memorization flashcards and so on). 7-day free trial from signup, then
+ *     $2.99/mo or $19.99/yr.
+ *   • A paid or comped subscription grants Pro indefinitely.
+ *
+ * WHY THIS REPLACED THE OLD MODEL: until today, day 8 turned the app into a
+ * dead end — the habit product locked and only raw scripture stayed readable.
+ * That is the worst possible outcome for a habit app, which only works if the
+ * user keeps showing up. Now the habit itself is free forever and Pro sells
+ * control over it, so lapsing costs us nothing and the upgrade path stays warm.
+ *
+ * `status` still reports trialing/active/expired because billing genuinely has
+ * those three states, but "expired" now means "on the free tier" — NOT locked
+ * out. Read access from `tier`, never by comparing status to a string.
  *
  * Never trust the client. Entitlement is only ever computed here, from the
  * database, for a user resolved from a verified Supabase access token. The
  * same rules are duplicated in Postgres as public.bh_is_entitled() so RLS
- * blocks habit writes even if an API route were bypassed entirely.
+ * blocks Pro-only writes even if an API route were bypassed entirely.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -21,8 +34,13 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export type EntitlementStatus = "trialing" | "active" | "expired";
 
+/** What the account can actually do. This — not `status` — is the permission. */
+export type Tier = "free" | "pro";
+
 export interface Entitlement {
   status: EntitlementStatus;
+  /** The permission. "free" = fixed year plan only; "pro" = everything. */
+  tier: Tier;
   /** Whole days remaining in the free trial. 0 unless status === 'trialing'. */
   daysLeft: number;
   /** True when access comes from a paid (or comped) subscription. */
@@ -75,8 +93,11 @@ function daysBetween(from: Date, to: Date): number {
   return Math.max(0, Math.ceil((to.getTime() - from.getTime()) / 86_400_000));
 }
 
-const EXPIRED: Entitlement = {
+/** Trial over, nothing paid → the free tier. Named FREE_TIER, not EXPIRED,
+ *  because nothing is actually locked: the year plan keeps working forever. */
+const FREE_TIER: Entitlement = {
   status: "expired",
+  tier: "free",
   daysLeft: 0,
   isPaid: false,
   comped: false,
@@ -113,6 +134,7 @@ function fromSubscription(row: SubscriptionRow, trialEndsAt: string | null): Ent
 
   const base = {
     status: "active" as const,
+    tier: "pro" as const,
     daysLeft: 0,
     isPaid: true,
     trialEndsAt,
@@ -230,6 +252,7 @@ async function resolve(user: AuthedUser): Promise<Entitlement> {
     if (ends > now) {
       return {
         status: "trialing",
+        tier: "pro",              // the trial IS Pro — that is the whole point of it
         daysLeft: daysBetween(now, ends),
         isPaid: false,
         comped: false,
@@ -254,12 +277,25 @@ async function resolve(user: AuthedUser): Promise<Entitlement> {
     }
   }
 
-  return { ...EXPIRED, trialEndsAt };
+  return { ...FREE_TIER, trialEndsAt };
 }
 
-/** No profile row / no trial at all still means "not entitled". */
-export function isEntitled(ent: Entitlement): boolean {
-  return ent.status !== "expired";
+/** Pro access — the gate for customization and every paid feature. */
+export function isPro(ent: Entitlement): boolean {
+  return ent.tier === "pro";
+}
+
+/**
+ * Signed in at all. Every authenticated account clears this, including the free
+ * tier, because the year plan is free forever.
+ *
+ * Kept as a named function rather than inlining `true` so the free tier still
+ * has ONE place to gate on if it ever needs to lose access (a banned account,
+ * say) — and so no caller is tempted to reach for isPro() to guard the daily
+ * reading, which would put the wall back where we just removed it.
+ */
+export function hasHabitAccess(_ent: Entitlement): boolean {
+  return true;
 }
 
 export interface GateFailure {
@@ -267,8 +303,9 @@ export interface GateFailure {
 }
 
 /**
- * Gate for API routes. Returns either the caller + entitlement, or a
- * ready-to-return 401/402 response.
+ * Gate for routes any signed-in reader may use — the free tier included. This
+ * is the right gate for the daily habit itself: today's reading, marking it
+ * done, the streak.
  *
  *   const gate = await requireEntitlement(req);
  *   if ("response" in gate) return gate.response;
@@ -286,21 +323,36 @@ export async function requireEntitlement(
       ),
     };
   }
+  return { user, ent: await getEntitlement(user) };
+}
 
-  const ent = await getEntitlement(user);
-  if (!isEntitled(ent)) {
+/**
+ * Gate for PRO-ONLY routes: building or switching plans, changing pace, side
+ * plans, and every paid feature we add later. Free-tier callers get a 402 with
+ * `code: "pro_required"` so the client can show the upgrade screen instead of
+ * an error — deliberately NOT "trial_expired", which described a wall that no
+ * longer exists and would read as "you lost access" to a free-tier user.
+ */
+export async function requirePro(
+  req: NextRequest
+): Promise<{ user: AuthedUser; ent: Entitlement } | GateFailure> {
+  const gate = await requireEntitlement(req);
+  if ("response" in gate) return gate;
+
+  if (!isPro(gate.ent)) {
     return {
       response: NextResponse.json(
         {
-          error: "Your 7-day trial has ended",
-          code: "trial_expired",
-          status: ent.status,
-          trialEndsAt: ent.trialEndsAt,
+          error: "BibleHabit Pro is required to customize your plan",
+          code: "pro_required",
+          status: gate.ent.status,
+          tier: gate.ent.tier,
+          trialEndsAt: gate.ent.trialEndsAt,
         },
         { status: 402 }
       ),
     };
   }
 
-  return { user, ent };
+  return gate;
 }

@@ -84,6 +84,29 @@ export const PREDEFINED_PLANS: PredefinedPlan[] = [
   },
 ];
 
+/**
+ * THE FREE PLAN (2026-08-03). One size fits all, zero customization: the free
+ * tier reads the whole Bible in a year, starting at Genesis 1, ~4 chapters a
+ * day, and logs in daily to see what to read. That is the entire free product,
+ * and it is intentionally finished rather than crippled.
+ *
+ * This slug is load-bearing on BOTH sides of the wire: the client assigns it at
+ * signup and the /api/plan route accepts these exact values from a free-tier
+ * caller (and nothing else). Changing the numbers here changes what free
+ * accounts are allowed to save — keep them in step.
+ */
+export const FREE_PLAN_SLUG = "whole-bible-1-year";
+
+export function getFreePlan(): PredefinedPlan {
+  const plan = PREDEFINED_PLANS.find((p) => p.slug === FREE_PLAN_SLUG);
+  if (!plan) {
+    // Unreachable unless someone edits the array above — fail loudly rather
+    // than silently handing free users a different plan than they were sold.
+    throw new Error(`FREE_PLAN_SLUG "${FREE_PLAN_SLUG}" missing from PREDEFINED_PLANS`);
+  }
+  return plan;
+}
+
 export function getPlanById(id: number): PredefinedPlan | undefined {
   return PREDEFINED_PLANS.find((p) => p.id === id);
 }

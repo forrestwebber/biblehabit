@@ -1,11 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import ProUpsell from "@/components/ProUpsell";
+import { getCurrentStreak, getTotalChaptersRead } from "@/lib/reading-store";
 
 const FEATURES = [
   {
-    title: "Pacing that follows you",
-    desc: "It learns how fast you actually read, then re-spreads the plan when life happens.",
+    title: "Any plan, any pace",
+    desc: "Choose a plan or build your own, then set the pace — a minute a day or an hour.",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v8" /><path d="m4.93 10.93 1.41 1.41" /><path d="M2 18h2" /><path d="M20 18h2" /><path d="m19.07 10.93-1.41 1.41" /><path d="M22 22H2" /><path d="m8 6 4-4 4 4" /><path d="M16 18a4 4 0 0 0-8 0" /></svg>
     ),
@@ -93,9 +95,9 @@ export default function PlusPage() {
       <div className="relative flex-1 mx-auto w-full max-w-md" style={{ padding: "8px 24px 16px" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/brand/logo-mark.svg" alt="" width={44} height={44} />
-        <h1 className="bh-serif" style={{ fontSize: 30, fontWeight: 500, lineHeight: 1.2, marginTop: 14 }}>BibleHabit Plus</h1>
+        <h1 className="bh-serif" style={{ fontSize: 30, fontWeight: 500, lineHeight: 1.2, marginTop: 14 }}>BibleHabit Pro</h1>
         <p style={{ fontSize: 15, lineHeight: 1.55, color: "var(--text-secondary)", marginTop: 6 }}>
-          The pacing engine, and room for more than one thing you&apos;re reading.
+          Bible in a Year is free forever. Pro is for reading it your way.
         </p>
 
         {/* Features */}
@@ -116,7 +118,7 @@ export default function PlusPage() {
           <div className="space-y-3" style={{ marginTop: 28 }}>
             {([
               { id: "month" as const, title: "$2.99 a month", sub: "Cancel any time", badge: null },
-              { id: "year" as const, title: "$19.99 a year", sub: "Was $24.99 · about $1.67 a month", badge: "$19.99/YR LAUNCH OFFER" },
+              { id: "year" as const, title: "$19.99 a year", sub: "About $1.67 a month — two months free", badge: "BEST VALUE" },
             ]).map((p) => {
               const selected = choice === p.id;
               return (
@@ -162,15 +164,19 @@ export default function PlusPage() {
         )}
 
         {isNative === true && (
-          /* Native (App Store) state — no purchase flow in the app shell */
-          <div className="bh-sunk" style={{ padding: 20, marginTop: 28 }}>
-            <p style={{ fontSize: 14, fontWeight: 600 }}>Plus is coming to the App Store</p>
-            <p style={{ fontSize: 13, lineHeight: 1.5, color: "var(--text-muted)", marginTop: 4 }}>
-              Everything above will be available here soon. If you already subscribe on the web, just sign in — Plus follows your account.
-            </p>
-            <a href="/login?mode=signin" className="bh-btn bh-btn-secondary" style={{ marginTop: 14, height: 44, fontSize: 14 }}>
-              Sign in to your account
-            </a>
+          /* Native: the real IAP offer. This used to say "Plus is coming to the
+             App Store" and show no prices — stale (both subscriptions are live
+             in App Store Connect) and unusable as the App Review screenshot,
+             which has to show the plan name, duration and price. ProUpsell owns
+             that surface for every screen, so it owns this one too. */
+          <div style={{ marginTop: 20 }}>
+            <ProUpsell
+              variant="inline"
+              isNative
+              signedIn={!!email}
+              streak={getCurrentStreak()}
+              chapters={getTotalChaptersRead()}
+            />
           </div>
         )}
       </div>

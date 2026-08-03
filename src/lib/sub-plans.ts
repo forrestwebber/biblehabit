@@ -1,3 +1,4 @@
+import { queuePush } from "./cloud-state";
 // Sub-plans: supplementary daily readings (Psalms, Proverbs, John, etc.)
 // Each sub-plan cycles through a single book one chapter per day.
 
@@ -49,6 +50,7 @@ export function getSubPlans(): SubPlan[] {
 function saveSubPlans(plans: SubPlan[]): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(SUBPLANS_KEY, JSON.stringify(plans));
+  queuePush(SUBPLANS_KEY);
 }
 
 function getProgress(): Record<string, string[]> {
@@ -63,6 +65,7 @@ function getProgress(): Record<string, string[]> {
 function saveProgress(p: Record<string, string[]>): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(SUBPLAN_PROGRESS_KEY, JSON.stringify(p));
+  queuePush(SUBPLAN_PROGRESS_KEY);
 }
 
 // ─── CRUD ────────────────────────────────────────────────────────

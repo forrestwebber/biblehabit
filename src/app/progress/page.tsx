@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import NavBar from "@/components/NavBar";
-import TrialWall from "@/components/TrialWall";
+import ProUpsell from "@/components/ProUpsell";
 import { useEntitlement } from "@/lib/use-entitlement";
 import { supabase } from "@/lib/supabase";
 import {
@@ -32,8 +32,9 @@ const MILESTONES = [
 ];
 
 export default function ProgressPage() {
-  // The whole Progress screen is the habit product — gated after the trial.
-  const { locked, isNative, refresh: refreshEntitlement, loading: entLoading } = useEntitlement();
+  // Progress charts and reading history are Pro. The free tier keeps its
+  // streak on the Today screen — this screen is the analytics on top of it.
+  const { pro, isNative, refresh: refreshEntitlement, loading: entLoading } = useEntitlement();
 
   const [loading, setLoading] = useState(true);
   const [streak, setStreak] = useState(0);
@@ -120,11 +121,12 @@ export default function ProgressPage() {
     );
   }
 
-  if (locked) {
+  if (!pro) {
     return (
       <div className="bh-app">
         <NavBar />
-        <TrialWall
+        <ProUpsell
+          inlineHeading="See your whole story"
           streak={Math.max(streak, longest)}
           chapters={totalRead}
           isNative={isNative}

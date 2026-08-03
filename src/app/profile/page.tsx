@@ -1,12 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
+import { queuePush } from "@/lib/cloud-state";
 import NavBar from "@/components/NavBar";
 import { TrialRow } from "@/components/TrialBanner";
 import { useEntitlement, authHeaders } from "@/lib/use-entitlement";
 import { supabase } from "@/lib/supabase";
 import {
   getReminderEnabled, setReminderEnabled,
-  getReminderTime, setReminderTime, REMINDER_TIMES,
+  getReminderTime, setReminderTime, REMINDER_TIMES, formatReminderTime,
 } from "@/lib/prefs";
 
 const TRANSLATIONS = [
@@ -43,7 +44,7 @@ const ChevronRightIcon = () => (
 
 export default function SettingsPage() {
   // Entitlement drives the trial row and the subscription card.
-  const { ent, locked, isNative: entNative, refresh: refreshEntitlement } = useEntitlement();
+  const { ent, pro, isNative: entNative, refresh: refreshEntitlement } = useEntitlement();
 
   const [user, setUser] = useState<{ email?: string; name?: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,7 +77,7 @@ export default function SettingsPage() {
   }, []);
 
   const handleToggleReminder = () => {
-    if (locked) return; // reminders are a Plus feature
+    if (!pro) return; // the daily reminder is a Pro feature
     const next = !reminderOn;
     setReminderOn(next);
     setReminderEnabled(next);
@@ -90,6 +91,7 @@ export default function SettingsPage() {
   const handleTranslation = (id: string) => {
     setTranslation(id);
     localStorage.setItem(TRANSLATION_STORAGE_KEY, id);
+    queuePush(TRANSLATION_STORAGE_KEY);
     setShowTranslations(false);
   };
 
@@ -132,10 +134,10 @@ export default function SettingsPage() {
               <div className="flex-1 min-w-0">
                 <p style={{ fontSize: 15, fontWeight: 500 }}>Daily note</p>
                 <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 1 }}>
-                  {locked
-                    ? "Part of Plus — the reading still waits for you"
+                  {!pro
+                    ? "Part of Pro — the reading still waits for you"
                     : reminderOn
-                      ? `One quiet note at ${reminderTime}, never a catch-up`
+                      ? `One quiet note at ${formatReminderTime(reminderTime)}, never a catch-up`
                       : "No note — the reading still waits for you"}
                 </p>
               </div>
@@ -143,19 +145,19 @@ export default function SettingsPage() {
               <button
                 onClick={handleToggleReminder}
                 role="switch"
-                aria-checked={reminderOn && !locked}
-                disabled={locked}
+                aria-checked={reminderOn && pro}
+                disabled={!pro}
                 style={{
                   width: 50, height: 30, borderRadius: 999, flexShrink: 0,
-                  opacity: locked ? 0.45 : 1,
-                  background: reminderOn && !locked ? "var(--gold-500)" : "var(--cream-400)",
+                  opacity: pro ? 1 : 0.45,
+                  background: reminderOn && pro ? "var(--gold-500)" : "var(--cream-400)",
                   position: "relative",
                   transition: "background 280ms var(--ease-bh)",
                 }}
               >
                 <span
                   style={{
-                    position: "absolute", top: 3, left: reminderOn && !locked ? 23 : 3,
+                    position: "absolute", top: 3, left: reminderOn && pro ? 23 : 3,
                     width: 24, height: 24, borderRadius: 999, background: "#FFFDF7",
                     boxShadow: "0 1px 3px rgba(34,28,20,.2)",
                     transition: "left 280ms var(--ease-bh)",
@@ -163,7 +165,7 @@ export default function SettingsPage() {
                 />
               </button>
             </div>
-            {reminderOn && !locked && (
+            {reminderOn && pro && (
               <div className="flex flex-wrap gap-2" style={{ padding: "0 16px 14px 46px" }}>
                 {REMINDER_TIMES.map((t) => {
                   const selected = reminderTime === t;
@@ -180,7 +182,7 @@ export default function SettingsPage() {
                         transition: "border-color 200ms, background 200ms",
                       }}
                     >
-                      {t}
+                      {formatReminderTime(t)}
                     </button>
                   );
                 })}
@@ -235,6 +237,17 @@ export default function SettingsPage() {
               <span style={{ color: "var(--text-muted)" }}><ChevronRightIcon /></span>
             </a>
           ))}
+
+          {/* Reading plan — the manual override (position + pace). Discoverable
+              from Settings as well as the Plan tab: someone who read ahead in a
+              paper Bible looks for it here first. */}
+          <a href="/plan/edit" className="bh-card flex items-center justify-between" style={{ padding: 16, textDecoration: "none", color: "inherit" }}>
+            <div>
+              <p style={{ fontSize: 15, fontWeight: 500 }}>My reading plan</p>
+              <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 1 }}>Change your pace, or set where you actually are</p>
+            </div>
+            <span style={{ color: "var(--text-muted)" }}><ChevronRightIcon /></span>
+          </a>
 
           {/* Subscription — trial state, then paid state */}
           <div className="bh-card" style={{ padding: 16 }}>

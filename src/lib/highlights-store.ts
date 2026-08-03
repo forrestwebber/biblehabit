@@ -1,3 +1,4 @@
+import { queuePush } from "./cloud-state";
 // Verse highlights / saved moments from Bible reading
 // Stored in localStorage with Supabase sync planned for future
 
@@ -31,12 +32,14 @@ export function saveHighlight(h: Omit<Highlight, "id" | "savedAt">): Highlight {
   const existing = getHighlights();
   existing.unshift(full); // newest first
   localStorage.setItem(HIGHLIGHTS_KEY, JSON.stringify(existing));
+  queuePush(HIGHLIGHTS_KEY);
   return full;
 }
 
 export function removeHighlight(id: string): void {
   const filtered = getHighlights().filter((h) => h.id !== id);
   localStorage.setItem(HIGHLIGHTS_KEY, JSON.stringify(filtered));
+  queuePush(HIGHLIGHTS_KEY);
 }
 
 export function getTotalHighlights(): number {

@@ -61,7 +61,7 @@ export default function TrialBanner({
           <>
             {" · "}
             <a href="/plus" style={{ color: "var(--text-secondary)", textDecoration: "underline", textUnderlineOffset: 3 }}>
-              see Plus
+              see Pro
             </a>
           </>
         )}
@@ -92,7 +92,9 @@ export function TrialRow({ daysLeft, ended }: { daysLeft: number; ended: boolean
         whiteSpace: "nowrap",
       }}
     >
-      {ended ? "Trial ended" : daysLeft === 1 ? "Trial · last day" : `Trial · ${daysLeft} days left`}
+      {/* "Trial ended" implied a lockout that no longer exists — after the
+          trial the account simply sits on the free plan. */}
+      {ended ? "Free plan" : daysLeft === 1 ? "Trial · last day" : `Trial · ${daysLeft} days left`}
     </span>
   );
 }

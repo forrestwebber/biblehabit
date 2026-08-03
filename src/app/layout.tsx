@@ -8,6 +8,8 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import AppStoreBanner from "@/components/AppStoreBanner";
 import ChatWidget from "@/components/ChatWidget";
 import MobileTabBar from "@/components/MobileTabBar";
+import NativeRootGate from "@/components/NativeRootGate";
+import CloudSync from "@/components/CloudSync";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -39,6 +41,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${lora.variable} ${karla.variable}`}>
       <body>
         <GoogleAnalytics gaId="G-X1P8GGT5RP" />
+        <NativeRootGate />
+        <CloudSync />
         <AppStoreBanner />
         {children}
         <ChatWidget />

@@ -1,3 +1,4 @@
+import { queuePush } from "./cloud-state";
 // Chapter notes — stored in localStorage, keyed by book+chapter
 export interface ChapterNote {
   book: string
@@ -32,6 +33,7 @@ export function saveNote(book: string, chapter: number, text: string): void {
     delete notes[noteKey(book, chapter)]
   }
   localStorage.setItem(KEY, JSON.stringify(notes))
+  queuePush(KEY)
 }
 
 export function getAllNotes(): ChapterNote[] {
