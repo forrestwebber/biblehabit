@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import NavBar from "@/components/NavBar";
+import TrialWall from "@/components/TrialWall";
+import { useEntitlement } from "@/lib/use-entitlement";
 import { supabase } from "@/lib/supabase";
 import {
   getPlan,
@@ -30,6 +32,9 @@ const MILESTONES = [
 ];
 
 export default function ProgressPage() {
+  // The whole Progress screen is the habit product — gated after the trial.
+  const { locked, isNative, refresh: refreshEntitlement, loading: entLoading } = useEntitlement();
+
   const [loading, setLoading] = useState(true);
   const [streak, setStreak] = useState(0);
   const [longest, setLongest] = useState(0);
@@ -106,11 +111,26 @@ export default function ProgressPage() {
   const bestStreak = Math.max(streak, longest);
   const nextMilestone = MILESTONES.find((m) => bestStreak < m.n) ?? null;
 
-  if (loading) {
+  if (loading || entLoading) {
     return (
       <div className="bh-app">
         <NavBar />
         <div className="flex items-center justify-center py-32" style={{ color: "var(--text-muted)" }}>Loading…</div>
+      </div>
+    );
+  }
+
+  if (locked) {
+    return (
+      <div className="bh-app">
+        <NavBar />
+        <TrialWall
+          streak={Math.max(streak, longest)}
+          chapters={totalRead}
+          isNative={isNative}
+          signedIn={!!isSignedIn}
+          onRefresh={refreshEntitlement}
+        />
       </div>
     );
   }

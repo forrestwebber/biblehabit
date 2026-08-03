@@ -5,8 +5,8 @@ export default function TermsPage() {
       <p className="text-slate-500 text-sm mb-8">Last updated: April 2026</p>
       <div className="prose prose-slate max-w-none space-y-6 text-slate-700">
         <section>
-          <h2 className="text-xl font-semibold text-slate-800 mb-3">Free Service</h2>
-          <p>BibleHabit is provided free of charge. We reserve the right to introduce optional paid features (such as an iOS app) in the future, but core reading plan functionality will remain free forever.</p>
+          <h2 className="text-xl font-semibold text-slate-800 mb-3">Free Trial, Then BibleHabit Plus</h2>
+          <p>Every account includes 7 days of full access. After that, reading the day&apos;s Scripture stays free and always will &mdash; the text is public domain and we will never put it behind a paywall. The habit features built on top of it (marking days complete, streaks, the pacing engine, creating and changing plans, the Progress screen, reminders, notes and highlights) require a BibleHabit Plus subscription: $2.99 per month or $19.99 per year, cancellable at any time from your billing portal. Your reading history remains yours and stays in your account whether or not you subscribe.</p>
         </section>
         <section>
           <h2 className="text-xl font-semibold text-slate-800 mb-3">No Warranty</h2>

@@ -3,6 +3,9 @@ import { useState, useEffect, useCallback } from "react";
 import NavBar from "@/components/NavBar";
 import BibleAffiliate from "@/components/BibleAffiliate";
 import SignUpGate from "@/components/SignUpGate";
+import TrialWall from "@/components/TrialWall";
+import TrialBanner from "@/components/TrialBanner";
+import { useEntitlement } from "@/lib/use-entitlement";
 import { supabase } from "@/lib/supabase";
 import {
   BIBLE_BOOKS,
@@ -146,6 +149,10 @@ const CheckIcon = ({ size = 18, stroke = 2 }: { size?: number; stroke?: number }
 
 // ─── Main component ──────────────────────────────────────────────
 export default function TodayPage() {
+  // Entitlement decides what the habit layer does. Scripture is never gated:
+  // the reading, its text, translations and verse sharing stay open forever.
+  const { ent, locked, refresh: refreshEntitlement } = useEntitlement();
+
   const [plan, setPlanState] = useState<ReturnType<typeof getPlan>>(null);
   const [loading, setLoading] = useState(true);
   const [translation, setTranslation] = useState<string>(DEFAULT_TRANSLATION);
@@ -304,13 +311,17 @@ export default function TodayPage() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       const loggedIn = !!session?.user;
       setIsSignedIn(loggedIn);
-      if (loggedIn) {
-        await syncProgress();
-        refreshStats();
-      }
+      if (!loggedIn) return;
+      // syncProgress() calls supabase.auth.getUser(). Calling any auth method
+      // from inside this callback deadlocks supabase-js (it holds the auth lock
+      // while the callback runs), which silently killed cloud sync on this
+      // screen. Defer it off the callback stack.
+      setTimeout(() => {
+        syncProgress().then(refreshStats).catch(() => {});
+      }, 0);
     });
 
     return () => subscription.unsubscribe();
@@ -360,6 +371,7 @@ export default function TodayPage() {
 
   const handleMarkDone = () => {
     if (!todayInfo) return;
+    if (locked) return; // gated: the wall is shown in place of this button
     hapticSuccess();
     const todayStr = formatDate(new Date());
     const indices = todayInfo.chapters.map((c) => c.globalIndex);
@@ -384,6 +396,7 @@ export default function TodayPage() {
   };
 
   const handleSubPlanDone = (planId: string) => {
+    if (locked) return; // gated
     hapticTap();
     markSubPlanDone(planId);
     setSubPlanDone((prev) => new Set([...prev, planId]));
@@ -431,12 +444,28 @@ export default function TodayPage() {
             <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 24 }}>
               A short set of questions, and tomorrow&apos;s reading will be waiting.
             </p>
-            <a href="/dashboard" className="bh-btn bh-btn-primary" style={{ maxWidth: 320, margin: "0 auto" }}>
-              Choose a plan
-            </a>
+            {!locked && (
+              <a href="/dashboard" className="bh-btn bh-btn-primary" style={{ maxWidth: 320, margin: "0 auto" }}>
+                Choose a plan
+              </a>
+            )}
           </div>
 
-          {subPlans.length > 0 && (
+          {/* Starting a plan is a Plus action, so the wall stands in for it. */}
+          {locked && (
+            <div style={{ marginBottom: 24 }}>
+              <TrialWall
+                variant="inline"
+                streak={streak}
+                chapters={totalRead}
+                isNative={isNative}
+                signedIn={!!isSignedIn}
+                onRefresh={refreshEntitlement}
+              />
+            </div>
+          )}
+
+          {subPlans.length > 0 && !locked && (
             <div className="space-y-3">
               <p className="bh-eyebrow" style={{ color: "var(--text-accent)", marginBottom: 8 }}>Daily readings</p>
               {subPlans.map((sp) => {
@@ -523,6 +552,11 @@ export default function TodayPage() {
 
       <div className="max-w-2xl mx-auto" style={{ padding: "20px 20px 28px" }}>
 
+        {/* One quiet line while the trial runs — dismissible, once a day. */}
+        {ent?.status === "trialing" && (
+          <TrialBanner daysLeft={ent.daysLeft} isNative={isNative} />
+        )}
+
         {/* ─── Header ─────────────────────────────────────────── */}
         <div className="flex items-start justify-between" style={{ marginBottom: 20, gap: 12 }}>
           <div>
@@ -531,7 +565,7 @@ export default function TodayPage() {
             </p>
             <h2 className="bh-serif" style={{ fontSize: 24, fontWeight: 500, lineHeight: 1.25 }}>{dateLabel}</h2>
           </div>
-          {streak > 0 && (
+          {streak > 0 && !locked && (
             <span className="bh-chip" style={{ marginTop: 4 }}>
               <SunriseIcon size={16} /> {streak} in a row
             </span>
@@ -541,7 +575,9 @@ export default function TodayPage() {
         <div className="space-y-4">
 
           {/* ─── Reading card ───────────────────────────────────── */}
-          {todayDone ? (
+          {/* An expired reader never sees the streak celebration or Undo —
+              they get the chapter plus the wall. */}
+          {todayDone && !locked ? (
             /* Complete state — the tick simply appears. No confetti. */
             <div
               className="bh-fade relative overflow-hidden text-center"
@@ -592,9 +628,22 @@ export default function TodayPage() {
                   </p>
                 </div>
               </div>
-              <button onClick={handleMarkDone} className="bh-btn bh-btn-secondary">
-                Mark complete
-              </button>
+              {locked ? (
+                /* Trial over: the chapter still opens, the streak does not run. */
+                <TrialWall
+                  variant="inline"
+                  inlineHeading="Your 7 days are up"
+                  streak={streak}
+                  chapters={totalRead}
+                  isNative={isNative}
+                  signedIn={!!isSignedIn}
+                  onRefresh={refreshEntitlement}
+                />
+              ) : (
+                <button onClick={handleMarkDone} className="bh-btn bh-btn-secondary">
+                  Mark complete
+                </button>
+              )}
             </>
           ) : (
             /* ─── Expanded reading view ─────────────────────────── */
@@ -743,7 +792,8 @@ export default function TodayPage() {
                 </div>
               )}
 
-              {/* Chapter notes */}
+              {/* Chapter notes — a Plus feature, hidden once the trial ends */}
+              {!locked && (
               <div style={{ padding: "16px 20px", borderTop: "1px solid var(--line-hairline)" }}>
                 <p className="bh-eyebrow" style={{ color: "var(--text-muted)", marginBottom: 8 }}>My notes</p>
                 <textarea
@@ -792,18 +842,31 @@ export default function TodayPage() {
                   </button>
                 )}
               </div>
+              )}
 
-              {/* Mark complete */}
+              {/* Mark complete — or the wall, once the trial is over */}
               <div style={{ padding: "16px 20px 20px", borderTop: "1px solid var(--line-hairline)" }}>
-                <button onClick={handleMarkDone} className="bh-btn bh-btn-primary">
-                  Mark complete
-                </button>
+                {locked ? (
+                  <TrialWall
+                    variant="inline"
+                    inlineHeading="Your 7 days are up"
+                    streak={streak}
+                    chapters={totalRead}
+                    isNative={isNative}
+                    signedIn={!!isSignedIn}
+                    onRefresh={refreshEntitlement}
+                  />
+                ) : (
+                  <button onClick={handleMarkDone} className="bh-btn bh-btn-primary">
+                    Mark complete
+                  </button>
+                )}
               </div>
             </div>
           )}
 
-          {/* ─── Daily readings (sub-plans) ─────────────────────── */}
-          {subPlans.length > 0 && !readingOpen && (
+          {/* ─── Daily readings (sub-plans) — Plus ─────────────── */}
+          {subPlans.length > 0 && !readingOpen && !locked && (
             <div className="space-y-3">
               <p className="bh-eyebrow" style={{ color: "var(--text-accent)" }}>Also today</p>
               {subPlans.map((sp) => {
@@ -856,8 +919,8 @@ export default function TodayPage() {
             </div>
           )}
 
-          {/* ─── Reading meter ──────────────────────────────────── */}
-          {!readingOpen && (
+          {/* ─── Reading meter — Plus ───────────────────────────── */}
+          {!readingOpen && !locked && (
             <div className="bh-card" style={{ padding: 20 }}>
               <div className="flex items-baseline justify-between" style={{ marginBottom: 10 }}>
                 <p style={{ fontSize: 14, fontWeight: 500 }}>{planLabel}</p>
@@ -884,8 +947,8 @@ export default function TodayPage() {
             </div>
           )}
 
-          {/* ─── Tomorrow ───────────────────────────────────────── */}
-          {tomorrowPreview && !readingOpen && (
+          {/* ─── Tomorrow — part of the pacing engine, so Plus ─── */}
+          {tomorrowPreview && !readingOpen && !locked && (
             <div className="bh-sunk flex items-center justify-between" style={{ padding: "16px 20px" }}>
               <div>
                 <p className="bh-eyebrow" style={{ color: "var(--text-muted)", marginBottom: 4 }}>Tomorrow</p>
@@ -906,14 +969,14 @@ export default function TodayPage() {
             </div>
           )}
 
-          {/* ─── Add a daily reading ─────────────────────────────── */}
-          {subPlans.length === 0 && !showDevotionalPicker && !readingOpen && (
+          {/* ─── Add a daily reading — Plus ─────────────────────── */}
+          {subPlans.length === 0 && !showDevotionalPicker && !readingOpen && !locked && (
             <button onClick={() => setShowDevotionalPicker(true)} className="bh-sunk w-full text-left" style={{ padding: "14px 18px" }}>
               <p style={{ fontSize: 14, fontWeight: 500 }}>Add a small daily reading</p>
               <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>A Psalm or a Proverb alongside your plan.</p>
             </button>
           )}
-          {showDevotionalPicker && (
+          {showDevotionalPicker && !locked && (
             <div className="bh-card" style={{ padding: 18 }}>
               <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
                 <p style={{ fontSize: 14, fontWeight: 600 }}>Choose a daily reading</p>
@@ -977,6 +1040,9 @@ export default function TodayPage() {
             >
               Share
             </button>
+            {/* Sharing a verse stays free — it's public-domain scripture.
+                Keeping a highlight is saved-library territory, so it's Plus. */}
+            {!locked && (
             <button
               onClick={() => {
                 if (highlightSaved) return;
@@ -998,6 +1064,7 @@ export default function TodayPage() {
             >
               {highlightSaved ? "Kept" : "Keep"}
             </button>
+            )}
             <button
               onClick={() => { setSelectedVerses(new Set()); setHighlightSaved(false); }}
               style={{ color: "var(--cream-300)", padding: 4 }}

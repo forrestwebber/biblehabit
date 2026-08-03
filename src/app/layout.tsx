@@ -17,11 +17,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "BibleHabit — Daily Bible Reading",
-  description: "Build a daily Scripture habit. One verse at a time. Free forever.",
+  description: "Build a daily Scripture habit. One morning at a time. 7 days free.",
   metadataBase: new URL("https://biblehabit.co"),
   openGraph: {
     title: "BibleHabit — Daily Bible Reading",
-    description: "Build a daily Scripture habit. One verse at a time. Free forever.",
+    description: "Build a daily Scripture habit. One morning at a time. 7 days free.",
     url: "https://biblehabit.co",
     siteName: "BibleHabit",
     type: "website",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "BibleHabit — Daily Bible Reading",
-    description: "Build a daily Scripture habit. One verse at a time. Free forever.",
+    description: "Build a daily Scripture habit. One morning at a time. 7 days free.",
   },
   icons: { icon: "/favicon.ico" },
 };

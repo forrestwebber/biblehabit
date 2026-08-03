@@ -27,7 +27,9 @@ import {
   getBookColor,
   type FullDayReading,
 } from "@/lib/bible-data";
-import { savePlan } from "@/lib/reading-store";
+import { savePlan, getCurrentStreak, getTotalChaptersRead } from "@/lib/reading-store";
+import TrialWall from "@/components/TrialWall";
+import { useEntitlement } from "@/lib/use-entitlement";
 import { supabase } from "@/lib/supabase";
 import {
   addSubPlan,
@@ -141,6 +143,8 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 }
 
 export default function PlansPage() {
+  const { locked, isNative, refresh: refreshEntitlement } = useEntitlement();
+
   const [startBook, setStartBook] = useState("Genesis");
   const [endBook, setEndBook] = useState("Revelation");
   const [selectedTranslation, setSelectedTranslation] = useState("kjv");
@@ -275,6 +279,23 @@ export default function PlansPage() {
     d.setMonth(d.getMonth() + 1);
     setCalendarMonth(d);
   };
+
+  // Plan building and plan export are Plus features — the wall stands in for
+  // the whole builder once the 7-day trial has ended.
+  if (locked) {
+    return (
+      <div className="bh-app">
+        <NavBar />
+        <TrialWall
+          streak={getCurrentStreak()}
+          chapters={getTotalChaptersRead()}
+          isNative={isNative}
+          signedIn={!!user}
+          onRefresh={refreshEntitlement}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">

@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import NavBar from "@/components/NavBar";
+import { TrialRow } from "@/components/TrialBanner";
+import { useEntitlement, authHeaders } from "@/lib/use-entitlement";
 import { supabase } from "@/lib/supabase";
 import {
   getReminderEnabled, setReminderEnabled,
@@ -19,6 +21,10 @@ const TRANSLATIONS = [
 ];
 const TRANSLATION_STORAGE_KEY = "biblehabit_translation";
 
+function formatRenewal(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
+}
+
 const BellIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
@@ -35,9 +41,10 @@ const ChevronRightIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
 );
 
-type SubStatus = { active: boolean; interval?: string; renewsAt?: string } | null;
-
 export default function SettingsPage() {
+  // Entitlement drives the trial row and the subscription card.
+  const { ent, locked, isNative: entNative, refresh: refreshEntitlement } = useEntitlement();
+
   const [user, setUser] = useState<{ email?: string; name?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isNative, setIsNative] = useState(false);
@@ -46,8 +53,6 @@ export default function SettingsPage() {
   const [reminderTime, setReminderTimeState] = useState("7:00");
   const [translation, setTranslation] = useState("kjv");
   const [showTranslations, setShowTranslations] = useState(false);
-  const [sub, setSub] = useState<SubStatus>(null);
-  const [subLoading, setSubLoading] = useState(false);
 
   useEffect(() => {
     setReminderOn(getReminderEnabled());
@@ -65,20 +70,13 @@ export default function SettingsPage() {
           email: u.email ?? undefined,
           name: u.user_metadata?.full_name ?? u.user_metadata?.name ?? undefined,
         });
-        if (u.email) {
-          setSubLoading(true);
-          fetch(`/api/subscription?email=${encodeURIComponent(u.email)}`)
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d) => setSub(d))
-            .catch(() => setSub(null))
-            .finally(() => setSubLoading(false));
-        }
       }
       setLoading(false);
     });
   }, []);
 
   const handleToggleReminder = () => {
+    if (locked) return; // reminders are a Plus feature
     const next = !reminderOn;
     setReminderOn(next);
     setReminderEnabled(next);
@@ -104,7 +102,7 @@ export default function SettingsPage() {
     if (!user?.email) return;
     const res = await fetch("/api/portal", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ email: user.email }),
     });
     if (res.ok) {
@@ -134,24 +132,30 @@ export default function SettingsPage() {
               <div className="flex-1 min-w-0">
                 <p style={{ fontSize: 15, fontWeight: 500 }}>Daily note</p>
                 <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 1 }}>
-                  {reminderOn ? `One quiet note at ${reminderTime}, never a catch-up` : "No note — the reading still waits for you"}
+                  {locked
+                    ? "Part of Plus — the reading still waits for you"
+                    : reminderOn
+                      ? `One quiet note at ${reminderTime}, never a catch-up`
+                      : "No note — the reading still waits for you"}
                 </p>
               </div>
               {/* Switch */}
               <button
                 onClick={handleToggleReminder}
                 role="switch"
-                aria-checked={reminderOn}
+                aria-checked={reminderOn && !locked}
+                disabled={locked}
                 style={{
                   width: 50, height: 30, borderRadius: 999, flexShrink: 0,
-                  background: reminderOn ? "var(--gold-500)" : "var(--cream-400)",
+                  opacity: locked ? 0.45 : 1,
+                  background: reminderOn && !locked ? "var(--gold-500)" : "var(--cream-400)",
                   position: "relative",
                   transition: "background 280ms var(--ease-bh)",
                 }}
               >
                 <span
                   style={{
-                    position: "absolute", top: 3, left: reminderOn ? 23 : 3,
+                    position: "absolute", top: 3, left: reminderOn && !locked ? 23 : 3,
                     width: 24, height: 24, borderRadius: 999, background: "#FFFDF7",
                     boxShadow: "0 1px 3px rgba(34,28,20,.2)",
                     transition: "left 280ms var(--ease-bh)",
@@ -159,7 +163,7 @@ export default function SettingsPage() {
                 />
               </button>
             </div>
-            {reminderOn && (
+            {reminderOn && !locked && (
               <div className="flex flex-wrap gap-2" style={{ padding: "0 16px 14px 46px" }}>
                 {REMINDER_TIMES.map((t) => {
                   const selected = reminderTime === t;
@@ -232,38 +236,56 @@ export default function SettingsPage() {
             </a>
           ))}
 
-          {/* Subscription */}
+          {/* Subscription — trial state, then paid state */}
           <div className="bh-card" style={{ padding: 16 }}>
-            <div className="flex items-center justify-between" style={{ marginBottom: sub?.active || !isNative ? 12 : 0 }}>
-              <div>
+            <div className="flex items-center justify-between gap-3" style={{ marginBottom: 12 }}>
+              <div className="min-w-0">
                 <p style={{ fontSize: 15, fontWeight: 500 }}>BibleHabit Plus</p>
                 <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 1 }}>
-                  {subLoading
+                  {!ent
                     ? "Checking…"
-                    : sub?.active
-                      ? `${sub.interval === "year" ? "Yearly" : "Monthly"}${sub.renewsAt ? ` · renews ${sub.renewsAt}` : ""}`
-                      : "The pacing engine, and room for more than one thing you're reading"}
+                    : ent.comped
+                      ? "Complimentary access"
+                      : ent.isPaid
+                        ? `${ent.interval === "month" ? "Monthly" : "Yearly"}${ent.currentPeriodEnd ? ` · renews ${formatRenewal(ent.currentPeriodEnd)}` : ""}`
+                        : ent.status === "trialing"
+                          ? "Full access during your free trial"
+                          : "Your 7-day trial has ended — scripture stays free"}
                 </p>
               </div>
-              {sub?.active && (
-                <span style={{ background: "var(--sage-100)", color: "var(--sage-700)", fontSize: 12, fontWeight: 600, borderRadius: 999, padding: "4px 12px" }}>
+              {ent?.isPaid ? (
+                <span className="flex-shrink-0" style={{ background: "var(--sage-100)", color: "var(--sage-700)", fontSize: 12, fontWeight: 600, borderRadius: 999, padding: "4px 12px" }}>
                   Active
                 </span>
-              )}
+              ) : ent ? (
+                <TrialRow daysLeft={ent.daysLeft} ended={ent.status === "expired"} />
+              ) : null}
             </div>
-            {sub?.active ? (
-              isNative ? (
+
+            {ent?.isPaid ? (
+              isNative || entNative ? (
                 <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Manage your subscription where you purchased it.</p>
+              ) : ent.comped ? (
+                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>No billing on this account.</p>
               ) : (
                 <button onClick={handleManageBilling} className="bh-btn bh-btn-secondary" style={{ height: 44, fontSize: 14 }}>
                   Manage subscription
                 </button>
               )
-            ) : isNative ? (
-              <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>Coming to the App Store.</p>
+            ) : isNative || entNative ? (
+              /* App Store 3.1.1 — no prices, no purchase CTA, no links out. */
+              <div>
+                <p style={{ fontSize: 13, lineHeight: 1.5, color: "var(--text-muted)" }}>
+                  Subscriptions are coming to the App Store. If you already subscribed on the web,
+                  sign in with that account to continue.
+                </p>
+                <button onClick={refreshEntitlement} className="bh-btn bh-btn-secondary" style={{ height: 44, fontSize: 14, marginTop: 10 }}>
+                  Check my subscription again
+                </button>
+              </div>
             ) : (
               <a href="/plus" className="bh-btn bh-btn-secondary" style={{ height: 44, fontSize: 14 }}>
-                See what&apos;s in Plus
+                {ent?.status === "expired" ? "See BibleHabit Plus" : "See what's in Plus"}
               </a>
             )}
           </div>

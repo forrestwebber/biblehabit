@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { requireEntitlement } from "@/lib/entitlement";
 
 export async function POST(req: NextRequest) {
+  // Plan-start email is part of the gated plan flow — 401/402 once the trial ends.
+  const gate = await requireEntitlement(req);
+  if ("response" in gate) return gate.response;
+
   const resend = new Resend(process.env.RESEND_API_KEY ?? "missing");
   try {
-    const { email, name, startBook, startChapter, chaptersPerDay, finishDate } = await req.json();
-    if (!email) return NextResponse.json({ error: "Missing email" }, { status: 400 });
+    const { name, startBook, startChapter, chaptersPerDay, finishDate } = await req.json();
+    // Always send to the verified account, never to a client-supplied address.
+    const email = gate.user.email;
 
     const displayName = name ? name.split(" ")[0] : "friend";
     const pace = chaptersPerDay === 1 ? "1 chapter" : `${chaptersPerDay} chapters`;

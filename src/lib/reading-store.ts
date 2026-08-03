@@ -134,20 +134,37 @@ async function pushProgressToSupabase(
   }
 }
 
-/** Push plan to Supabase profile */
+/**
+ * Push plan to the server.
+ *
+ * Goes through POST /api/plan rather than writing profiles directly, because
+ * plan creation and plan changes are gated product actions: the route returns
+ * 402 once the 7-day trial has ended (and the profiles RLS policy refuses the
+ * write regardless). Local storage is untouched either way, so an expired
+ * reader keeps their plan on the device and simply stops syncing changes.
+ */
 async function pushPlanToSupabase(
-  userId: string,
+  _userId: string,
   plan: SavedPlan
 ): Promise<void> {
-  await supabase
-    .from("profiles")
-    .update({
-      plan_id: `${plan.startBook}-${plan.startChapter}`,
-      plan_start_date: plan.startDate,
-      chapters_per_day: plan.chaptersPerDay,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", userId);
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return;
+
+  const res = await fetch("/api/plan", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      startBook: plan.startBook,
+      startChapter: plan.startChapter,
+      chaptersPerDay: plan.chaptersPerDay,
+      startDate: plan.startDate,
+    }),
+  });
+
+  if (!res.ok && res.status !== 402 && res.status !== 401) {
+    console.error("[reading-store] plan sync failed:", res.status);
+  }
 }
 
 // ─── Public API ──────────────────────────────────────────────────

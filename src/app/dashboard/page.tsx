@@ -1,6 +1,10 @@
 "use client";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import NavBar from "@/components/NavBar";
+import TrialWall from "@/components/TrialWall";
+import TrialBanner from "@/components/TrialBanner";
+import { useEntitlement } from "@/lib/use-entitlement";
+import { authHeaders } from "@/lib/use-entitlement";
 import { supabase } from "@/lib/supabase";
 import {
   BIBLE_BOOKS,
@@ -126,6 +130,16 @@ function ChapterPicker({ book, selected, onSelect }: { book: string; selected: n
 // ─── Page ────────────────────────────────────────────────────────
 
 export default function PlanPage() {
+  // Plan creation, plan changes, the pacing engine, recalculate and the habit
+  // checklist are the product. All of it is behind the 7-day trial.
+  const {
+    ent,
+    locked,
+    isNative,
+    refresh: refreshEntitlement,
+    loading: entLoading,
+  } = useEntitlement();
+
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [plan, setPlan] = useState<SavedPlan | null>(null);
@@ -242,6 +256,7 @@ export default function PlanPage() {
   // ─── Recalculate pace: re-anchor the plan at the actual position ──
   function handleRecalculate() {
     if (!plan) return;
+    if (locked) return; // gated — the wall replaces this screen anyway
     const startIdx = getGlobalChapterIndex(plan.startBook, plan.startChapter);
     const nextUnread = Math.min(startIdx + getTotalChaptersRead(), TOTAL_CHAPTERS - 1);
     const bc = getBookAndChapter(nextUnread);
@@ -259,6 +274,7 @@ export default function PlanPage() {
 
   // ─── Onboarding: start the chosen plan ───────────────────────
   function handleStartPlan() {
+    if (locked) return; // gated
     const startsFresh = obStage === "fresh";
     let startBook = startsFresh ? "Genesis" : obBook;
     let startChapter = startsFresh ? 1 : obChapter;
@@ -309,21 +325,25 @@ export default function PlanPage() {
     setReminderTime(obTime);
     setReminderEnabled(true);
 
-    // Welcome email (fire-and-forget)
+    // Welcome email (fire-and-forget). The route is entitlement-gated, so it
+    // needs the access token and sends only to the verified account address.
     if (user?.email) {
       const analysisNow = getProgressAnalysis(newPlan);
-      fetch("/api/email/welcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: user.email,
-          name: user.name,
-          startBook,
-          startChapter,
-          chaptersPerDay,
-          finishDate: analysisNow.scheduledFinishDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
-        }),
-      }).catch(() => {});
+      authHeaders()
+        .then((headers) =>
+          fetch("/api/email/welcome", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...headers },
+            body: JSON.stringify({
+              name: user.name,
+              startBook,
+              startChapter,
+              chaptersPerDay,
+              finishDate: analysisNow.scheduledFinishDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+            }),
+          })
+        )
+        .catch(() => {});
     }
 
     setPlan(newPlan);
@@ -338,11 +358,27 @@ export default function PlanPage() {
   }
 
   // ─── Loading ─────────────────────────────────────────────────
-  if (loading) {
+  if (loading || entLoading) {
     return (
       <div className="bh-app flex flex-col items-center justify-center gap-3" style={{ minHeight: "100vh" }}>
         <div className="w-8 h-8 rounded-full animate-spin" style={{ border: "2px solid var(--gold-500)", borderTopColor: "transparent" }} />
         <p style={{ fontSize: 14, color: "var(--text-muted)" }}>Loading…</p>
+      </div>
+    );
+  }
+
+  // ─── Trial over: the wall stands in for the whole Plan screen ──
+  if (locked) {
+    return (
+      <div className="bh-app">
+        <NavBar />
+        <TrialWall
+          streak={streak}
+          chapters={totalRead}
+          isNative={isNative}
+          signedIn={!!user}
+          onRefresh={refreshEntitlement}
+        />
       </div>
     );
   }
@@ -588,6 +624,10 @@ export default function PlanPage() {
     <div className="bh-app">
       <NavBar />
       <div className="max-w-2xl mx-auto" style={{ padding: "20px 20px 28px" }}>
+
+        {ent?.status === "trialing" && (
+          <TrialBanner daysLeft={ent.daysLeft} isNative={isNative} />
+        )}
 
         {/* Header */}
         <div style={{ marginBottom: 16 }}>

@@ -382,7 +382,7 @@ export default function HomePage() {
           <div className="grid grid-cols-3 gap-6">
             <div><p className="text-4xl font-bold text-violet-600">1,189</p><p className="text-slate-500 mt-1 text-sm">Chapters in the Bible</p></div>
             <div><p className="text-4xl font-bold text-violet-600">~15 min</p><p className="text-slate-500 mt-1 text-sm">Average daily reading</p></div>
-            <div><p className="text-4xl font-bold text-violet-600">$0</p><p className="text-slate-500 mt-1 text-sm">Cost. Forever.</p></div>
+            <div><p className="text-4xl font-bold text-violet-600">7 days</p><p className="text-slate-500 mt-1 text-sm">Free, no card</p></div>
           </div>
         </div>
       </section>
@@ -390,11 +390,11 @@ export default function HomePage() {
       {/* CTA */}
       <section className="py-20 px-6 text-center">
         <h2 className="text-3xl font-bold text-slate-900 mb-4">Start Your Bible Habit Today</h2>
-        <p className="text-slate-500 mb-8 max-w-xl mx-auto">Free forever. No credit card. No catch. Just Scripture, one day at a time.</p>
+        <p className="text-slate-500 mb-8 max-w-xl mx-auto">7 days free, no credit card. After that, $2.99 a month or $19.99 a year &mdash; and the day&apos;s Scripture stays free either way.</p>
         <a href="/login" className="inline-flex items-center gap-2 bg-violet-700 text-white px-8 py-3 rounded-lg hover:bg-violet-800 transition font-semibold text-lg">
-          <Star className="h-5 w-5" /> Create Your Free Account
+          <Star className="h-5 w-5" /> Start your 7 free days
         </a>
-        <p className="text-xs text-slate-400 mt-4">iOS app coming soon &mdash; $4.99 lifetime access</p>
+        <p className="text-xs text-slate-400 mt-4">iOS app in beta &mdash; subscriptions coming to the App Store</p>
       </section>
 
       {/* Footer */}
