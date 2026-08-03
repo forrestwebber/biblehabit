@@ -39,10 +39,26 @@ const LOCAL_TRIAL_KEY = "bh-trial-started";
 const CACHE_KEY = "bh-entitlement-cache";
 const CACHE_TTL_MS = 60_000;
 
+/**
+ * True inside the Capacitor iOS shell — the single native check for the app.
+ *
+ * `?native=preview` forces it on in a plain browser. That is not a convenience:
+ * the native-only branches (the IAP paywall above all) are otherwise impossible
+ * to see or screenshot outside a device, and Capacitor's own web runtime is
+ * bundled here — it defines window.Capacitor.isNativePlatform() returning false
+ * and OVERWRITES any shim injected before page scripts, so faking it from the
+ * outside does not work. This flag is how the App Review screenshot gets taken.
+ * Same spirit as MobileTabBar's `?tabbar=preview`.
+ */
 export function isNativeShell(): boolean {
   if (typeof window === "undefined") return false;
   const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
-  return !!cap?.isNativePlatform?.();
+  if (cap?.isNativePlatform?.()) return true;
+  try {
+    return new URLSearchParams(window.location.search).get("native") === "preview";
+  } catch {
+    return false;
+  }
 }
 
 function localTrialStart(): Date {

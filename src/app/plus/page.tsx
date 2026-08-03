@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { isNativeShell } from "@/lib/use-entitlement";
 import ProUpsell from "@/components/ProUpsell";
 import { getCurrentStreak, getTotalChaptersRead } from "@/lib/reading-store";
 
@@ -43,10 +44,10 @@ export default function PlusPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setIsNative(
-      typeof (window as any).Capacitor !== "undefined" &&
-      !!(window as any).Capacitor.isNativePlatform?.()
-    );
+    // One shared native check (lib/use-entitlement) instead of a second inline
+    // copy — the two drifted, and this page's copy had no preview escape hatch,
+    // which made the native paywall impossible to screenshot for App Review.
+    setIsNative(isNativeShell());
     supabase.auth.getSession().then(({ data }) => {
       setEmail(data.session?.user?.email ?? undefined);
     });
