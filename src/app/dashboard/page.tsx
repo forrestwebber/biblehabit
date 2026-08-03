@@ -22,10 +22,9 @@ import {
   getSubPlanStreak, addSubPlan, type SubPlan,
 } from "@/lib/sub-plans";
 import { getReminderTime, setReminderTime, setReminderEnabled, REMINDER_TIMES } from "@/lib/prefs";
+import { estimateChapterMinutes, estimateDailyMinutes } from "@/lib/reading-time";
 
 type User = { id: string; email?: string; name?: string };
-
-const MINUTES_PER_CHAPTER = 4;
 
 function formatFinishDate(d: Date): string {
   return d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
@@ -59,10 +58,19 @@ const STAGE_CARDS: { id: ReadingStage; title: string; desc: string }[] = [
   { id: "while", title: "Been reading a while", desc: "We'll pick up mid-stream, right where you are." },
 ];
 
+// Estimated minutes/day per card — same words-per-minute model the Today screen uses.
+const PLAN_MINUTES: Record<PlanChoice, number> = {
+  year: Math.round(4 * estimateChapterMinutes("Genesis")),
+  nt90: Math.round(3 * estimateChapterMinutes("Matthew")),
+  psalm: Math.round(
+    estimateChapterMinutes("Matthew") + estimateChapterMinutes("Psalms") + estimateChapterMinutes("Proverbs")
+  ),
+};
+
 const PLAN_CARDS: { id: PlanChoice; title: string; desc: string }[] = [
-  { id: "year", title: "Whole Bible in a year", desc: "Three to four chapters · about 14 minutes a day" },
-  { id: "nt90", title: "New Testament in 90 days", desc: "About three chapters · about 9 minutes a day" },
-  { id: "psalm", title: "A Psalm, a Proverb, and a bit of the New Testament", desc: "Three short readings · about 9 minutes a day" },
+  { id: "year", title: "Whole Bible in a year", desc: `Four chapters · about ${PLAN_MINUTES.year} minutes a day` },
+  { id: "nt90", title: "New Testament in 90 days", desc: `Three chapters · about ${PLAN_MINUTES.nt90} minutes a day` },
+  { id: "psalm", title: "A Psalm, a Proverb, and a bit of the New Testament", desc: `Three short readings · about ${PLAN_MINUTES.psalm} minutes a day` },
 ];
 
 function BookPicker({ selected, onSelect }: { selected: string; onSelect: (book: string) => void }) {
@@ -203,7 +211,7 @@ export default function PlanPage() {
 
   const weeklyCounts = useMemo(() => (plan ? getWeeklyChapterCounts(7) : []), [plan, totalRead]);
 
-  const paceMinutes = plan ? Math.max(1, Math.round(plan.chaptersPerDay * MINUTES_PER_CHAPTER)) : 0;
+  const paceMinutes = plan ? estimateDailyMinutes(plan.startBook, plan.chaptersPerDay) : 0;
 
   const planLabel = plan
     ? (!plan.endBook || plan.endBook === "Revelation")
@@ -254,8 +262,8 @@ export default function PlanPage() {
     const startsFresh = obStage === "fresh";
     let startBook = startsFresh ? "Genesis" : obBook;
     let startChapter = startsFresh ? 1 : obChapter;
-    let chaptersPerDay = 3;
-    let endBook: string | undefined = undefined;
+    let chaptersPerDay = obPlan === "year" ? 4 : obPlan === "nt90" ? 3 : 1;
+    const endBook: string | undefined = undefined; // all three read to Revelation
 
     const ntStart = getGlobalChapterIndex("Matthew", 1);
     const chosenIdx = getGlobalChapterIndex(startBook, startChapter);
@@ -266,8 +274,15 @@ export default function PlanPage() {
         startBook = "Matthew";
         startChapter = 1;
       }
-      chaptersPerDay = obPlan === "nt90" ? 3 : 1;
-      endBook = undefined; // reads to Revelation
+    }
+
+    // Beginner guard: someone "starting fresh" should never open to a heavy first
+    // day. If the estimated load tops ~20 minutes, lighten the daily chapters —
+    // the finish date stretches instead of the first morning.
+    if (startsFresh) {
+      while (chaptersPerDay > 1 && estimateDailyMinutes(startBook, chaptersPerDay) > 20) {
+        chaptersPerDay--;
+      }
     }
 
     const newPlan: SavedPlan = {
@@ -415,7 +430,9 @@ export default function PlanPage() {
             <div className="bh-fade">
               <h1 className="bh-serif" style={{ fontSize: 30, fontWeight: 500, lineHeight: 1.2 }}>Three that would suit you</h1>
               <p style={{ fontSize: 14, color: "var(--text-secondary)", marginTop: 8, marginBottom: 24 }}>
-                Picked for someone already reading most mornings. You can change it any time.
+                {obStage === "fresh"
+                  ? "Light on purpose — showing up daily matters more than page count. You can change it any time."
+                  : "Picked for someone already reading most mornings. You can change it any time."}
               </p>
               <div className="space-y-3">
                 {PLAN_CARDS.map((c) => {
@@ -500,7 +517,17 @@ export default function PlanPage() {
         {/* Footer */}
         <div className="mx-auto w-full max-w-md" style={{ padding: "14px 24px calc(env(safe-area-inset-bottom, 0px) + 20px)" }}>
           <button
-            onClick={() => (obStep < 2 ? setObStep(obStep + 1) : handleStartPlan())}
+            onClick={() => {
+              if (obStep === 0) {
+                // Beginners default to the lightest plan; readers to the classic.
+                setObPlan(obStage === "fresh" ? "psalm" : "year");
+                setObStep(1);
+              } else if (obStep < 2) {
+                setObStep(obStep + 1);
+              } else {
+                handleStartPlan();
+              }
+            }}
             disabled={!canContinue}
             className="bh-btn bh-btn-primary"
           >
@@ -526,7 +553,7 @@ export default function PlanPage() {
       rows.push({
         id: sp.id,
         label: `${sp.book} ${getSubPlanChapterToday(sp)}`,
-        minutes: Math.max(1, Math.round(sp.chaptersPerDay * 3)),
+        minutes: Math.max(1, Math.round(sp.chaptersPerDay * estimateChapterMinutes(sp.book))),
         done: subPlanDone.has(sp.id),
         streak: getSubPlanStreak(sp.id),
         isMain: false,

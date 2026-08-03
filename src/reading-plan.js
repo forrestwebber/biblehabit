@@ -294,7 +294,8 @@ function generateSchedule(plan, startDate = new Date()) {
 
 /**
  * Calculate a simple reading plan (range-based, no full schedule array).
- * chaptersPerDay = minutesPerDay (1 chapter ≈ 1 min reading).
+ * An average Bible chapter takes ~2.8 minutes at 238 wpm — the old
+ * 1 chapter ≈ 1 minute assumption produced 30-chapter days.
  */
 function calculateRange(startBookName, endBookName, minutesPerDay, startDate = new Date()) {
   const startIdx = BIBLE_BOOKS.findIndex((b) => b.name === startBookName);
@@ -312,7 +313,7 @@ function calculateRange(startBookName, endBookName, minutesPerDay, startDate = n
     totalChapters += BIBLE_BOOKS[i].chapters;
   }
 
-  const chaptersPerDay = minutesPerDay; // 1 chapter ≈ 1 min
+  const chaptersPerDay = Math.max(1, Math.round(minutesPerDay / 2.8)); // ~2.8 min per chapter
   const totalDays = Math.ceil(totalChapters / chaptersPerDay);
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + totalDays);

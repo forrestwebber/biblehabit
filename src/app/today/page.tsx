@@ -38,6 +38,8 @@ import { addXP, XP_PER_CHAPTER } from "@/lib/xp-store";
 import { saveHighlight } from "@/lib/highlights-store";
 import { getNote, saveNote } from "@/lib/notes-store";
 import { hapticTap, hapticMedium, hapticSuccess } from "@/lib/haptics";
+import { estimateChapterMinutes } from "@/lib/reading-time";
+import { verseShareUrl } from "@/lib/verse-link";
 
 // ─── Translations ────────────────────────────────────────────────
 const TRANSLATIONS = [
@@ -398,7 +400,8 @@ export default function TodayPage() {
         words += data.verses.reduce((sum, v) => sum + v.text.split(/\s+/).length, 0);
       }
     }
-    if (loaded === 0) return chapters.length * 4;
+    if (loaded === 0)
+      return Math.max(1, Math.round(chapters.reduce((sum, ch) => sum + estimateChapterMinutes(ch.book), 0)));
     const perChapter = words / loaded / 238;
     return Math.max(1, Math.round(perChapter * chapters.length));
   };
@@ -956,9 +959,16 @@ export default function TodayPage() {
                   const v = chapterData.verses.find((v) => v.verse === vn);
                   return v ? `"${v.text}" — ${currentCh.book} ${currentCh.chapter}:${vn}` : "";
                 }).filter(Boolean).join("\n");
-                const shareText = text + "\n\nbiblehabit.co";
+                // Share a rich verse link (unfurls as a branded verse card in iMessage)
+                const shareUrl = verseShareUrl(
+                  currentCh.book,
+                  currentCh.chapter,
+                  sortedVerses[0],
+                  sortedVerses.length > 1 ? sortedVerses[sortedVerses.length - 1] : undefined
+                );
+                const shareText = text + "\n\n" + shareUrl;
                 if (navigator.share) {
-                  navigator.share({ text: shareText, title: `${currentCh.book} ${currentCh.chapter}` }).catch(() => {});
+                  navigator.share({ text, title: `${currentCh.book} ${currentCh.chapter}`, url: shareUrl }).catch(() => {});
                 } else {
                   navigator.clipboard.writeText(shareText).catch(() => {});
                 }

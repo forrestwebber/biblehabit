@@ -12,6 +12,7 @@ export interface SavedPlan {
   startDate: string; // ISO date
   createdAt: string;
   endBook?: string;  // last book to read (inclusive). Undefined = read to Revelation.
+  paceVersion?: number; // 2 = chaptersPerDay is real chapters (post minutes-bug fix)
 }
 
 export interface ReadingProgress {
@@ -152,15 +153,32 @@ async function pushPlanToSupabase(
 // ─── Public API ──────────────────────────────────────────────────
 
 export function savePlan(plan: SavedPlan): void {
-  localSavePlan(plan);
+  const stamped: SavedPlan = { ...plan, paceVersion: 2 };
+  localSavePlan(stamped);
   // Fire-and-forget Supabase sync
   getUser().then((user) => {
-    if (user) pushPlanToSupabase(user.id, plan);
+    if (user) pushPlanToSupabase(user.id, stamped);
   });
 }
 
+// The retired /plans builder treated 1 chapter ≈ 1 minute, so its 15/30/60 "min/day"
+// options wrote 15/30/60 CHAPTERS per day (a fresh user's day 1 was Genesis 1–30).
+// Convert those legacy plans back to the pace the user actually asked for
+// (~2.8 real minutes per chapter → 15→5, 30→11, 60→21 chapters/day).
+const LEGACY_MINUTES_AS_CHAPTERS = new Set([15, 30, 60]);
+
 export function getPlan(): SavedPlan | null {
-  return localGetPlan();
+  const plan = localGetPlan();
+  if (!plan) return null;
+  if (!plan.paceVersion && LEGACY_MINUTES_AS_CHAPTERS.has(plan.chaptersPerDay)) {
+    const migrated: SavedPlan = {
+      ...plan,
+      chaptersPerDay: Math.max(1, Math.round(plan.chaptersPerDay / 2.8)),
+    };
+    savePlan(migrated); // stamps paceVersion 2 + re-syncs Supabase
+    return { ...migrated, paceVersion: 2 };
+  }
+  return plan;
 }
 
 export function getProgress(): ReadingProgress {

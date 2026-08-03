@@ -4,6 +4,7 @@ import { BookOpen, Heart, Share2, Clock, Star, ArrowRight, Calendar, TrendingUp,
 import NavBar from '@/components/NavBar';
 import BibleAffiliate from '@/components/BibleAffiliate';
 import { getTodaysVerse } from '@/data/verses';
+import { referenceToShareUrl } from '@/lib/verse-link';
 
 const verse = getTodaysVerse();
 const todaysVerse = {
@@ -13,8 +14,10 @@ const todaysVerse = {
 };
 
 function ShareButton({ verse, ref: verseRef }: { verse: string; ref: string }) {
-  const shareText = `"${verse}" — ${verseRef}\n\nRead more at biblehabit.co`;
-  const shareUrl = `https://biblehabit.co`;
+  // Share the verse's own page — it unfurls as a branded verse card (OG image).
+  const shareUrl = referenceToShareUrl(verseRef);
+  const plainText = `"${verse}" — ${verseRef}`;
+  const shareText = `${plainText}\n\n${shareUrl}`;
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -30,7 +33,7 @@ function ShareButton({ verse, ref: verseRef }: { verse: string; ref: string }) {
   const handleShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ text: shareText, url: shareUrl });
+        await navigator.share({ text: plainText, url: shareUrl });
         return;
       } catch {}
     }
