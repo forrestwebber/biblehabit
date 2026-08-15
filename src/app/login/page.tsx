@@ -28,6 +28,7 @@ function LoginContent() {
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
+  const [isNativeApp, setIsNativeApp] = useState(false);
 
   const strength = checkPasswordStrength(password);
   const allStrengthMet = strength.length && strength.upper && strength.lower && strength.numberOrSymbol;
@@ -89,13 +90,18 @@ function LoginContent() {
     return () => { cleanupFn?.(); };
   }, []);
 
+  useEffect(() => {
+    const cap = (window as any).Capacitor;
+    setIsNativeApp(!!cap?.isNativePlatform?.());
+  }, []);
+
   const handleGoogle = async () => {
     setLoading(true);
     const isNative = typeof (window as any).Capacitor !== "undefined" && (window as any).Capacitor.isNativePlatform?.();
 
     if (isNative) {
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "keycloak",
+        provider: "google",
         options: {
           redirectTo: `biblehabit://auth/callback`,
           skipBrowserRedirect: true,
@@ -117,12 +123,46 @@ function LoginContent() {
       }
     } else {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: "keycloak",
+        provider: "google",
         options: { redirectTo: `${window.location.origin}/auth/callback?next=/dashboard` },
       });
       if (error) {
         setIsError(true);
         setMessage(error.message);
+      }
+    }
+    setLoading(false);
+  };
+
+  // Guideline 4.8: Sign in with Apple, offered alongside Google in the iOS app.
+  // Native ASAuthorization via the SignInWithApple Capacitor plugin; the raw nonce
+  // goes to Supabase, its SHA-256 goes to Apple.
+  const handleApple = async () => {
+    setLoading(true);
+    setMessage("");
+    setIsError(false);
+    try {
+      const plugin = (window as any).Capacitor?.Plugins?.SignInWithApple;
+      if (!plugin) throw new Error("Apple Sign-In is unavailable on this device.");
+      const rawNonce = crypto.randomUUID();
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(rawNonce));
+      const hashedNonce = Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+      const result = await plugin.authorize({
+        clientId: "co.biblehabit.app",
+        scopes: "email name",
+        nonce: hashedNonce,
+      });
+      const idToken = result?.response?.identityToken;
+      if (!idToken) throw new Error("cancelled");
+      const { error } = await supabase.auth.signInWithIdToken({ provider: "apple", token: idToken, nonce: rawNonce });
+      if (error) throw error;
+      window.location.href = "/dashboard";
+      return;
+    } catch (e: any) {
+      const msg = String(e?.message ?? e);
+      if (!/cancell?ed|1001/i.test(msg)) {
+        setIsError(true);
+        setMessage(msg === "Apple Sign-In is unavailable on this device." ? msg : "Apple sign-in didn't go through. Please try again.");
       }
     }
     setLoading(false);
@@ -325,6 +365,16 @@ function LoginContent() {
         <button onClick={handleEmail} disabled={submitDisabled} className="bh-btn bh-btn-primary">
           {loading ? "One moment…" : mode === "signup" ? "Get started" : "Sign in"}
         </button>
+        {isNativeApp && (
+          <button
+            onClick={handleApple}
+            disabled={loading}
+            className="bh-btn"
+            style={{ marginTop: 4, background: "#000", color: "#fff", border: "1px solid #000" }}
+          >
+            &#63743; Continue with Apple
+          </button>
+        )}
         <button onClick={handleGoogle} disabled={loading} className="bh-btn bh-btn-quiet" style={{ marginTop: 4 }}>
           Continue with Google
         </button>

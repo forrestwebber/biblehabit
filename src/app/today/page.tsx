@@ -42,7 +42,7 @@ import { saveHighlight } from "@/lib/highlights-store";
 import { getNote, saveNote } from "@/lib/notes-store";
 import { hapticTap, hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { estimateChapterMinutes } from "@/lib/reading-time";
-import { verseShareUrl } from "@/lib/verse-link";
+import { verseShareUrl, formatVerseQuoteBlocks } from "@/lib/verse-link";
 
 // ─── Translations ────────────────────────────────────────────────
 const TRANSLATIONS = [
@@ -1010,10 +1010,10 @@ export default function TodayPage() {
             <button
               onClick={() => {
                 const sortedVerses = [...selectedVerses].sort((a, b) => a - b);
-                const text = sortedVerses.map((vn) => {
-                  const v = chapterData.verses.find((v) => v.verse === vn);
-                  return v ? `"${v.text}" — ${currentCh.book} ${currentCh.chapter}:${vn}` : "";
-                }).filter(Boolean).join("\n");
+                const versesWithText = sortedVerses
+                  .map((vn) => chapterData.verses.find((v) => v.verse === vn))
+                  .filter((v): v is { verse: number; text: string } => !!v);
+                const text = formatVerseQuoteBlocks(currentCh.book, currentCh.chapter, versesWithText);
                 // Share a rich verse link (unfurls as a branded verse card in iMessage)
                 const shareUrl = verseShareUrl(
                   currentCh.book,

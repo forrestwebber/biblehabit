@@ -71,6 +71,41 @@ export function verseShareUrl(book: string, chapter: number, verse?: number, ver
   return `${SITE_URL}/v/${slug}`;
 }
 
+/**
+ * Groups verses into contiguous runs and formats each as one quoted, attributed
+ * block — e.g. verses 1,2,5 of Psalm 32 → one quote for "1–2" (texts joined with
+ * a space) and one quote for "5". Matches the OG card's "Book Chapter:start–end"
+ * range format (en dash) for runs of length > 1, and "Book Chapter:n" for singles.
+ */
+export function formatVerseQuoteBlocks(
+  book: string,
+  chapter: number,
+  verses: { verse: number; text: string }[]
+): string {
+  const displayName = book === "Psalms" ? "Psalm" : book;
+  const sorted = [...verses].sort((a, b) => a.verse - b.verse);
+
+  const runs: { verse: number; text: string }[][] = [];
+  for (const v of sorted) {
+    const last = runs[runs.length - 1];
+    if (last && v.verse === last[last.length - 1].verse + 1) {
+      last.push(v);
+    } else {
+      runs.push([v]);
+    }
+  }
+
+  return runs
+    .map((run) => {
+      const text = run.map((v) => v.text).join(" ");
+      const start = run[0].verse;
+      const end = run[run.length - 1].verse;
+      const ref = end > start ? `${start}–${end}` : `${start}`;
+      return `"${text}" — ${displayName} ${chapter}:${ref}`;
+    })
+    .join("\n");
+}
+
 /** "John 3:16", "Psalm 23:1", "Romans 8:38–39" → share URL (falls back to the homepage). */
 export function referenceToShareUrl(reference: string): string {
   const m = reference.trim().match(/^(.+?)\s+(\d+)(?::(\d+)(?:\s*[–—-]\s*(\d+))?)?$/);

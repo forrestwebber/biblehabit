@@ -100,6 +100,35 @@ export default function SettingsPage() {
     window.location.href = "/";
   };
 
+  // Guideline 5.1.1(v): in-app account deletion, gated behind a branded confirm
+  // (never a native dialog). Deletes data + the auth user via /api/account/delete.
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) throw new Error("Please sign in again, then retry.");
+      const res = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Deletion failed. Please try again.");
+      }
+      await supabase.auth.signOut();
+      try { localStorage.clear(); } catch {}
+      window.location.href = "/?deleted=1";
+    } catch (e: any) {
+      setDeleteError(e?.message || "Deletion failed. Please try again.");
+      setDeleting(false);
+    }
+  };
+
   const handleManageBilling = async () => {
     if (!user?.email) return;
     const res = await fetch("/api/portal", {
@@ -309,6 +338,60 @@ export default function SettingsPage() {
               <span style={{ fontSize: 15, fontWeight: 500 }}>Sign out</span>
               <span style={{ color: "var(--text-muted)" }}><ChevronRightIcon /></span>
             </button>
+          )}
+
+          {user && (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="bh-card w-full flex items-center justify-between"
+              style={{ padding: 16 }}
+            >
+              <span style={{ fontSize: 15, fontWeight: 500, color: "var(--clay-500)" }}>Delete account</span>
+              <span style={{ color: "var(--text-muted)" }}><ChevronRightIcon /></span>
+            </button>
+          )}
+
+          {showDeleteConfirm && (
+            <div
+              className="fixed inset-0 flex items-center justify-center"
+              style={{ background: "rgba(0,0,0,0.45)", zIndex: 60, padding: 24 }}
+              onClick={() => !deleting && setShowDeleteConfirm(false)}
+            >
+              <div
+                className="bh-card w-full"
+                style={{ maxWidth: 380, padding: 24 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h2 className="bh-serif" style={{ fontSize: 22, fontWeight: 500, color: "var(--text-body)" }}>
+                  Delete your account?
+                </h2>
+                <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--text-secondary)", marginTop: 10 }}>
+                  This permanently deletes your account, reading progress, and subscription record.
+                  It cannot be undone. Any active subscription must be cancelled separately in your
+                  App Store or billing settings.
+                </p>
+                {deleteError && (
+                  <p style={{ fontSize: 13.5, color: "var(--clay-500)", marginTop: 10 }}>{deleteError}</p>
+                )}
+                <div className="flex flex-col" style={{ gap: 8, marginTop: 18 }}>
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    className="bh-btn"
+                    style={{ background: "var(--clay-500)", color: "#fff" }}
+                  >
+                    {deleting ? "Deleting…" : "Delete permanently"}
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={deleting}
+                    className="bh-btn bh-btn-quiet"
+                  >
+                    Keep my account
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           <p className="text-center" style={{ fontSize: 13, color: "var(--text-muted)", paddingTop: 8 }}>
