@@ -2,8 +2,11 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
+import { useShowPurchaseUI } from "@/lib/useIsNativeApp"
 
 export default function NavBar() {
+  // App Store 3.1.1: no purchase surface inside the native app until IAP ships.
+  const showPurchaseUI = useShowPurchaseUI()
   const [user, setUser] = useState<{ email?: string; avatarUrl?: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -78,9 +81,11 @@ export default function NavBar() {
           >
             <span>📖</span> Get a Physical Bible
           </a>
-          <a href="/pricing" className="hidden sm:inline text-sm font-medium transition" style={{ color: "#5A4F3F" }}>
-            Pricing
-          </a>
+          {showPurchaseUI && (
+            <a href="/pricing" className="hidden sm:inline text-sm font-medium transition" style={{ color: "#5A4F3F" }}>
+              Pricing
+            </a>
+          )}
           {!loading && user && (
             <a href="/today" className="hidden sm:inline text-sm font-medium transition" style={{ color: "#5A4F3F" }}>
               Today

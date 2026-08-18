@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useShowPurchaseUI } from "@/lib/useIsNativeApp";
 
 /**
  * Plan + billing summary for the profile page. Reads profiles.plan
@@ -9,6 +10,8 @@ import { supabase } from "@/lib/supabase";
  * members, offers a link into the Stripe Billing Portal.
  */
 export default function MembershipCard() {
+  // App Store 3.1.1: show plan STATUS in the app, but no way to buy or manage billing.
+  const showPurchaseUI = useShowPurchaseUI();
   const [plan, setPlan] = useState<"free" | "plus" | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState<string | null>(null);
@@ -77,7 +80,7 @@ export default function MembershipCard() {
           </p>
         </div>
       </div>
-      {plan === "plus" ? (
+      {!showPurchaseUI ? null : plan === "plus" ? (
         <button
           onClick={openPortal}
           disabled={portalLoading}

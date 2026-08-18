@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { Check, Sparkles } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import { supabase } from "@/lib/supabase";
+import { useShowPurchaseUI } from "@/lib/useIsNativeApp";
 
 const INK = "#221C14";
 const SOFT_INK = "#5A4F3F";
@@ -35,6 +36,11 @@ const PLUS_FEATURES = [
 type Interval = "month" | "year";
 
 function PricingContent() {
+  // App Store 3.1.1 — BibleHabit Plus is sold through Stripe, which Apple does not
+  // allow as an in-app purchase mechanism. Inside the native app this page shows no
+  // prices, no buy buttons, and no link out to buy; it just explains that the app is
+  // free. Remove this gate only when real StoreKit IAP ships.
+  const showPurchaseUI = useShowPurchaseUI();
   const searchParams = useSearchParams();
   const [loadingInterval, setLoadingInterval] = useState<Interval | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -89,6 +95,36 @@ function PricingContent() {
   }, [isSignedIn, autoTriggered]);
 
   const canceled = searchParams.get("canceled") === "1";
+
+  if (!showPurchaseUI) {
+    return (
+      <div className="min-h-screen" style={{ background: PARCHMENT, color: INK }}>
+        <NavBar />
+        <section className="pt-16 pb-8 px-6 text-center max-w-2xl mx-auto">
+          <h1 className="text-4xl font-semibold mb-4" style={{ fontFamily: SERIF, letterSpacing: "-0.01em" }}>
+            Everything here is free.
+          </h1>
+          <p style={{ color: BODY }}>
+            Unlimited reading plans, daily progress and streaks, KJV and WEB translations,
+            gentle reflow when you miss a day, cross-references and notes — all included,
+            with nothing to buy.
+          </p>
+        </section>
+        <section className="px-6 pb-20 max-w-md mx-auto">
+          <div className="rounded-2xl p-6" style={{ background: CARD, border: "1px solid rgba(34,28,20,0.10)" }}>
+            <ul className="space-y-3">
+              {FREE_FEATURES.map((f) => (
+                <li key={f} className="flex gap-3 items-start text-sm" style={{ color: BODY }}>
+                  <Check size={18} style={{ color: GOLD, flexShrink: 0, marginTop: 1 }} />
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen" style={{ background: PARCHMENT, color: INK }}>
