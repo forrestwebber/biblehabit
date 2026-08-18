@@ -46,6 +46,9 @@ export default function ProfilePage() {
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [notes, setNotes] = useState<ChapterNote[]>([]);
   const [levelInfo, setLevelInfo] = useState(getUserLevel());
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     setPlanState(getPlan());
@@ -80,6 +83,36 @@ export default function ProfilePage() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // Apple App Review guideline 5.1.1(v): account deletion must be available
+  // in the app, not just via a support request. Cancels billing + deletes
+  // every row of the user's data server-side (see /api/account/delete).
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        setDeleteError("Your session expired — please sign in again and retry.");
+        setDeleting(false);
+        return;
+      }
+      const res = await fetch("/api/account/delete", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Deletion failed — please try again.");
+      }
+      await supabase.auth.signOut();
+      window.location.href = "/";
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Deletion failed — please try again.");
+      setDeleting(false);
+    }
+  };
 
   const monthReadings = useMemo(
     () => getMonthReadings(calYear, calMonth),
@@ -579,7 +612,67 @@ export default function ProfilePage() {
             <RotateCcw className="h-4 w-4" /> New Plan
           </a>
         </div>
+
+        {/* Account — Delete Account (Apple guideline 5.1.1(v)) */}
+        {isSignedIn && (
+          <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-5 mb-8">
+            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-1">
+              Account
+            </h3>
+            <p className="text-sm text-slate-500 mb-3">
+              Permanently delete your BibleHabit account and all reading data. This cannot be undone.
+            </p>
+            <button
+              type="button"
+              onClick={() => { setDeleteError(""); setShowDeleteModal(true); }}
+              className="text-sm font-medium text-red-600 hover:text-red-700 transition"
+            >
+              Delete account
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Custom branded confirmation modal — never a native confirm()/alert() */}
+      {showDeleteModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ background: "rgba(20,16,10,0.55)" }}
+          onClick={() => !deleting && setShowDeleteModal(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-bold text-slate-900 mb-2">Delete your account?</h2>
+            <p className="text-sm text-slate-600 mb-4">
+              This permanently deletes your BibleHabit account, reading progress, notes,
+              highlights, and cancels any active subscription. This action cannot be undone.
+            </p>
+            {deleteError && (
+              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-4">{deleteError}</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="flex-1 py-2.5 rounded-lg border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="flex-1 py-2.5 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {deleting ? "Deleting…" : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
