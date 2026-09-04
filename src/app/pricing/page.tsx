@@ -121,7 +121,7 @@ function PricingContent() {
             intelligence for readers who want to see the road ahead.
           </p>
         </section>
-        <NativePaywall plan={plan} />
+        <NativePaywall plan={plan} preview={searchParams.get("preview") === "native"} />
         <section className="px-6 pb-20 max-w-md mx-auto">
           <div className="rounded-2xl p-6" style={{ background: CARD, border: "1px solid rgba(34,28,20,0.10)" }}>
             <p className="text-sm font-semibold mb-3" style={{ color: INK }}>Always free</p>

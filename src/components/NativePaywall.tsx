@@ -56,7 +56,7 @@ function trialWord(product?: StoreProduct): string | null {
   return `${n} ${unit}${n === 1 ? "" : "s"} free`;
 }
 
-export default function NativePaywall({ plan }: { plan: "free" | "plus" | null }) {
+export default function NativePaywall({ plan, preview = false }: { plan: "free" | "plus" | null; preview?: boolean }) {
   const [choice, setChoice] = useState<"month" | "year">("year");
   const [userId, setUserId] = useState<string | null | undefined>(undefined);
   const [products, setProducts] = useState<StoreProduct[] | null>(null);
@@ -164,7 +164,7 @@ export default function NativePaywall({ plan }: { plan: "free" | "plus" | null }
           See the road ahead. Try it free, cancel anytime — your reading plans, streaks and progress stay free forever either way.
         </p>
 
-        {products !== null && products.length === 0 && (
+        {!preview && products !== null && products.length === 0 && (
           <div className="rounded-xl p-3 mb-4 text-sm" style={{ background: "#FBEAEA", color: "#8A2E2E" }}>
             Subscription options aren&apos;t available from the App Store right now. Please try again shortly.
           </div>
