@@ -5,6 +5,7 @@ import { Check, Sparkles } from "lucide-react";
 import NavBar from "@/components/NavBar";
 import { supabase } from "@/lib/supabase";
 import { useShowPurchaseUI } from "@/lib/useIsNativeApp";
+import NativePaywall from "@/components/NativePaywall";
 
 const INK = "#221C14";
 const SOFT_INK = "#5A4F3F";
@@ -36,20 +37,28 @@ const PLUS_FEATURES = [
 type Interval = "month" | "year";
 
 function PricingContent() {
-  // App Store 3.1.1 — BibleHabit Plus is sold through Stripe, which Apple does not
-  // allow as an in-app purchase mechanism. Inside the native app this page shows no
-  // prices, no buy buttons, and no link out to buy; it just explains that the app is
-  // free. Remove this gate only when real StoreKit IAP ships.
-  const showPurchaseUI = useShowPurchaseUI();
+  // App Store 3.1.1 — on the web, Plus is sold through Stripe. Inside the native
+  // iOS app that is not allowed, so the app renders NativePaywall instead: the same
+  // two plans bought through Apple In-App Purchase (StoreKit 2), verified by
+  // /api/iap/verify. Nothing in the native branch links out to Stripe.
   const searchParams = useSearchParams();
+  // ?preview=native renders the In-App Purchase paywall in a normal browser so the
+  // App Store review screenshot can be captured. Buttons are inert outside the app
+  // ("In-app purchase is only available in the BibleHabit app").
+  const showPurchaseUI = useShowPurchaseUI() && searchParams.get("preview") !== "native";
+  const [plan, setPlan] = useState<"free" | "plus" | null>(null);
   const [loadingInterval, setLoadingInterval] = useState<Interval | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null);
   const [autoTriggered, setAutoTriggered] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setIsSignedIn(!!data.session?.user);
+    supabase.auth.getSession().then(async ({ data }) => {
+      const user = data.session?.user;
+      setIsSignedIn(!!user);
+      if (!user) return setPlan("free");
+      const { data: profile } = await supabase.from("profiles").select("plan").eq("id", user.id).single();
+      setPlan((profile?.plan as "free" | "plus") || "free");
     });
   }, []);
 
@@ -100,18 +109,22 @@ function PricingContent() {
     return (
       <div className="min-h-screen" style={{ background: PARCHMENT, color: INK }}>
         <NavBar />
-        <section className="pt-16 pb-8 px-6 text-center max-w-2xl mx-auto">
+        <section className="pt-14 pb-6 px-6 text-center max-w-2xl mx-auto">
+          <p className="text-sm uppercase font-semibold mb-4" style={{ letterSpacing: "0.08em", color: "#8A6A1E" }}>
+            Simple pricing
+          </p>
           <h1 className="text-4xl font-semibold mb-4" style={{ fontFamily: SERIF, letterSpacing: "-0.01em" }}>
-            Everything here is free.
+            Free forever. Upgrade if it helps.
           </h1>
           <p style={{ color: BODY }}>
-            Unlimited reading plans, daily progress and streaks, KJV and WEB translations,
-            gentle reflow when you miss a day, cross-references and notes — all included,
-            with nothing to buy.
+            Every reading plan, every streak, every chapter — always free. Plus adds the pacing
+            intelligence for readers who want to see the road ahead.
           </p>
         </section>
+        <NativePaywall plan={plan} />
         <section className="px-6 pb-20 max-w-md mx-auto">
           <div className="rounded-2xl p-6" style={{ background: CARD, border: "1px solid rgba(34,28,20,0.10)" }}>
+            <p className="text-sm font-semibold mb-3" style={{ color: INK }}>Always free</p>
             <ul className="space-y-3">
               {FREE_FEATURES.map((f) => (
                 <li key={f} className="flex gap-3 items-start text-sm" style={{ color: BODY }}>

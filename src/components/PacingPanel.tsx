@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useShowPurchaseUI } from "@/lib/useIsNativeApp";
 import {
   positionToChapterIndex,
   computePace,
@@ -38,8 +37,7 @@ interface PositionRow {
  * are routed through /welcome to create one).
  */
 export default function PacingPanel() {
-  // App Store 3.1.1: the Plus upsell link must not render inside the native app.
-  const showPurchaseUI = useShowPurchaseUI();
+  // The Plus link goes to /pricing — Stripe on the web, Apple In-App Purchase in the app.
   const [goal, setGoal] = useState<GoalRow | null>(null);
   const [positions, setPositions] = useState<PositionRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,7 +137,7 @@ export default function PacingPanel() {
           {reflow && (
             isPlus ? (
               <div style={{ marginTop: 8, fontSize: 14, color: SOFT_INK }}>{reflow.message}</div>
-            ) : !showPurchaseUI ? null : (
+            ) : (
               <a
                 href="/pricing"
                 style={{

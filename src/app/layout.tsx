@@ -4,6 +4,7 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import AppStoreBanner from "@/components/AppStoreBanner";
 import ChatWidget from "@/components/ChatWidget";
 import MobileTabBar from "@/components/MobileTabBar";
+import AppleEntitlementSync from "@/components/AppleEntitlementSync";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <GoogleAnalytics gaId="G-X1P8GGT5RP" />
+        <AppleEntitlementSync />
         <AppStoreBanner />
         {children}
         <ChatWidget />

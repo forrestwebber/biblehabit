@@ -6,13 +6,18 @@ import { useShowPurchaseUI } from "@/lib/useIsNativeApp";
 
 /**
  * Plan + billing summary for the profile page. Reads profiles.plan
- * (server-side truth, set only by the Stripe webhook) and, for Plus
- * members, offers a link into the Stripe Billing Portal.
+ * (server-side truth, written by the Stripe webhook on the web and by
+ * /api/iap/verify for Apple In-App Purchase) and offers the right next step:
+ * on the web, Stripe checkout or the Stripe Billing Portal; inside the native
+ * iOS app, the In-App Purchase paywall or Apple's own subscription settings.
+ * The Stripe portal is never offered inside the app (App Store 3.1.1).
  */
+const APPLE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
+
 export default function MembershipCard() {
-  // App Store 3.1.1: show plan STATUS in the app, but no way to buy or manage billing.
   const showPurchaseUI = useShowPurchaseUI();
   const [plan, setPlan] = useState<"free" | "plus" | null>(null);
+  const [store, setStore] = useState<"stripe" | "apple" | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState<string | null>(null);
 
@@ -24,6 +29,9 @@ export default function MembershipCard() {
       if (!user) return;
       const { data } = await supabase.from("profiles").select("plan").eq("id", user.id).single();
       if (!cancelled) setPlan((data?.plan as "free" | "plus") || "free");
+      // Which store the plan came from (RLS lets a user read their own row).
+      const { data: sub } = await supabase.from("subscriptions").select("store").eq("email", (user.email || "").toLowerCase()).maybeSingle();
+      if (!cancelled) setStore((sub?.store as "stripe" | "apple") || null);
     })();
     return () => {
       cancelled = true;
@@ -80,7 +88,27 @@ export default function MembershipCard() {
           </p>
         </div>
       </div>
-      {!showPurchaseUI ? null : plan === "plus" ? (
+      {!showPurchaseUI ? (
+        plan === "plus" ? (
+          store === "apple" ? (
+            <a
+              href={APPLE_SUBSCRIPTIONS_URL}
+              className="flex-shrink-0 text-sm font-semibold px-4 py-2 rounded-full transition"
+              style={{ background: "#221C14", color: "#F7F2E8" }}
+            >
+              Manage
+            </a>
+          ) : null
+        ) : (
+          <a
+            href="/pricing"
+            className="flex-shrink-0 text-sm font-semibold px-4 py-2 rounded-full transition"
+            style={{ background: "#C9962E", color: "#221C14" }}
+          >
+            Upgrade
+          </a>
+        )
+      ) : plan === "plus" ? (
         <button
           onClick={openPortal}
           disabled={portalLoading}

@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { Sparkles, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { useShowPurchaseUI } from "@/lib/useIsNativeApp";
 
 const INK = "#221C14";
 const GOLD = "#C9962E";
@@ -16,8 +15,8 @@ const DISMISS_KEY = "bh-upgrade-cta-dismissed";
  * user-hostile is ever gated behind it (this is purely an invitation).
  */
 export default function UpgradeCTA() {
-  // App Store 3.1.1: this card sells Plus via Stripe, so it must not exist in the app.
-  const showPurchaseUI = useShowPurchaseUI();
+  // Links to /pricing, which sells Plus via Stripe on the web and via Apple
+  // In-App Purchase inside the iOS app — allowed in both (App Store 3.1.1).
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -41,7 +40,7 @@ export default function UpgradeCTA() {
     sessionStorage.setItem(DISMISS_KEY, "1");
   };
 
-  if (!visible || !showPurchaseUI) return null;
+  if (!visible) return null;
 
   return (
     <div
