@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { BookOpen, Heart, Share2, Star, ArrowRight, Calendar, TrendingUp, Smartphone, Compass, CheckCircle } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import BibleAffiliate from '@/components/BibleAffiliate';
+import DailyVerseSignup from '@/components/DailyVerseSignup';
 import { getTodaysVerse, slugifyReference } from '@/data/verses';
 import { BIBLE_BOOKS } from '@/data/bible';
 
@@ -240,6 +241,11 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Daily-verse email capture — the only email-list entry point on the site. */}
+      <section className="px-6" style={{ background: PARCHMENT }}>
+        <DailyVerseSignup />
       </section>
 
       {/* MOCKUP: Reading Plan Calculator */}
