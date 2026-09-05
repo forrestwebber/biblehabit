@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { verifyUserFromRequest } from "@/lib/supabase/verify-user";
 
 export async function POST(req: NextRequest) {
+  // Signed-in accounts only: without this, anyone could make biblehabit.co
+  // send a Resend email to any address they typed into the body.
+  const user = await verifyUserFromRequest(req);
+  if (!user) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+
   const resend = new Resend(process.env.RESEND_API_KEY ?? "missing");
   try {
-    const { email, name, startBook, startChapter, chaptersPerDay, finishDate } = await req.json();
-    if (!email) return NextResponse.json({ error: "Missing email" }, { status: 400 });
+    const { name, startBook, startChapter, chaptersPerDay, finishDate } = await req.json();
+    // Always send to the verified account, never to a client-supplied address.
+    const email = user.email;
 
     const displayName = name ? name.split(" ")[0] : "friend";
     const pace = chaptersPerDay === 1 ? "1 chapter" : `${chaptersPerDay} chapters`;

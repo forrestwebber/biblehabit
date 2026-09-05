@@ -1,4 +1,6 @@
 // Complete Bible data: 66 books with chapter counts (KJV)
+import { chaptersForMinutes } from "./reading-time";
+
 export interface BibleBook {
   name: string;
   chapters: number;
@@ -299,7 +301,9 @@ export interface RangeResult {
 
 /**
  * Calculate a reading plan between two books (inclusive).
- * chaptersPerMinute = 1 (task spec: 30 min → 30 ch/day).
+ * Minutes are converted to chapters through the shared reading-time model
+ * (~2.8 min per average chapter at 238 wpm). The old 1 chapter ≈ 1 minute
+ * assumption gave brand-new users 30-chapter days — never bring it back.
  */
 export function calculateRange(
   startBookName: string,
@@ -324,8 +328,8 @@ export function calculateRange(
     totalChapters += BIBLE_BOOKS[i].chapters;
   }
 
-  // 1 chapter ≈ 1 minute reading time
-  const chaptersPerDay = minutesPerDay;
+  // Real pace: ~2.8 minutes per average chapter (238 wpm)
+  const chaptersPerDay = chaptersForMinutes(minutesPerDay);
   const totalDays = Math.ceil(totalChapters / chaptersPerDay);
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + totalDays);

@@ -320,18 +320,25 @@ export default function DashboardPage() {
       const finishLabel = obFinishDate
         ? obFinishDate.d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
         : undefined;
-      fetch("/api/email/welcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: user.email,
-          name: user.name,
-          startBook: obStartBook,
-          startChapter: obStartChapter,
-          chaptersPerDay: obChaptersPerDay,
-          finishDate: finishLabel,
-        }),
-      }).catch(() => {});
+      // The route verifies the bearer token and mails the verified account.
+      supabase.auth
+        .getSession()
+        .then(({ data: sessionData }) => {
+          const accessToken = sessionData.session?.access_token;
+          if (!accessToken) return;
+          return fetch("/api/email/welcome", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+            body: JSON.stringify({
+              name: user.name,
+              startBook: obStartBook,
+              startChapter: obStartChapter,
+              chaptersPerDay: obChaptersPerDay,
+              finishDate: finishLabel,
+            }),
+          });
+        })
+        .catch(() => {});
     }
 
     setPlan(newPlan);

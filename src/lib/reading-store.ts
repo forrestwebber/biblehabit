@@ -12,6 +12,7 @@ export interface SavedPlan {
   startDate: string; // ISO date
   createdAt: string;
   endBook?: string;  // last book to read (inclusive). Undefined = read to Revelation.
+  paceVersion?: number; // 2 = chaptersPerDay is real chapters (post minutes-bug fix)
 }
 
 export interface ReadingProgress {
@@ -108,7 +109,9 @@ async function pushProgressToSupabase(
   userId: string,
   progress: ReadingProgress
 ): Promise<void> {
-  const rows: { user_id: string; date: string; book: string; chapter: number; completed: boolean }[] = [];
+  // NOTE: the reading_progress table has no `completed` column — including one
+  // makes PostgREST reject the whole upsert with a 400 (sync silently broken).
+  const rows: { user_id: string; date: string; book: string; chapter: number }[] = [];
   for (const dateStr in progress) {
     for (const globalIdx of progress[dateStr]) {
       const { book, chapter } = getBookAndChapter(globalIdx);
@@ -117,7 +120,6 @@ async function pushProgressToSupabase(
         date: dateStr,
         book,
         chapter,
-        completed: true,
       });
     }
   }
@@ -132,12 +134,13 @@ async function pushProgressToSupabase(
   }
 }
 
-/** Push plan to Supabase profile */
 async function pushPlanToSupabase(
   userId: string,
   plan: SavedPlan
 ): Promise<void> {
-  await supabase
+  // Direct profile update (own-row RLS). Never touches profiles.plan — that
+  // column is the Plus entitlement and is written only by the service role.
+  const { error } = await supabase
     .from("profiles")
     .update({
       plan_id: `${plan.startBook}-${plan.startChapter}`,
@@ -146,20 +149,38 @@ async function pushPlanToSupabase(
       updated_at: new Date().toISOString(),
     })
     .eq("id", userId);
+  if (error) console.error("[reading-store] plan sync failed:", error.message);
 }
 
 // ─── Public API ──────────────────────────────────────────────────
 
 export function savePlan(plan: SavedPlan): void {
-  localSavePlan(plan);
+  const stamped: SavedPlan = { ...plan, paceVersion: 2 };
+  localSavePlan(stamped);
   // Fire-and-forget Supabase sync
   getUser().then((user) => {
-    if (user) pushPlanToSupabase(user.id, plan);
+    if (user) pushPlanToSupabase(user.id, stamped);
   });
 }
 
+// The retired /plans builder treated 1 chapter ≈ 1 minute, so its 15/30/60 "min/day"
+// options wrote 15/30/60 CHAPTERS per day (a fresh user's day 1 was Genesis 1–30).
+// Convert those legacy plans back to the pace the user actually asked for
+// (~2.8 real minutes per chapter → 15→5, 30→11, 60→21 chapters/day).
+const LEGACY_MINUTES_AS_CHAPTERS = new Set([15, 30, 60]);
+
 export function getPlan(): SavedPlan | null {
-  return localGetPlan();
+  const plan = localGetPlan();
+  if (!plan) return null;
+  if (!plan.paceVersion && LEGACY_MINUTES_AS_CHAPTERS.has(plan.chaptersPerDay)) {
+    const migrated: SavedPlan = {
+      ...plan,
+      chaptersPerDay: Math.max(1, Math.round(plan.chaptersPerDay / 2.8)),
+    };
+    savePlan(migrated); // stamps paceVersion 2 + re-syncs Supabase
+    return { ...migrated, paceVersion: 2 };
+  }
+  return plan;
 }
 
 export function getProgress(): ReadingProgress {
@@ -185,7 +206,6 @@ export function markDayComplete(date: string, chapterIndices: number[]): void {
         date,
         book,
         chapter,
-        completed: true,
       };
     });
     supabase
@@ -196,6 +216,7 @@ export function markDayComplete(date: string, chapterIndices: number[]): void {
       });
   });
 }
+
 
 export function isDayComplete(date: string): boolean {
   const progress = getProgress();
@@ -313,6 +334,8 @@ export function getMonthReadings(year: number, month: number): Set<number> {
   }
   return days;
 }
+
+
 
 function formatDate(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

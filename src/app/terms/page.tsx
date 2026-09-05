@@ -2,11 +2,11 @@ export default function TermsPage() {
   return (
     <div className="max-w-2xl mx-auto px-6 py-16">
       <h1 className="text-3xl font-bold text-slate-900 mb-8">Terms of Service</h1>
-      <p className="text-slate-500 text-sm mb-8">Last updated: April 2026</p>
+      <p className="text-slate-500 text-sm mb-8">Last updated: September 2026</p>
       <div className="prose prose-slate max-w-none space-y-6 text-slate-700">
         <section>
-          <h2 className="text-xl font-semibold text-slate-800 mb-3">Free Service</h2>
-          <p>BibleHabit is provided free of charge. We reserve the right to introduce optional paid features (such as an iOS app) in the future, but core reading plan functionality will remain free forever.</p>
+          <h2 className="text-xl font-semibold text-slate-800 mb-3">Free Account and BibleHabit Plus</h2>
+          <p>A BibleHabit account is free and includes custom reading plans, today&apos;s reading, progress and streak tracking, the KJV and WEB translations, and your notes and highlights. The Scripture text is public domain and we will never put it behind a paywall. BibleHabit Plus is an optional subscription that adds pacing projections and personalized reflow suggestions: $2.99 per month or $19.99 per year, billed through Stripe on the web or Apple In-App Purchase in the iOS app, and cancellable at any time from your billing portal or App Store subscription settings. Your reading history remains yours and stays in your account whether or not you subscribe.</p>
         </section>
         <section>
           <h2 className="text-xl font-semibold text-slate-800 mb-3">No Warranty</h2>
