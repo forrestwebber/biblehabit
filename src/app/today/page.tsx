@@ -65,7 +65,11 @@ const TRANSLATIONS = [
   { id: "asv", label: "ASV", name: "American Standard", api: "bible-api" },
   { id: "bbe", label: "BBE", name: "Basic English", api: "bible-api" },
 ];
-const DEFAULT_TRANSLATION = "niv";
+// Public domain, and it matches what the App Store listing promises ("Scripture in
+// KJV and WEB translations"). NIV/ESV/NKJV/NLT are publisher-licensed and we hold no
+// license for them — they stay in the picker for readers who choose them, but we do
+// not serve copyrighted text to a reader who never picked one.
+const DEFAULT_TRANSLATION = "kjv";
 const TRANSLATION_STORAGE_KEY = "biblehabit_translation";
 
 // bolls.life uses book numbers 1-66
