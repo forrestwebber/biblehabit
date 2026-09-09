@@ -155,7 +155,7 @@ export default function PacingPanel() {
           )}
           {isPlus && (
             <div style={{ marginTop: 8, fontSize: 13, color: SOFT_INK }}>
-              Projected finish at your current pace: <strong style={{ color: INK }}>{projectedFinish.toDateString()}</strong>
+              Projected finish at your current pace: <strong style={{ color: INK }}>{projectedFinish.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</strong>
             </div>
           )}
         </div>

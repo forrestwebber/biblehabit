@@ -270,6 +270,12 @@ export interface GoalSuggestion {
  *  (b) whole-Bible-in-a-year from current position
  *  (c) a habit bundle: Psalm + Proverb + NT chapter per day
  */
+/** "December 18, 2026" — a date a person reads, not `Fri Dec 18 2026`.
+ *  en-US is pinned so the string is stable between server render and client. */
+function formatFinishDate(d: Date): string {
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
 export function suggestGoals(
   currentChapterIndex: number,
   observedChaptersPerDay: number,
@@ -288,7 +294,7 @@ export function suggestGoals(
       id: "finish-by-date",
       type: "destination",
       title: "Keep your current pace",
-      description: `At about ${Math.round(pace * 10) / 10} chapters/day, you'll finish the Bible around ${finishAtOwnPace.toDateString()}.`,
+      description: `At about ${Math.round(pace * 10) / 10} chapters/day, you'll finish the Bible around ${formatFinishDate(finishAtOwnPace)}.`,
       dailyLoad: Math.round(pace * 10) / 10,
       targetDate: finishAtOwnPace,
     },

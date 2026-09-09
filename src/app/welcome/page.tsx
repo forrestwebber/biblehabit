@@ -1,4 +1,24 @@
 "use client";
+
+/**
+ * /welcome — first-run onboarding.
+ *
+ * Rebuilt 2026-09-09 to the Claude Design app handoff
+ * (~/sol-ops-media/biblehabit-design-handoff/design_handoff_biblehabit/README.md).
+ * Presentation only: the pacing engine, the goal suggestions and the Supabase
+ * writes below are untouched — the old screen was three bare native <select>s
+ * on an empty parchment page, which is what a new installer has been seeing.
+ *
+ * Where this deliberately departs from the handoff: the handoff's step 2 asks
+ * "About when did you start?" with three coarse buckets (within a year / 1-2
+ * years / longer). We keep the month+year selects, because computePace() uses
+ * the real date and a bucket would make every returning reader's pace worse.
+ * The warmth the buckets were there for is carried by the copy instead.
+ *
+ * Product rules the handoff insists on, honoured here: never more than three
+ * choices in a group, no shame mechanics, and honest pace math (1,189 chapters).
+ */
+
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -11,15 +31,28 @@ import {
 } from "@/lib/pacing";
 
 const PARCHMENT = "#F7F2E8";
-const CARD = "#EFE7D6";
+const CARD = "#FFFDF7";
+const CHIP = "#F3EAD6";
+const SELECTED_BG = "#F6ECD3";
 const INK = "#221C14";
-const SOFT_INK = "#5A4F3F";
+const MUTED = "#6B5F4B";
+const SOFTER = "#8A7A5C";
+const FAINT = "#A08A63";
 const GOLD = "#C9962E";
-const GOLD_HOVER = "#B5841F";
+const GOLD_ON_TINT = "#8A6C22";
+const BORDER = "#E3D6B9";
+const EMPTY_SEG = "#E4D6B8";
+const DIVIDER = "#EFE3C8";
+const SERIF = "var(--font-serif)";
+
+const TOTAL_CHAPTERS = 1189;
+
+/* ------------------------------------------------------------------ frame */
 
 function StepFrame({
   step,
   question,
+  subcopy,
   children,
   onBack,
   onContinue,
@@ -28,6 +61,7 @@ function StepFrame({
 }: {
   step: number;
   question: string;
+  subcopy?: string;
   children: React.ReactNode;
   onBack?: () => void;
   onContinue?: () => void;
@@ -40,60 +74,85 @@ function StepFrame({
         minHeight: "100vh",
         background: PARCHMENT,
         color: INK,
-        fontFamily: "-apple-system, 'Segoe UI', sans-serif",
         display: "flex",
-        alignItems: "center",
         justifyContent: "center",
-        padding: "24px",
+        padding: "clamp(28px,7vw,74px) 26px 34px",
       }}
     >
-      <div style={{ maxWidth: 520, width: "100%" }}>
-        <div
-          style={{
-            fontSize: 12,
-            letterSpacing: 2,
-            color: SOFT_INK,
-            textTransform: "uppercase",
-          }}
+      <div style={{ maxWidth: 520, width: "100%", display: "flex", flexDirection: "column" }}>
+        <p
+          className="uppercase"
+          style={{ fontSize: 13, fontWeight: 700, letterSpacing: 2, color: GOLD, marginBottom: 14 }}
         >
           Step {step} of 3
+        </p>
+
+        {/* Three-segment progress bar — one more segment fills per step. */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 26 }} aria-hidden>
+          {[1, 2, 3].map((i) => (
+            <span
+              key={i}
+              style={{
+                flex: 1,
+                height: 4,
+                borderRadius: 2,
+                background: i <= step ? GOLD : EMPTY_SEG,
+              }}
+            />
+          ))}
         </div>
-        <div style={{ fontSize: 22, fontWeight: 600, margin: "10px 0 20px" }}>
+
+        <h1
+          style={{
+            fontFamily: SERIF,
+            fontWeight: 600,
+            fontSize: "clamp(26px,5.6vw,31px)",
+            lineHeight: 1.2,
+            letterSpacing: "-0.4px",
+            color: INK,
+            marginBottom: subcopy ? 10 : 24,
+          }}
+        >
           {question}
-        </div>
+        </h1>
+        {subcopy && (
+          <p style={{ fontSize: 16, lineHeight: 1.55, color: MUTED, marginBottom: 26 }}>{subcopy}</p>
+        )}
+
         {children}
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
-          {onBack ? (
+
+        <div style={{ marginTop: "auto", paddingTop: 30, display: "flex", gap: 12 }}>
+          {onBack && (
             <button
               onClick={onBack}
               style={{
-                borderRadius: 8,
-                padding: "11px 18px",
-                fontSize: 14,
+                borderRadius: 14,
+                padding: "17px 22px",
+                fontSize: 16,
                 fontWeight: 600,
-                border: `1.5px solid ${SOFT_INK}`,
+                border: `1.5px solid ${BORDER}`,
                 background: "transparent",
-                color: SOFT_INK,
+                color: MUTED,
                 cursor: "pointer",
               }}
             >
               Back
             </button>
-          ) : (
-            <span />
           )}
           {onContinue && (
             <button
               onClick={onContinue}
               disabled={continueDisabled}
               style={{
-                borderRadius: 8,
-                padding: "11px 18px",
-                fontSize: 14,
+                flex: 1,
+                borderRadius: 14,
+                padding: 17,
+                fontSize: 18,
                 fontWeight: 600,
                 border: "none",
-                background: continueDisabled ? "#DDD2B8" : GOLD,
-                color: INK,
+                background: continueDisabled ? "#E6DCC4" : GOLD,
+                color: continueDisabled ? SOFTER : "#F7F2E8",
+                boxShadow: continueDisabled ? "none" : "0 8px 20px rgba(201,150,46,.32)",
                 cursor: continueDisabled ? "not-allowed" : "pointer",
               }}
             >
@@ -105,6 +164,69 @@ function StepFrame({
     </div>
   );
 }
+
+/* ------------------------------------------------------------ option card */
+
+function OptionCard({
+  selected,
+  onClick,
+  title,
+  sub,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  title: string;
+  sub?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={selected}
+      style={{
+        position: "relative",
+        display: "block",
+        width: "100%",
+        textAlign: "left",
+        background: selected ? SELECTED_BG : CARD,
+        border: selected ? `2px solid ${GOLD}` : `1.5px solid ${BORDER}`,
+        borderRadius: 16,
+        padding: sub ? "22px 20px" : "15px 18px",
+        boxShadow: selected
+          ? "0 8px 22px rgba(201,150,46,.20)"
+          : "0 4px 16px rgba(120,90,30,.06)",
+        cursor: "pointer",
+      }}
+    >
+      <span style={{ fontFamily: SERIF, fontWeight: 600, fontSize: sub ? 21 : 17, color: INK, display: "block" }}>
+        {title}
+      </span>
+      {sub && <span style={{ fontSize: 15, color: MUTED, display: "block", marginTop: 4 }}>{sub}</span>}
+      {selected && (
+        <span
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: sub ? 20 : 14,
+            right: 18,
+            width: 26,
+            height: 26,
+            borderRadius: 999,
+            background: GOLD,
+            color: "#F7F2E8",
+            fontSize: 15,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          ✓
+        </span>
+      )}
+    </button>
+  );
+}
+
+/* ------------------------------------------------------------------- page */
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -173,6 +295,27 @@ export default function WelcomePage() {
   );
 
   const selectedBook = BIBLE_BOOKS.find((b) => b.name === book);
+  const bookIndex = BIBLE_BOOKS.findIndex((b) => b.name === book);
+  const maxChapter = selectedBook?.chapters ?? 1;
+
+  // A five-wide chapter window centred on the current chapter, clamped to the book.
+  const chapterWindow = useMemo(() => {
+    const start = Math.max(1, Math.min(chapter - 2, maxChapter - 4));
+    return Array.from({ length: Math.min(5, maxChapter) }, (_, i) => start + i).filter(
+      (c) => c >= 1 && c <= maxChapter
+    );
+  }, [chapter, maxChapter]);
+
+  const selectStyle: React.CSSProperties = {
+    background: CHIP,
+    border: `1.5px solid ${BORDER}`,
+    borderRadius: 13,
+    padding: "14px 16px",
+    fontSize: 15,
+    color: INK,
+    width: "100%",
+    appearance: "none",
+  };
 
   async function finish() {
     if (!selectedGoal) return;
@@ -201,6 +344,7 @@ export default function WelcomePage() {
         .single();
 
       if (goalErr) throw goalErr;
+      void goalRow;
 
       const { error: posErr } = await supabase.from("reading_positions").insert({
         user_id: user.id,
@@ -218,30 +362,42 @@ export default function WelcomePage() {
     }
   }
 
+  /* ------------------------------------------------------------- step 1 */
   if (step === 1) {
     return (
       <StepFrame
         step={1}
         question="Where are you in your reading right now?"
+        subcopy="No wrong answer — this only decides where we open tomorrow."
         onContinue={() => setStep(2)}
         continueDisabled={!dontKnowStart && (startMonth === "" || startYear === "")}
       >
-        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+        {/* Book + chapter picker */}
+        <div
+          style={{
+            background: CARD,
+            border: `1.5px solid ${BORDER}`,
+            borderRadius: 18,
+            padding: 18,
+            boxShadow: "0 6px 18px rgba(120,90,30,.07)",
+            marginBottom: 24,
+          }}
+        >
+          <label
+            htmlFor="book"
+            className="uppercase"
+            style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", color: FAINT, display: "block", marginBottom: 8 }}
+          >
+            Book
+          </label>
           <select
+            id="book"
             value={book}
             onChange={(e) => {
               setBook(e.target.value);
               setChapter(1);
             }}
-            style={{
-              flex: 1,
-              background: CARD,
-              border: "none",
-              borderRadius: 12,
-              padding: "14px 16px",
-              fontSize: 15,
-              color: INK,
-            }}
+            style={{ ...selectStyle, fontFamily: SERIF, fontSize: 22, fontWeight: 600, padding: "12px 16px" }}
           >
             {BIBLE_BOOKS.map((b) => (
               <option key={b.name} value={b.name}>
@@ -249,61 +405,99 @@ export default function WelcomePage() {
               </option>
             ))}
           </select>
-          <select
-            value={chapter}
-            onChange={(e) => setChapter(Number(e.target.value))}
-            style={{
-              width: 100,
-              background: CARD,
-              border: "none",
-              borderRadius: 12,
-              padding: "14px 16px",
-              fontSize: 15,
-              color: INK,
-            }}
-          >
-            {Array.from({ length: selectedBook?.chapters ?? 1 }, (_, i) => i + 1).map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+          <p style={{ fontSize: 13, color: MUTED, marginTop: 8 }}>
+            Book {bookIndex + 1} of 66 · {maxChapter} chapters
+          </p>
+
+          <div style={{ height: 1, background: DIVIDER, margin: "16px 0" }} />
+
+          <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
+            <label
+              className="uppercase"
+              style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", color: FAINT }}
+            >
+              Chapter
+            </label>
+            <span style={{ fontSize: 13, color: SOFTER }}>
+              {book} {chapter}
+            </span>
+          </div>
+
+          <div className="flex items-center" style={{ gap: 6 }}>
+            <button
+              onClick={() => setChapter((c) => Math.max(1, c - 1))}
+              disabled={chapter <= 1}
+              aria-label="Previous chapter"
+              style={{ background: "transparent", border: "none", color: chapter <= 1 ? EMPTY_SEG : SOFTER, fontSize: 20, padding: "0 4px", cursor: chapter <= 1 ? "default" : "pointer" }}
+            >
+              ‹
+            </button>
+            {chapterWindow.map((c) => {
+              const on = c === chapter;
+              return (
+                <button
+                  key={c}
+                  onClick={() => setChapter(c)}
+                  aria-pressed={on}
+                  style={{
+                    flex: on ? 1.3 : 1,
+                    fontFamily: SERIF,
+                    fontSize: on ? 26 : 19,
+                    fontWeight: on ? 600 : 400,
+                    padding: on ? "8px 0" : "10px 0",
+                    borderRadius: on ? 13 : 11,
+                    border: "none",
+                    background: on ? GOLD : CHIP,
+                    color: on ? "#F7F2E8" : SOFTER,
+                    boxShadow: on ? "0 6px 16px rgba(201,150,46,.3)" : "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  {c}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setChapter((c) => Math.min(maxChapter, c + 1))}
+              disabled={chapter >= maxChapter}
+              aria-label="Next chapter"
+              style={{ background: "transparent", border: "none", color: chapter >= maxChapter ? EMPTY_SEG : SOFTER, fontSize: 20, padding: "0 4px", cursor: chapter >= maxChapter ? "default" : "pointer" }}
+            >
+              ›
+            </button>
+          </div>
         </div>
-        <div style={{ fontSize: 14, color: SOFT_INK, marginBottom: 10 }}>
-          When did you start?
-        </div>
-        <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+
+        {/* When did you start */}
+        <h2 style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 22, color: INK, marginBottom: 6 }}>
+          About when did you start?
+        </h2>
+        <p style={{ fontSize: 15, color: MUTED, marginBottom: 14 }}>
+          Rough is fine — it just helps us pace you kindly.
+        </p>
+
+        <div className="flex" style={{ gap: 10, marginBottom: 10 }}>
           <select
+            aria-label="Start month"
             value={startMonth}
             onChange={(e) => {
               const val = e.target.value === "" ? "" : Number(e.target.value);
               setStartMonth(val);
               setDontKnowStart(false);
             }}
-            style={{
-              flex: 1,
-              background: CARD,
-              border: "none",
-              borderRadius: 12,
-              padding: "14px 16px",
-              fontSize: 15,
-              color: INK,
-            }}
+            style={selectStyle}
           >
             <option value="" disabled hidden>
               Month
             </option>
             {MONTH_NAMES.map((name, i) => (
-              <option
-                key={name}
-                value={i}
-                disabled={startYear === currentYear && i > currentMonthIndex}
-              >
+              <option key={name} value={i} disabled={startYear === currentYear && i > currentMonthIndex}>
                 {name}
               </option>
             ))}
           </select>
           <select
+            aria-label="Start year"
             value={startYear}
             onChange={(e) => {
               const val = e.target.value === "" ? "" : Number(e.target.value);
@@ -313,15 +507,7 @@ export default function WelcomePage() {
                 setStartMonth("");
               }
             }}
-            style={{
-              flex: 1,
-              background: CARD,
-              border: "none",
-              borderRadius: 12,
-              padding: "14px 16px",
-              fontSize: 15,
-              color: INK,
-            }}
+            style={selectStyle}
           >
             <option value="" disabled hidden>
               Year
@@ -333,28 +519,23 @@ export default function WelcomePage() {
             ))}
           </select>
         </div>
-        <div
+
+        <OptionCard
+          selected={dontKnowStart}
           onClick={() => {
             setDontKnowStart(true);
             setStartMonth("");
             setStartYear("");
           }}
-          style={{
-            background: CARD,
-            borderRadius: 12,
-            padding: "16px 18px",
-            fontSize: 15,
-            cursor: "pointer",
-            border: dontKnowStart ? `2px solid ${GOLD}` : "2px solid transparent",
-          }}
-        >
-          I don&apos;t know
-        </div>
+          title="I don't know"
+        />
       </StepFrame>
     );
   }
 
+  /* ------------------------------------------------------------- step 2 */
   if (step === 2) {
+    const pct = Math.round((currentChapterIndex / TOTAL_CHAPTERS) * 100);
     return (
       <StepFrame
         step={2}
@@ -365,54 +546,130 @@ export default function WelcomePage() {
         <div
           style={{
             background: CARD,
-            borderRadius: 12,
-            padding: "28px 32px",
-            boxShadow: "0 6px 20px rgba(34,28,20,.08)",
+            border: `1.5px solid ${BORDER}`,
+            borderRadius: 18,
+            padding: 24,
+            boxShadow: "0 10px 26px rgba(120,90,30,.10)",
           }}
         >
-          <div style={{ fontSize: 20, fontWeight: 600 }}>
-            You're at <span>{book} {chapter}</span>
+          <p className="uppercase" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: GOLD, marginBottom: 10 }}>
+            You&apos;re here
+          </p>
+          <p style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 34, color: INK, letterSpacing: "-0.01em" }}>
+            {book} {chapter}
+          </p>
+          <p style={{ fontSize: 14, color: SOFTER, marginTop: 4 }}>
+            Chapter {currentChapterIndex.toLocaleString()} of {TOTAL_CHAPTERS.toLocaleString()}
+          </p>
+
+          <div style={{ height: 10, borderRadius: 999, background: "#EFE7D5", overflow: "hidden", margin: "18px 0 8px" }}>
+            <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: "linear-gradient(90deg,#E7B84E,#C9962E)" }} />
           </div>
-          <div style={{ marginTop: 8, fontSize: 14, color: SOFT_INK }}>
-            That's chapter {currentChapterIndex} of 1,189 — reading at roughly{" "}
-            {Math.round(pace.chaptersPerDay * 10) / 10} chapters/day. No matter the pace,
-            you're already reading — we'll help you keep going from right here.
-          </div>
+          <p style={{ fontSize: 13, color: SOFTER }}>{pct}% of the way through</p>
+        </div>
+
+        {/* Kind pace note — sage, never alarming. */}
+        <div
+          className="flex"
+          style={{ gap: 12, background: "#F1F3EC", border: "1px solid #DCE3CE", borderRadius: 14, padding: 18, marginTop: 16 }}
+        >
+          <span aria-hidden style={{ fontSize: 24, lineHeight: 1 }}>🌤</span>
+          <p style={{ fontSize: 15, lineHeight: 1.5, color: "#4C5A3B" }}>
+            That&apos;s about{" "}
+            <strong style={{ fontWeight: 600 }}>
+              {Math.round(pace.chaptersPerDay * 10) / 10} chapters a day
+            </strong>
+            . However fast that is, you&apos;re already reading — we&apos;ll keep going from right here.
+          </p>
         </div>
       </StepFrame>
     );
   }
 
+  /* ------------------------------------------------------------- step 3 */
   return (
     <StepFrame
       step={3}
-      question="Pick a plan that fits your life"
+      question="What's your goal?"
+      subcopy={`Three that fit your pace — ${(TOTAL_CHAPTERS - currentChapterIndex).toLocaleString()} chapters to go.`}
       onBack={() => setStep(2)}
       onContinue={finish}
       continueDisabled={!selectedGoal || saving}
-      continueLabel={saving ? "Saving..." : "Start"}
+      continueLabel={saving ? "Saving…" : "Begin — one tap"}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {suggestions.map((s) => (
-          <div
-            key={s.id}
-            onClick={() => setSelectedGoal(s)}
-            style={{
-              background: CARD,
-              border: selectedGoal?.id === s.id ? `2px solid ${GOLD}` : "2px solid transparent",
-              borderRadius: 12,
-              padding: "22px 26px",
-              cursor: "pointer",
-            }}
-          >
-            <div style={{ fontSize: 18, fontWeight: 600 }}>{s.title}</div>
-            <div style={{ marginTop: 8, fontSize: 14, color: SOFT_INK }}>{s.description}</div>
-          </div>
-        ))}
+      <div className="flex flex-col" style={{ gap: 13 }}>
+        {suggestions.map((s, i) => {
+          const on = selectedGoal?.id === s.id;
+          return (
+            <button
+              key={s.id}
+              onClick={() => setSelectedGoal(s)}
+              aria-pressed={on}
+              style={{
+                position: "relative",
+                display: "block",
+                width: "100%",
+                textAlign: "left",
+                background: on ? SELECTED_BG : CARD,
+                border: on ? `2px solid ${GOLD}` : `1.5px solid ${BORDER}`,
+                borderRadius: 16,
+                padding: "22px 20px",
+                marginTop: i === 0 ? 11 : 0,
+                boxShadow: on ? "0 8px 22px rgba(201,150,46,.20)" : "0 4px 16px rgba(120,90,30,.06)",
+                cursor: "pointer",
+              }}
+            >
+              {i === 0 && (
+                <span
+                  className="uppercase"
+                  style={{
+                    position: "absolute",
+                    top: -11,
+                    left: 18,
+                    background: GOLD,
+                    color: "#F7F2E8",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: "0.04em",
+                    padding: "4px 10px",
+                    borderRadius: 20,
+                  }}
+                >
+                  Best fit for you
+                </span>
+              )}
+              <span style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 22, color: INK, display: "block" }}>
+                {s.title}
+              </span>
+              <span style={{ fontSize: 14, lineHeight: 1.5, color: MUTED, display: "block", marginTop: 6 }}>
+                {s.description}
+              </span>
+              {on && (
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    top: 20,
+                    right: 18,
+                    width: 26,
+                    height: 26,
+                    borderRadius: 999,
+                    background: GOLD,
+                    color: "#F7F2E8",
+                    fontSize: 15,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  ✓
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
-      {error && (
-        <div style={{ marginTop: 14, fontSize: 13, color: "#B5841F" }}>{error}</div>
-      )}
+      {error && <p style={{ marginTop: 14, fontSize: 13, color: GOLD_ON_TINT }}>{error}</p>}
     </StepFrame>
   );
 }
