@@ -5,7 +5,7 @@ export default function AppStoreBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const dismissed = localStorage.getItem("ios-banner-dismissed");
+    const dismissed = localStorage.getItem("ios-banner-dismissed-v2");
     // Only show on iOS Safari (not desktop, not Android, not Capacitor in-app)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
     const isCapacitor = typeof (window as any).Capacitor !== "undefined" && (window as any).Capacitor.isNativePlatform?.();
@@ -13,7 +13,7 @@ export default function AppStoreBanner() {
   }, []);
 
   const dismiss = () => {
-    localStorage.setItem("ios-banner-dismissed", "1");
+    localStorage.setItem("ios-banner-dismissed-v2", "1");
     setVisible(false);
   };
 
@@ -29,18 +29,18 @@ export default function AppStoreBanner() {
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold leading-tight">BibleHabit for iPhone</p>
-          <p className="text-xs leading-tight" style={{ color: "#C6BBA4" }}>Read on the go — now in beta</p>
+          <p className="text-xs leading-tight" style={{ color: "#C6BBA4" }}>Free on the App Store</p>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         <a
-          href="https://testflight.apple.com/join/fx8k8Dnk"
+          href="https://apps.apple.com/us/app/bible-habit-app/id6761791015"
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs font-bold px-3 py-1.5 rounded-full transition"
           style={{ background: "#C9962E", color: "#221C14" }}
         >
-          Join Beta
+          Get the App
         </a>
         <button onClick={dismiss} className="transition p-1" style={{ color: "#C6BBA4" }} aria-label="Dismiss">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

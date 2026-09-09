@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "BibleHabit — Meet your Bible reading where it is.";
+export const alt = "BibleHabit — now on the App Store. Meet your Bible reading where it is.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -49,6 +49,25 @@ export default async function Image() {
           <div style={{ fontSize: 40, color: "#221C14", fontWeight: 700, letterSpacing: 0.5, display: "flex" }}>
             BibleHabit
           </div>
+        </div>
+
+        {/* App Store pill — the app went live 2026-09-08 */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "10px 24px",
+            marginBottom: 30,
+            borderRadius: 999,
+            background: "#221C14",
+            color: "#F4EEE1",
+            fontSize: 20,
+            fontWeight: 700,
+            letterSpacing: 2,
+          }}
+        >
+          NOW ON THE APP STORE
         </div>
 
         {/* Main title */}

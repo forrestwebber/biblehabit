@@ -129,7 +129,7 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
   // iOS app
   {
     patterns: ["app", "ios", "iphone", "apple", "download", "app store"],
-    response: "The BibleHabit iOS app is coming soon! We're in the Apple App Store submission process now. For the best mobile experience in the meantime, visit **biblehabit.co** in Safari and tap **Share → Add to Home Screen** — it works like a native app!",
+    response: "The BibleHabit app is live on the App Store — free for iPhone and iPad: https://apps.apple.com/us/app/bible-habit-app/id6761791015. Sign in with the same account you use here and your plan, streak and progress come with you.",
   },
 
   // General encouragement

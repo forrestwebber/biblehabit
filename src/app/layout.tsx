@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
-import AppStoreBanner from "@/components/AppStoreBanner";
 import ChatWidget from "@/components/ChatWidget";
 import MobileTabBar from "@/components/MobileTabBar";
 import AppleEntitlementSync from "@/components/AppleEntitlementSync";
@@ -13,20 +12,26 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "BibleHabit — Daily Bible Reading",
-  description: "Build a daily Scripture habit. One verse at a time. Free forever.",
+  title: "BibleHabit — Daily Bible Reading, on iPhone and the web",
+  description:
+    "Build a daily Scripture habit. Pick your plan and pace, read one clear assignment a day, watch the streak grow. Free forever — now on the App Store.",
   metadataBase: new URL("https://biblehabit.co"),
+  // Apple Smart App Banner — Safari on iOS offers the real App Store install.
+  appleWebApp: { capable: true, title: "BibleHabit" },
+  other: { "apple-itunes-app": "app-id=6761791015" },
   openGraph: {
-    title: "BibleHabit — Daily Bible Reading",
-    description: "Build a daily Scripture habit. One verse at a time. Free forever.",
+    title: "BibleHabit — Daily Bible Reading, on iPhone and the web",
+    description:
+      "Pick your plan and pace. One clear reading a day. Free forever — now on the App Store.",
     url: "https://biblehabit.co",
     siteName: "BibleHabit",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BibleHabit — Daily Bible Reading",
-    description: "Build a daily Scripture habit. One verse at a time. Free forever.",
+    title: "BibleHabit — Daily Bible Reading, on iPhone and the web",
+    description:
+      "Pick your plan and pace. One clear reading a day. Free forever — now on the App Store.",
   },
   icons: { icon: "/favicon.ico" },
 };
@@ -37,7 +42,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <GoogleAnalytics gaId="G-X1P8GGT5RP" />
         <AppleEntitlementSync />
-        <AppStoreBanner />
         {children}
         <ChatWidget />
         <MobileTabBar />

@@ -4,6 +4,7 @@ import { BookOpen, Heart, Share2, Star, ArrowRight, Calendar, TrendingUp, Smartp
 import NavBar from '@/components/NavBar';
 import BibleAffiliate from '@/components/BibleAffiliate';
 import DailyVerseSignup from '@/components/DailyVerseSignup';
+import AppStoreSection, { AppStoreBadge } from '@/components/AppStoreSection';
 import { getTodaysVerse, slugifyReference } from '@/data/verses';
 import { BIBLE_BOOKS } from '@/data/bible';
 
@@ -142,8 +143,17 @@ export default function HomePage() {
             <ShareButton verse={todaysVerse.text} ref={todaysVerse.reference} />
           </div>
           <p className="text-xs mt-6" style={{ color: META }}>Free forever for one goal. No streaks to break.</p>
+          <div className="mt-8 flex flex-col items-center gap-2">
+            <AppStoreBadge />
+            <a href="#ios-app" className="text-xs transition" style={{ color: LINK }}>
+              Now on iPhone &amp; iPad &mdash; see the app
+            </a>
+          </div>
         </div>
       </section>
+
+      {/* Now on the App Store */}
+      <AppStoreSection />
 
       {/* Pick Up Where I Am */}
       <section className="py-16 px-6" style={{ background: BAND, borderTop: "1px solid rgba(34,28,20,0.05)", borderBottom: "1px solid rgba(34,28,20,0.05)" }}>
@@ -469,7 +479,7 @@ export default function HomePage() {
               { icon: <Heart className="h-7 w-7" style={{ color: GOLD }} />, title: "Gentle Reflow", desc: "Miss a day? We quietly resize the road ahead. No guilt, no broken streaks." },
               { icon: <Compass className="h-7 w-7" style={{ color: GOLD }} />, title: "Cross-References", desc: "Discover related verses and historical commentary as you read." },
               { icon: <TrendingUp className="h-7 w-7" style={{ color: GOLD }} />, title: "Progress Milestones", desc: "See where you'll be by any date. Celebrate finishing each book." },
-              { icon: <Smartphone className="h-7 w-7" style={{ color: GOLD }} />, title: "iOS App Coming Soon", desc: "Push notifications for your daily reading. Included with your account." },
+              { icon: <Smartphone className="h-7 w-7" style={{ color: GOLD }} />, title: "On the App Store", desc: "BibleHabit for iPhone and iPad is live. Free, and the same account as the web." },
             ].map((f) => (
               <div key={f.title} className="p-6 rounded-2xl transition" style={{ background: CARD, border: "1px solid rgba(34,28,20,0.06)", boxShadow: "0 12px 30px -20px rgba(34,28,20,0.3)" }}>
                 <div className="mb-4">{f.icon}</div>
@@ -514,7 +524,10 @@ export default function HomePage() {
         >
           <Star className="h-5 w-5" /> Create Your Free Account
         </a>
-        <p className="text-xs mt-4" style={{ color: META }}>iOS app coming soon &mdash; included with your account</p>
+        <div className="mt-8 flex flex-col items-center gap-2">
+          <AppStoreBadge />
+          <p className="text-xs" style={{ color: META }}>Or read on iPhone and iPad &mdash; free, same account.</p>
+        </div>
       </section>
 
       {/* Footer */}
