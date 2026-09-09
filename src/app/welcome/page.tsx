@@ -22,6 +22,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { savePlan } from "@/lib/reading-store";
 import { BIBLE_BOOKS } from "@/lib/bible-data";
 import {
   positionToChapterIndex,
@@ -353,6 +354,22 @@ export default function WelcomePage() {
         source: "onboarding",
       });
       if (posErr) throw posErr;
+
+      // /today does NOT read the `goals` table — it reads getPlan() out of
+      // localStorage (src/lib/reading-store.ts), which only /plans and
+      // /dashboard ever wrote. So finishing onboarding used to land a brand-new
+      // reader on "No Reading Plan Yet", which is the emptiest possible first
+      // impression and was live in the shipped App Store build. Write the plan
+      // the goal implies. savePlan() also syncs it to Supabase.
+      const dailyLoad = selectedGoal.dailyLoad ?? pace.chaptersPerDay;
+      savePlan({
+        startBook: book,
+        startChapter: chapter,
+        // A habit bundle is Psalm + Proverb + NT = 3 chapters; never round to 0.
+        chaptersPerDay: Math.max(1, Math.round(dailyLoad || (selectedGoal.type === "habit" ? 3 : 1))),
+        startDate: new Date().toISOString().slice(0, 10),
+        createdAt: new Date().toISOString(),
+      });
 
       router.push("/today");
     } catch (e: unknown) {

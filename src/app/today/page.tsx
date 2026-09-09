@@ -146,7 +146,9 @@ function streakMessage(streak: number): string {
   if (streak >= 30) return "30 days strong — this is a habit.";
   if (streak >= 14) return "Two weeks in a row!";
   if (streak >= 7) return "One full week!";
-  if (streak >= 3) return "3 days and counting.";
+  // Was a hardcoded "3 days and counting." for every streak of 3+, so a 4-day
+  // streak read "3 days and counting." right next to a "4 day streak" badge.
+  if (streak >= 3) return `${streak} days and counting.`;
   if (streak >= 1) return "Great start — keep going!";
   return "Start your streak today.";
 }

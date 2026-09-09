@@ -152,6 +152,50 @@ async function pushPlanToSupabase(
   if (error) console.error("[reading-store] plan sync failed:", error.message);
 }
 
+/**
+ * Pull the plan back down from profiles when this browser has none.
+ *
+ * pushPlanToSupabase has always been push-only: step 5 of syncProgress() sends
+ * the local plan up, and nothing ever brought one down. Reading *progress* merges
+ * in both directions, the plan never did. Consequence: sign in anywhere with a
+ * fresh localStorage — a second browser, or the iOS app, which is a Capacitor
+ * WKWebView with its own storage — and you get "No Reading Plan Yet" while your
+ * plan sits in Supabase. The App Store description promises "Progress sync across
+ * devices", so this was a broken promise on the shipped build.
+ *
+ * Deliberately one-way-if-absent: a local plan is never overwritten by the remote
+ * copy, because local is the one the reader last touched.
+ */
+async function pullPlanFromSupabase(userId: string): Promise<SavedPlan | null> {
+  if (localGetPlan()) return null; // never clobber a plan this device already has
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("plan_id, plan_start_date, chapters_per_day")
+    .eq("id", userId)
+    .single();
+  if (error || !data?.plan_id || !data.plan_start_date || !data.chapters_per_day) return null;
+
+  // plan_id is "<startBook>-<startChapter>"; book names contain spaces and digits
+  // ("1 Samuel"), so split on the LAST hyphen, not the first.
+  const idx = String(data.plan_id).lastIndexOf("-");
+  if (idx <= 0) return null;
+  const startBook = String(data.plan_id).slice(0, idx);
+  const startChapter = Number(String(data.plan_id).slice(idx + 1));
+  if (!startBook || !Number.isFinite(startChapter) || startChapter < 1) return null;
+
+  const restored: SavedPlan = {
+    startBook,
+    startChapter,
+    chaptersPerDay: Number(data.chapters_per_day),
+    startDate: String(data.plan_start_date),
+    createdAt: new Date().toISOString(),
+    paceVersion: 2, // came from a v2 writer; do not re-apply the legacy conversion
+  };
+  localSavePlan(restored);
+  return restored;
+}
+
 // ─── Public API ──────────────────────────────────────────────────
 
 export function savePlan(plan: SavedPlan): void {
@@ -270,7 +314,9 @@ async function _syncProgress(): Promise<void> {
     await pushProgressToSupabase(user.id, localOnly);
   }
 
-  // 5. Sync plan to Supabase profile if local plan exists
+  // 5. Plan, both directions. Pull first so a fresh device inherits the plan it
+  //     already has on the account; push only what this device actually holds.
+  await pullPlanFromSupabase(user.id);
   const plan = localGetPlan();
   if (plan) {
     await pushPlanToSupabase(user.id, plan);
