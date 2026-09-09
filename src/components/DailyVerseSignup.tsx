@@ -15,7 +15,7 @@ const GOLD = "#C9962E";
 const GOLD_HOVER = "#B5841F";
 const CARD = "#FFFDF8";
 const BAND = "#F2E9D6";
-const SERIF = "'Lora', serif";
+const SERIF = "var(--font-serif)";
 
 export default function DailyVerseSignup() {
   const [email, setEmail] = useState("");

@@ -62,25 +62,43 @@ export default function NavBar() {
               boxShadow: "0 0 0 4px rgba(201,150,46,0.14)",
             }}
           />
-          <span className="text-xl font-semibold" style={{ fontFamily: "'Lora', serif", color: "#221C14", letterSpacing: "-0.01em" }}>
+          <span className="text-xl font-semibold" style={{ fontFamily: "var(--font-serif)", color: "#221C14", letterSpacing: "-0.01em" }}>
             BibleHabit
           </span>
         </a>
         <div className="flex items-center gap-4">
-          <a
-            href="https://www.amazon.com/s?k=study+bible&tag=hookedtobooks-20"
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            className="hidden sm:inline-flex items-center gap-1 text-xs font-medium rounded-full px-3 py-1.5 transition"
-            style={{ color: "#5C5142", border: "1px solid rgba(34,28,20,0.14)" }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#C9962E"; e.currentTarget.style.color = "#8A6A1E" }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(34,28,20,0.14)"; e.currentTarget.style.color = "#5C5142" }}
-          >
-            <span>📖</span> Get a Physical Bible
-          </a>
-          <a href="/pricing" className="hidden sm:inline text-sm font-medium transition" style={{ color: "#5A4F3F" }}>
-            Pricing
-          </a>
+          {/* Design handoff: four in-page anchors, hidden below 820px (no hamburger
+              was designed — mobile relies on scrolling the single page). */}
+          <div className="bh-nav-links flex items-center" style={{ gap: "clamp(14px, 2.6vw, 32px)" }}>
+            {[
+              ["How it works", "/#how"],
+              ["Goals", "/#goals"],
+              ["Gentle by design", "/#gentle"],
+              ["Pricing", "/#pricing"],
+            ].map(([label, href]) => (
+              <a
+                key={label}
+                href={href}
+                className="transition whitespace-nowrap"
+                style={{ fontSize: 15, fontWeight: 500, color: "#5C5142" }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "#8A6A1E" }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "#5C5142" }}
+              >
+                {label}
+              </a>
+            ))}
+          </div>
+          {!loading && !user && (
+            <a
+              href="/welcome"
+              className="transition whitespace-nowrap"
+              style={{ background: "#C9962E", color: "#221C14", fontSize: 15, fontWeight: 600, padding: "10px 18px", borderRadius: 999, boxShadow: "0 2px 10px rgba(201,150,46,0.32)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "#B9861F" }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "#C9962E" }}
+            >
+              Start free
+            </a>
+          )}
           {!loading && user && (
             <a href="/today" className="hidden sm:inline text-sm font-medium transition" style={{ color: "#5A4F3F" }}>
               Today

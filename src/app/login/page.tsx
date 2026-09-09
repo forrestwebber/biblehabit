@@ -220,7 +220,7 @@ function LoginContent() {
                 boxShadow: "0 0 0 4px rgba(201,150,46,0.14)",
               }}
             />
-            <span className="text-2xl font-semibold" style={{ fontFamily: "'Lora', serif", color: "#221C14", letterSpacing: "-0.01em" }}>BibleHabit</span>
+            <span className="text-2xl font-semibold" style={{ fontFamily: "var(--font-serif)", color: "#221C14", letterSpacing: "-0.01em" }}>BibleHabit</span>
           </a>
           <p className="mt-2" style={{ color: "#5C5142" }}>
             {mode === "signup" ? "Start your daily reading journey — free forever" : "Welcome back"}

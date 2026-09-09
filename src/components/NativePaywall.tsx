@@ -24,7 +24,7 @@ const META = "#8A7F6E";
 const GOLD = "#C9962E";
 const CARD = "#FFFDF8";
 const TILE = "#FBF4E4";
-const SERIF = "'Lora', serif";
+const SERIF = "var(--font-serif)";
 
 /** App Store product ids — LOAD-BEARING. Must match App Store Connect exactly
  *  or StoreKit returns an empty list and the paywall shows the "unavailable"

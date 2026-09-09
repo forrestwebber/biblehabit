@@ -1,5 +1,24 @@
 import type { Metadata, Viewport } from "next";
+import { Lora, Public_Sans } from "next/font/google";
 import "./globals.css";
+
+// The whole site has always styled with fontFamily: "var(--font-serif)" but nothing ever
+// loaded Lora — every heading has been rendering in the system serif fallback.
+// next/font self-hosts both faces, which is what the design handoff asks for.
+const lora = Lora({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-lora",
+  display: "swap",
+});
+
+const publicSans = Public_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-public-sans",
+  display: "swap",
+});
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import ChatWidget from "@/components/ChatWidget";
 import MobileTabBar from "@/components/MobileTabBar";
@@ -38,7 +57,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${lora.variable} ${publicSans.variable}`}>
       <body>
         <GoogleAnalytics gaId="G-X1P8GGT5RP" />
         <AppleEntitlementSync />

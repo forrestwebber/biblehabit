@@ -16,7 +16,7 @@ const GOLD_HOVER = "#B5841F";
 const CARD = "#FFFDF8";
 const TILE = "#FBF4E4";
 const PARCHMENT = "#F7F2E8";
-const SERIF = "'Lora', serif";
+const SERIF = "var(--font-serif)";
 
 const FREE_FEATURES = [
   "Unlimited custom reading plans",

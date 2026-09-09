@@ -25,6 +25,24 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Design handoff typography: Lora (serif voice) + Public Sans (UI voice).
+   Loaded and self-hosted by next/font in layout.tsx; these vars are what the
+   inline fontFamily strings across the app resolve to. */
+:root {
+  --font-serif: var(--font-lora), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-public-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: #C9962E;
+  color: #F7F2E8;
+}
+
+
 /* Native-app bottom tab bar. Padding is declared in the stylesheet (not inline)
    so the iOS home-indicator safe-area inset resolves reliably in WKWebView. The
    component measures this element's height and reserves matching body padding so
@@ -222,4 +240,30 @@ body {
   margin-right: auto;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Marketing page grids. The design handoff specifies ONE breakpoint at 820px:
+   above it the multi-column grids hold, below it everything collapses to a
+   single column and the hero's pacing card moves ABOVE the copy so mobile
+   visitors see the product artifact first.
+   --------------------------------------------------------------------------- */
+.bh-hero-grid { grid-template-columns: 1.02fr 0.98fr; }
+.bh-grid-2 { grid-template-columns: 1fr 1fr; }
+.bh-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.bh-footer-grid { grid-template-columns: 1.4fr 1fr; }
+
+@media (max-width: 820px) {
+  .bh-hero-grid,
+  .bh-grid-2,
+  .bh-grid-3,
+  .bh-footer-grid { grid-template-columns: 1fr; }
+  .bh-hero-card { order: -1; }
+  .bh-nav-links { display: none !important; }
+}
+
+/* Anchor targets sit under the sticky header without it, so in-page nav clicks
+   would land with the section heading hidden behind the nav. */
+#top, #ios-app, #verse, #how, #goals, #gentle, #pricing {
+  scroll-margin-top: 84px;
 }

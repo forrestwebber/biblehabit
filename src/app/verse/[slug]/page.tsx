@@ -10,7 +10,7 @@ const BODY = "#5C5142";
 const LINK = "#8A6A1E";
 const META = "#8A7F6E";
 const PARCHMENT = "#F7F2E8";
-const SERIF = "'Lora', serif";
+const SERIF = "var(--font-serif)";
 
 export function generateStaticParams() {
   return getAllVerseSlugs().map((slug) => ({ slug }));

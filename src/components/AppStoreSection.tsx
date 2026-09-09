@@ -12,7 +12,7 @@ const META = "#8A7F6E";
 const LINK = "#8A6A1E";
 const CARD = "#FFFDF8";
 const BAND = "linear-gradient(180deg, #F4ECDA 0%, #EDE1C9 100%)";
-const SERIF = "'Lora', serif";
+const SERIF = "var(--font-serif)";
 
 export const APP_STORE_URL =
   "https://apps.apple.com/us/app/bible-habit-app/id6761791015";

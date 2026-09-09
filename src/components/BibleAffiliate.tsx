@@ -38,7 +38,7 @@ export default function BibleAffiliate({
           <div>
             <div className="flex items-center gap-2 mb-1">
               <BookOpen className="h-5 w-5" style={{ color: "#C9962E" }} />
-              <h2 className="text-xl font-semibold" style={{ fontFamily: "'Lora', serif", color: "#221C14" }}>{heading}</h2>
+              <h2 className="text-xl font-semibold" style={{ fontFamily: "var(--font-serif)", color: "#221C14" }}>{heading}</h2>
             </div>
             <p className="text-sm" style={{ color: "#5C5142" }}>{subheading}</p>
           </div>
