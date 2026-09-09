@@ -57,10 +57,6 @@ import { hapticTap, hapticMedium, hapticSuccess } from "@/lib/haptics";
 // ─── Translations ────────────────────────────────────────────────
 const TRANSLATIONS = [
   { id: "kjv", label: "KJV", name: "King James", api: "bible-api" },
-  { id: "niv", label: "NIV", name: "New International", api: "bolls" },
-  { id: "esv", label: "ESV", name: "English Standard", api: "bolls" },
-  { id: "nkjv", label: "NKJV", name: "New King James", api: "bolls" },
-  { id: "nlt", label: "NLT", name: "New Living", api: "bolls" },
   { id: "web", label: "WEB", name: "World English", api: "bible-api" },
   { id: "asv", label: "ASV", name: "American Standard", api: "bible-api" },
   { id: "bbe", label: "BBE", name: "Basic English", api: "bible-api" },
@@ -70,6 +66,9 @@ const TRANSLATIONS = [
 // license for them — they stay in the picker for readers who choose them, but we do
 // not serve copyrighted text to a reader who never picked one.
 const DEFAULT_TRANSLATION = "kjv";
+// Readers who chose a licensed translation before 2026-09-09 have that id in
+// localStorage. It no longer exists in TRANSLATIONS; resolve it to the default.
+const RETIRED_TRANSLATIONS = new Set(["niv", "esv", "nkjv", "nlt"]);
 const TRANSLATION_STORAGE_KEY = "biblehabit_translation";
 
 // bolls.life uses book numbers 1-66
@@ -91,7 +90,7 @@ const BOOK_NUMBER: Record<string, number> = {
 
 function getSavedTranslation(): string {
   if (typeof window === "undefined") return DEFAULT_TRANSLATION;
-  return localStorage.getItem(TRANSLATION_STORAGE_KEY) ?? DEFAULT_TRANSLATION;
+  return ((v) => (v && RETIRED_TRANSLATIONS.has(v) ? DEFAULT_TRANSLATION : v))(localStorage.getItem(TRANSLATION_STORAGE_KEY)) ?? DEFAULT_TRANSLATION;
 }
 
 async function fetchChapterText(

@@ -38,10 +38,6 @@ import {
 
 const TRANSLATIONS = [
   { id: "kjv", label: "KJV — King James" },
-  { id: "niv", label: "NIV — New International" },
-  { id: "esv", label: "ESV — English Standard" },
-  { id: "nkjv", label: "NKJV — New King James" },
-  { id: "nlt", label: "NLT — New Living" },
   { id: "web", label: "WEB — World English" },
   { id: "asv", label: "ASV — American Standard" },
   { id: "bbe", label: "BBE — Basic English" },
@@ -333,7 +329,7 @@ export default function PlansPage() {
                     <option key={t.id} value={t.id}>{t.label}</option>
                   ))}
                 </select>
-                <p className="text-xs text-[#8A7F6E] mt-1">8 translations available — switch anytime while reading.</p>
+                <p className="text-xs text-[#8A7F6E] mt-1">4 public-domain translations — switch anytime while reading.</p>
               </div>
 
               {/* Starting Book */}
