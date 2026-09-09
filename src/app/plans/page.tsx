@@ -277,18 +277,18 @@ export default function PlansPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
+    <div className="min-h-screen bg-[#F7F2E8] text-[#221C14]">
       <NavBar />
 
       {/* Sign-in nudge — shown after anonymous user starts a plan */}
       {!user && planSaved && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 mx-6 mt-4 flex items-start gap-3 max-w-4xl mx-auto">
-          <span className="text-amber-500 text-xl">⚠️</span>
+        <div className="bg-[#F1F3EC] border border-[#DCE3CE] rounded-xl p-4 mb-4 mx-6 mt-4 flex items-start gap-3 max-w-4xl mx-auto">
+          <span className="text-[#C9962E] text-xl">⚠️</span>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-amber-900">Sign in to save your progress</p>
-            <p className="text-xs text-amber-700 mt-0.5">Your reading plan will be lost when you close the browser unless you sign in.</p>
+            <p className="text-sm font-semibold text-[#3A2A0C]">Sign in to save your progress</p>
+            <p className="text-xs text-[#6E4E12] mt-0.5">Your reading plan will be lost when you close the browser unless you sign in.</p>
           </div>
-          <a href="/login?mode=signin" className="bg-amber-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-amber-600 transition flex-shrink-0">
+          <a href="/login?mode=signin" className="bg-[#F1F3EC]0 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-amber-600 transition flex-shrink-0">
             Sign In
           </a>
         </div>
@@ -296,26 +296,26 @@ export default function PlansPage() {
 
       {/* Hero */}
       <section className="text-center py-12 px-6 max-w-3xl mx-auto">
-        <span className="text-xs text-violet-600 font-semibold bg-violet-50 px-3 py-1 rounded-full">
+        <span className="text-xs text-[#8A6A1E] font-semibold bg-[#FBF4E4] px-3 py-1 rounded-full">
           100% Free Forever
         </span>
-        <h1 className="text-4xl font-bold text-slate-900 mt-6 mb-4">
+        <h1 className="text-4xl font-semibold text-[#221C14] mt-6 mb-4" style={{ fontFamily: "var(--font-serif)", letterSpacing: "-0.015em" }}>
           Build Your Reading Plan
         </h1>
-        <p className="text-lg text-slate-500">
+        <p className="text-lg text-[#5C5142]">
           Know exactly how long before you start reading. Pick your range, choose your pace, and see your finish date.
         </p>
       </section>
 
       {/* Calculator */}
       <section className="pb-8 px-6 max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-sm border border-violet-100 overflow-hidden">
-          <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-violet-100">
+        <div className="bg-[#FFFDF8] rounded-2xl shadow-sm border border-[#EFE3C8] overflow-hidden">
+          <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#EFE3C8]">
             {/* Left: Inputs */}
             <div className="p-8 space-y-6">
               {/* Translation selector */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label className="block text-sm font-semibold text-[#3A3226] mb-2">
                   Preferred Translation
                 </label>
                 <select
@@ -327,25 +327,25 @@ export default function PlansPage() {
                       localStorage.setItem("biblehabit_translation", e.target.value);
                     }
                   }}
-                  className="w-full px-4 py-3 border border-violet-200 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-violet-500 focus:outline-none"
+                  className="w-full px-4 py-3 border border-[#E3D6B9] rounded-lg bg-[#FFFDF8] text-[#221C14] focus:ring-2 focus:ring-[#C9962E] focus:outline-none"
                 >
                   {TRANSLATIONS.map((t) => (
                     <option key={t.id} value={t.id}>{t.label}</option>
                   ))}
                 </select>
-                <p className="text-xs text-slate-400 mt-1">8 translations available — switch anytime while reading.</p>
+                <p className="text-xs text-[#8A7F6E] mt-1">8 translations available — switch anytime while reading.</p>
               </div>
 
               {/* Starting Book */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  <BookOpen className="inline h-4 w-4 mr-1 text-violet-500" />
+                <label className="block text-sm font-semibold text-[#3A3226] mb-2">
+                  <BookOpen className="inline h-4 w-4 mr-1 text-[#C9962E]" />
                   Starting Book
                 </label>
                 <select
                   value={startBook}
                   onChange={(e) => setStartBook(e.target.value)}
-                  className="w-full px-4 py-3 border border-violet-200 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-violet-500 focus:outline-none"
+                  className="w-full px-4 py-3 border border-[#E3D6B9] rounded-lg bg-[#FFFDF8] text-[#221C14] focus:ring-2 focus:ring-[#C9962E] focus:outline-none"
                 >
                   {BIBLE_BOOKS.map((b) => (
                     <option key={b.name} value={b.name}>
@@ -357,14 +357,14 @@ export default function PlansPage() {
 
               {/* Ending Book */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  <BookOpen className="inline h-4 w-4 mr-1 text-violet-500" />
+                <label className="block text-sm font-semibold text-[#3A3226] mb-2">
+                  <BookOpen className="inline h-4 w-4 mr-1 text-[#C9962E]" />
                   Ending Book
                 </label>
                 <select
                   value={endBook}
                   onChange={(e) => setEndBook(e.target.value)}
-                  className="w-full px-4 py-3 border border-violet-200 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-violet-500 focus:outline-none"
+                  className="w-full px-4 py-3 border border-[#E3D6B9] rounded-lg bg-[#FFFDF8] text-[#221C14] focus:ring-2 focus:ring-[#C9962E] focus:outline-none"
                 >
                   {BIBLE_BOOKS.map((b) => (
                     <option key={b.name} value={b.name}>
@@ -376,8 +376,8 @@ export default function PlansPage() {
 
               {/* Daily Reading Time */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  <Clock className="inline h-4 w-4 mr-1 text-violet-500" />
+                <label className="block text-sm font-semibold text-[#3A3226] mb-2">
+                  <Clock className="inline h-4 w-4 mr-1 text-[#C9962E]" />
                   Daily Reading Time
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -387,11 +387,11 @@ export default function PlansPage() {
                       onClick={() => setSelectedTime(t.minutes)}
                       className={`py-3 px-2 border-2 rounded-lg text-center transition text-sm ${
                         selectedTime === t.minutes
-                          ? "border-violet-500 bg-violet-50"
-                          : "border-violet-200 hover:border-violet-300"
+                          ? "border-[#C9962E] bg-[#FBF4E4]"
+                          : "border-[#E3D6B9] hover:border-[#E0D2AF]"
                       }`}
                     >
-                      <p className={`font-bold ${selectedTime === t.minutes ? "text-violet-700" : "text-slate-900"}`}>
+                      <p className={`font-bold ${selectedTime === t.minutes ? "text-[#8A6A1E]" : "text-[#221C14]"}`}>
                         {t.label}
                       </p>
                     </button>
@@ -401,7 +401,7 @@ export default function PlansPage() {
 
               {/* Start date */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label className="block text-sm font-semibold text-[#3A3226] mb-2">
                   Start Date
                 </label>
                 <input
@@ -412,14 +412,14 @@ export default function PlansPage() {
                     const [y, m] = e.target.value.split("-").map(Number);
                     setCalendarMonth(new Date(y, m - 1, 1));
                   }}
-                  className="w-full px-4 py-3 border border-violet-200 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-violet-500 focus:outline-none"
+                  className="w-full px-4 py-3 border border-[#E3D6B9] rounded-lg bg-[#FFFDF8] text-[#221C14] focus:ring-2 focus:ring-[#C9962E] focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Right: Preview */}
-            <div className="p-8 bg-violet-50/50">
-              <h3 className="font-bold text-violet-700 text-sm uppercase tracking-wide mb-6 flex items-center gap-2">
+            <div className="p-8 bg-[#FBF4E4]">
+              <h3 className="font-bold text-[#8A6A1E] text-sm uppercase tracking-wide mb-6 flex items-center gap-2">
                 <Calendar className="h-4 w-4" /> Your Plan Preview
               </h3>
 
@@ -433,8 +433,8 @@ export default function PlansPage() {
               ) : (
                 <>
                   {/* Summary one-liner */}
-                  <div className="bg-violet-100 rounded-xl p-5 mb-6 text-center">
-                    <p className="text-violet-900 font-bold text-lg leading-snug">
+                  <div className="bg-[#F6ECD3] rounded-xl p-5 mb-6 text-center">
+                    <p className="text-[#3A2A0C] font-bold text-lg leading-snug">
                       Read {rangeResult.totalChapters} chapters in {rangeResult.totalDays} days, finishing{" "}
                       {formatDateNice(rangeResult.endDate)}
                     </p>
@@ -442,48 +442,48 @@ export default function PlansPage() {
 
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-sm">Translation</span>
-                      <span className="font-semibold text-slate-900">{TRANSLATIONS.find(t => t.id === selectedTranslation)?.label.split(" — ")[0] ?? selectedTranslation.toUpperCase()}</span>
+                      <span className="text-[#5C5142] text-sm">Translation</span>
+                      <span className="font-semibold text-[#221C14]">{TRANSLATIONS.find(t => t.id === selectedTranslation)?.label.split(" — ")[0] ?? selectedTranslation.toUpperCase()}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-sm">Range</span>
-                      <span className="font-semibold text-slate-900">{startBook} → {endBook}</span>
+                      <span className="text-[#5C5142] text-sm">Range</span>
+                      <span className="font-semibold text-[#221C14]">{startBook} → {endBook}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-sm">Start date</span>
-                      <span className="font-semibold text-slate-900">
+                      <span className="text-[#5C5142] text-sm">Start date</span>
+                      <span className="font-semibold text-[#221C14]">
                         {parsedStartDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-sm">Total chapters</span>
-                      <span className="font-semibold text-slate-900">{rangeResult.totalChapters}</span>
+                      <span className="text-[#5C5142] text-sm">Total chapters</span>
+                      <span className="font-semibold text-[#221C14]">{rangeResult.totalChapters}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-sm">Chapters per day</span>
-                      <span className="font-semibold text-slate-900">~{rangeResult.chaptersPerDay}</span>
+                      <span className="text-[#5C5142] text-sm">Chapters per day</span>
+                      <span className="font-semibold text-[#221C14]">~{rangeResult.chaptersPerDay}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-sm">Reading time</span>
-                      <span className="font-semibold text-slate-900">{selectedTime} min/day</span>
+                      <span className="text-[#5C5142] text-sm">Reading time</span>
+                      <span className="font-semibold text-[#221C14]">{selectedTime} min/day</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-sm">Total days</span>
-                      <span className="font-semibold text-slate-900">{rangeResult.totalDays}</span>
+                      <span className="text-[#5C5142] text-sm">Total days</span>
+                      <span className="font-semibold text-[#221C14]">{rangeResult.totalDays}</span>
                     </div>
 
-                    <hr className="border-violet-200" />
+                    <hr className="border-[#E3D6B9]" />
 
                     {milestones.slice(0, 3).map((m) => (
                       <div key={m.book} className="flex justify-between items-center">
-                        <span className="text-slate-500 text-sm">By {m.date.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
-                        <span className="font-medium text-slate-700">{m.label}</span>
+                        <span className="text-[#5C5142] text-sm">By {m.date.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
+                        <span className="font-medium text-[#3A3226]">{m.label}</span>
                       </div>
                     ))}
 
-                    <div className="flex justify-between items-center bg-white -mx-2 px-3 py-2 rounded-lg">
-                      <span className="text-violet-600 text-sm font-semibold">Finish by</span>
-                      <span className="font-bold text-violet-700">
+                    <div className="flex justify-between items-center bg-[#FFFDF8] -mx-2 px-3 py-2 rounded-lg">
+                      <span className="text-[#8A6A1E] text-sm font-semibold">Finish by</span>
+                      <span className="font-bold text-[#8A6A1E]">
                         {formatDateNice(rangeResult.endDate)} &#10003;
                       </span>
                     </div>
@@ -492,14 +492,14 @@ export default function PlansPage() {
                   {/* First week preview */}
                   {plan && (
                     <div className="mb-6">
-                      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                      <h4 className="text-xs font-semibold text-[#5C5142] uppercase tracking-wide mb-3">
                         Your first week
                       </h4>
                       <div className="space-y-1.5">
                         {plan.dailyReadings.map((r, i) => (
-                          <div key={i} className="flex items-center gap-2 text-sm bg-white px-3 py-2 rounded-lg">
-                            <span className="text-violet-400 font-mono text-xs w-12">Day {i + 1}</span>
-                            <span className="text-slate-700">{r.book} {r.chapters}</span>
+                          <div key={i} className="flex items-center gap-2 text-sm bg-[#FFFDF8] px-3 py-2 rounded-lg">
+                            <span className="text-[#C9962E] font-mono text-xs w-12">Day {i + 1}</span>
+                            <span className="text-[#3A3226]">{r.book} {r.chapters}</span>
                           </div>
                         ))}
                       </div>
@@ -512,7 +512,7 @@ export default function PlansPage() {
                     className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold transition ${
                       planSaved
                         ? "bg-green-600 text-white"
-                        : "bg-violet-700 text-white hover:bg-violet-800"
+                        : "bg-[#C9962E] text-[#221C14] hover:bg-[#B9861F]"
                     }`}
                   >
                     {planSaved ? (
@@ -535,28 +535,28 @@ export default function PlansPage() {
       {/* Export Options — only show when no error */}
       {!hasError && (
         <section className="pb-8 px-6 max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-sm border border-violet-100 p-6">
-            <h3 className="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
-              <Download className="h-5 w-5 text-violet-600" /> Export Your Plan
+          <div className="bg-[#FFFDF8] rounded-2xl shadow-sm border border-[#EFE3C8] p-6">
+            <h3 className="font-bold text-[#221C14] text-lg mb-4 flex items-center gap-2">
+              <Download className="h-5 w-5 text-[#8A6A1E]" /> Export Your Plan
             </h3>
             <div className="grid sm:grid-cols-3 gap-3">
               <button
                 onClick={handleDownloadICS}
-                className="flex items-center justify-center gap-2 py-3 px-4 bg-violet-50 hover:bg-violet-100 text-violet-700 rounded-xl font-semibold transition border border-violet-200"
+                className="flex items-center justify-center gap-2 py-3 px-4 bg-[#FBF4E4] hover:bg-[#F6ECD3] text-[#8A6A1E] rounded-xl font-semibold transition border border-[#E3D6B9]"
               >
                 <CalendarDays className="h-4 w-4" />
                 Download .ics
               </button>
               <button
                 onClick={handleDownloadText}
-                className="flex items-center justify-center gap-2 py-3 px-4 bg-violet-50 hover:bg-violet-100 text-violet-700 rounded-xl font-semibold transition border border-violet-200"
+                className="flex items-center justify-center gap-2 py-3 px-4 bg-[#FBF4E4] hover:bg-[#F6ECD3] text-[#8A6A1E] rounded-xl font-semibold transition border border-[#E3D6B9]"
               >
                 <FileText className="h-4 w-4" />
                 Download .txt
               </button>
               <button
                 onClick={handleCopyText}
-                className="flex items-center justify-center gap-2 py-3 px-4 bg-violet-50 hover:bg-violet-100 text-violet-700 rounded-xl font-semibold transition border border-violet-200"
+                className="flex items-center justify-center gap-2 py-3 px-4 bg-[#FBF4E4] hover:bg-[#F6ECD3] text-[#8A6A1E] rounded-xl font-semibold transition border border-[#E3D6B9]"
               >
                 {copied ? (
                   <>
@@ -571,7 +571,7 @@ export default function PlansPage() {
                 )}
               </button>
             </div>
-            <p className="text-xs text-slate-400 mt-3 text-center">
+            <p className="text-xs text-[#8A7F6E] mt-3 text-center">
               .ics works with Google Calendar, Apple Calendar, and Outlook
             </p>
           </div>
@@ -588,7 +588,7 @@ export default function PlansPage() {
                 setCalendarMonth(parsedStartDate);
               }
             }}
-            className="inline-flex items-center gap-2 py-2.5 px-6 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition"
+            className="inline-flex items-center gap-2 py-2.5 px-6 bg-[#C9962E] text-white rounded-xl font-semibold hover:bg-[#B9861F] transition"
           >
             <Calendar className="h-4 w-4" />
             {showCalendar ? "Hide Calendar View" : "View Full Calendar"}
@@ -599,28 +599,28 @@ export default function PlansPage() {
       {/* Calendar View */}
       {showCalendar && !hasError && (
         <section className="pb-16 px-6 max-w-5xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-sm border border-violet-100 p-6">
+          <div className="bg-[#FFFDF8] rounded-2xl shadow-sm border border-[#EFE3C8] p-6">
             <div className="flex items-center justify-between mb-6">
               <button
                 onClick={prevMonth}
-                className="p-2 hover:bg-slate-100 rounded-lg transition"
+                className="p-2 hover:bg-[#F2E9D6] rounded-lg transition"
               >
-                <ChevronLeft className="h-5 w-5 text-slate-600" />
+                <ChevronLeft className="h-5 w-5 text-[#5C5142]" />
               </button>
-              <h3 className="text-xl font-bold text-slate-900" suppressHydrationWarning>
+              <h3 className="text-xl font-bold text-[#221C14]" suppressHydrationWarning>
                 {calendarMonth ? formatMonthYear(calendarMonth) : ""}
               </h3>
               <button
                 onClick={nextMonth}
-                className="p-2 hover:bg-slate-100 rounded-lg transition"
+                className="p-2 hover:bg-[#F2E9D6] rounded-lg transition"
               >
-                <ChevronRight className="h-5 w-5 text-slate-600" />
+                <ChevronRight className="h-5 w-5 text-[#5C5142]" />
               </button>
             </div>
 
             <div className="grid grid-cols-7 gap-1 mb-2">
               {DAY_NAMES.map((d) => (
-                <div key={d} className="text-center text-xs font-semibold text-slate-400 py-2">
+                <div key={d} className="text-center text-xs font-semibold text-[#8A7F6E] py-2">
                   {d}
                 </div>
               ))}
@@ -642,12 +642,12 @@ export default function PlansPage() {
                     key={idx}
                     className={`aspect-square p-1 rounded-lg border transition ${
                       hasReading
-                        ? "border-violet-100 hover:border-violet-300 hover:shadow-sm"
+                        ? "border-[#EFE3C8] hover:border-[#E0D2AF] hover:shadow-sm"
                         : "border-transparent"
                     }`}
                   >
                     <div className="h-full flex flex-col">
-                      <span className={`text-xs font-medium ${hasReading ? "text-slate-900" : "text-slate-300"}`}>
+                      <span className={`text-xs font-medium ${hasReading ? "text-[#221C14]" : "text-[#C6BBA4]"}`}>
                         {dayNum}
                       </span>
                       {hasReading && (
@@ -677,8 +677,8 @@ export default function PlansPage() {
               })}
             </div>
 
-            <div className="mt-6 pt-4 border-t border-violet-100">
-              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+            <div className="mt-6 pt-4 border-t border-[#EFE3C8]">
+              <h4 className="text-xs font-semibold text-[#8A7F6E] uppercase tracking-wide mb-3">
                 Book Groups
               </h4>
               <div className="flex flex-wrap gap-3">
@@ -698,7 +698,7 @@ export default function PlansPage() {
                       className="w-3 h-3 rounded-sm"
                       style={{ backgroundColor: g.color }}
                     />
-                    <span className="text-xs text-slate-500">{g.label}</span>
+                    <span className="text-xs text-[#5C5142]">{g.label}</span>
                   </div>
                 ))}
               </div>
@@ -708,10 +708,10 @@ export default function PlansPage() {
       )}
 
       {/* Daily Devotionals Section */}
-      <section id="devotionals" className="bg-violet-50 border-t border-violet-100 px-4 py-10">
+      <section id="devotionals" className="bg-[#FBF4E4] border-t border-[#EFE3C8] px-4 py-10">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-xl font-bold text-slate-900 mb-1">Add Daily Devotionals</h2>
-          <p className="text-sm text-slate-500 mb-6">
+          <h2 className="text-xl font-bold text-[#221C14] mb-1">Add Daily Devotionals</h2>
+          <p className="text-sm text-[#5C5142] mb-6">
             Stack short daily readings alongside your main plan. Each takes ~5 minutes.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -721,20 +721,20 @@ export default function PlansPage() {
               return (
                 <div
                   key={preset.id}
-                  className={`bg-white rounded-2xl border p-5 flex flex-col gap-3 transition ${
-                    isActive ? "border-violet-300" : "border-slate-200"
+                  className={`bg-[#FFFDF8] rounded-2xl border p-5 flex flex-col gap-3 transition ${
+                    isActive ? "border-[#E0D2AF]" : "border-[#E3D6B9]"
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <span className="text-2xl">{preset.emoji}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-slate-900 text-sm">{preset.label}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{preset.desc}</p>
+                      <p className="font-bold text-[#221C14] text-sm">{preset.label}</p>
+                      <p className="text-xs text-[#5C5142] mt-0.5">{preset.desc}</p>
                     </div>
                   </div>
                   {isActive ? (
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-violet-600 font-semibold flex items-center gap-1">
+                      <span className="text-xs text-[#8A6A1E] font-semibold flex items-center gap-1">
                         <CheckCircle className="h-3.5 w-3.5" /> Active
                       </span>
                       <button
@@ -746,7 +746,7 @@ export default function PlansPage() {
                             setActiveSubPlans(prev => prev.filter(b => b !== preset.book));
                           }
                         }}
-                        className="text-xs text-slate-400 hover:text-red-500 transition"
+                        className="text-xs text-[#8A7F6E] hover:text-red-500 transition"
                       >
                         Remove
                       </button>
@@ -765,7 +765,7 @@ export default function PlansPage() {
                         setAddedPreset(preset.id);
                         setTimeout(() => setAddedPreset(null), 2000);
                       }}
-                      className="w-full bg-violet-700 text-white text-sm font-semibold py-2 rounded-xl hover:bg-violet-800 active:scale-95 transition-all"
+                      className="w-full bg-[#C9962E] text-[#221C14] text-sm font-semibold py-2 rounded-xl hover:bg-[#B9861F] active:scale-95 transition-all"
                     >
                       {justAdded ? "Added! ✓" : `Add ${preset.label}`}
                     </button>
@@ -775,8 +775,8 @@ export default function PlansPage() {
             })}
           </div>
           {activeSubPlans.length > 0 && (
-            <p className="text-center text-xs text-slate-400 mt-5">
-              Your devotionals appear on the <a href="/today" className="text-violet-600 underline">Today</a> page alongside your main reading.
+            <p className="text-center text-xs text-[#8A7F6E] mt-5">
+              Your devotionals appear on the <a href="/today" className="text-[#8A6A1E] underline">Today</a> page alongside your main reading.
             </p>
           )}
         </div>
@@ -790,14 +790,14 @@ export default function PlansPage() {
         variant="white"
       />
 
-      <footer className="bg-white border-t border-violet-100 py-8 px-6 text-center text-slate-400 text-sm">
+      <footer className="bg-[#FFFDF8] border-t border-[#EFE3C8] py-8 px-6 text-center text-[#8A7F6E] text-sm">
         <p suppressHydrationWarning>
           &copy; {new Date().getFullYear()} BibleHabit, a division of HD Signals
           LLC. Scripture changes everything.
         </p>
         <div className="flex justify-center gap-4 mt-2 text-xs">
-          <a href="/privacy" className="hover:text-slate-600 transition">Privacy Policy</a>
-          <a href="/terms" className="hover:text-slate-600 transition">Terms of Service</a>
+          <a href="/privacy" className="hover:text-[#5C5142] transition">Privacy Policy</a>
+          <a href="/terms" className="hover:text-[#5C5142] transition">Terms of Service</a>
         </div>
       </footer>
     </div>
